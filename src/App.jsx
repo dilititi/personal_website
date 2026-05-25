@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react'
 import { LangProvider } from './lang'
+import { NowPlayingProvider } from './np-context'
 import { useReveal } from './hooks'
 import NavShell from './components/NavShell'
 import Landing from './components/Landing'
@@ -50,7 +51,9 @@ function AppInner() {
 export default function App() {
   return (
     <LangProvider>
-      <AppInner />
+      <NowPlayingProvider>
+        <AppInner />
+      </NowPlayingProvider>
     </LangProvider>
   )
 }

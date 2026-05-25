@@ -14,10 +14,10 @@ export default function Landing({ onJump }) {
       <div className="mh-content">
         <div className="mh-name">
           <div className="mh-name-l">
-            {lang === 'zh' ? '陈' : 'Chen'}
+            {lang === 'zh' ? '蜘蛛侠' : 'Across the'}
           </div>
           <div className="mh-name-r">
-            {lang === 'zh' ? <i>安</i> : <i>A.</i>}
+            {lang === 'zh' ? <i>纵横宇宙</i> : <i>  Spiderverse</i>}
           </div>
         </div>
 
@@ -25,16 +25,16 @@ export default function Landing({ onJump }) {
 
         <div className="mh-meta">
           <span className="mh-meta-c">
-            {lang === 'zh' ? '影视方向 · 学生导演' : 'FILM STUDENT · DIRECTOR'}
+            {lang === 'zh' ? '9 年级 · 蜘蛛侠' : 'Freshman · Spiderman'}
           </span>
           <span className="mh-meta-c">
-            {lang === 'zh' ? '传播学院 · 在读' : 'COMMUNICATION STUDIES'}
+            {lang === 'zh' ? '布鲁克林愿景学院· 在读' : 'Brooklyn Visions Academy'}
           </span>
           <a className="mh-meta-c link" href={`mailto:${SITE.email}`}>
             {lang === 'zh' ? '邮箱 ↗' : 'EMAIL ↗'}
           </a>
           <span className="mh-meta-c right">
-            {lang === 'zh' ? '杭州' : 'HANGZHOU'} {formatTime(now)}
+            {lang === 'zh' ? '纽约' : 'New York'} {formatTime(now)}
           </span>
         </div>
 
@@ -44,7 +44,7 @@ export default function Landing({ onJump }) {
               <span>{lang === 'zh' ? '关于' : 'About'}</span>
               <em>01</em>
             </button>
-            <span className="mh-word">{lang === 'zh' ? '电影' : 'Film'}</span>
+            <span className="mh-word">{lang === 'zh' ? ' 迈尔斯・莫拉莱斯' : 'Miles Morales'}</span>
             <button className="mh-pill pill-works" onClick={() => onJump('works')}>
               <span>{lang === 'zh' ? '作品' : 'Works'}</span>
               <em>02</em>
@@ -55,7 +55,7 @@ export default function Landing({ onJump }) {
 
           <div className="mh-row mh-row-mid">
             <span className="mh-word mh-word-full">
-              {lang === 'zh' ? '学生与导演' : 'Student & Director'}
+              {lang === 'zh' ? '蜘蛛侠' : 'Spider-Man'}
             </span>
           </div>
 

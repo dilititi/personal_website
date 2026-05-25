@@ -15,34 +15,36 @@ export const SITE = {
   name: L('Miles', '迈尔斯'),
   nameFull: L('Miles Morales', '迈尔斯·莫拉莱斯'),
   glyph: 'M',
+  portrait: '/picture/miles.jpg',
   tagline: L(
-    'High school student. Spider-Man. Trying to balance notebooks with web-slinging, graffiti with responsibility.',
-    '高中生。蜘蛛侠。在笔记本和蜘蛛丝之间、涂鸦与责任之间找平衡。'
+    'Brooklyn kid. Half Black, half Puerto Rican. Spider-Man. Trying to balance algebra homework with web-slinging, sketchbooks with responsibility.',
+    '布鲁克林的孩子。一半黑人血统，一半波多黎各血统。蜘蛛侠。在代数作业和蜘蛛丝之间、素描本和责任之间找平衡。'
   ),
+  portrait: '/miles.jpg',
   role: L(
-    'Student · Vigilante · Street Artist',
-    '学生・守夜人・街头艺术家'
+    'Student · Spider-Man · Sticker & Sketch Kid',
+    '学生・蜘蛛侠・贴纸涂鸦少年'
   ),
-  status: L('Protecting', '守护中'),
+  status: L('Patrolling', '巡逻中'),
   statusObject: L(
-    'Brooklyn — it\'s home',
-    '布鲁克林——我的家'
+    'Brooklyn — my block, my responsibility',
+    '布鲁克林——我的街区，我的责任'
   ),
   location: L('Brooklyn, New York', '美国纽约布鲁克林'),
   timezone: 'UTC-5',
-  email: 'miles@venom-protocol.net',
+  email: 'miles@bvacademy.edu',
   social: [
-    { label: L('Instagram', 'Instagram'), handle: '@miles.art', url: '#' },
-    { label: L('SoundCloud', 'SoundCloud'), handle: '@miles.beats', url: '#' },
+    { label: L('Instagram', 'Instagram'), handle: '@miles.sketch', url: '#' },
+    { label: L('Discord', 'Discord'), handle: 'ganke_and_miles', url: '#' },
     { label: L('Tumblr', 'Tumblr'), handle: '/spider-thoughts', url: '#' },
     { label: L('Spotify', 'Spotify'), handle: 'Miles Vibes', url: '#' },
-    { label: L('Email', '邮箱'), handle: 'miles@venom-protocol.net', url: 'mailto:miles@venom-protocol.net' },
+    { label: L('Email', '邮箱'), handle: 'miles@bvacademy.edu', url: 'mailto:miles@bvacademy.edu' },
   ],
   now: L(
-    'Midnight patrol. Finishing an essay on American identity. New mural going up on Wythe Ave this weekend. Still learning what it means to be the Friendly Neighbourhood Spider-Man when the neighbourhood is also your home.',
-    '午夜巡逻中。还有一篇关于美国身份认同的论文没交。周末在 Wythe 大街有新壁画要完成。仍在学着理解：当邻居也是你的家人时，做「友好邻居蜘蛛侠」意味着什么。'
+    "Midterms next week. Dad still thinks Spider-Man's a menace — if only he knew. Working on a new sticker design for the block. Ganke's covering for me again. Trying not to think too hard about Uncle Aaron.",
+    '下周期中考。爸爸还是觉得蜘蛛侠是个祸害——他要是知道就好了。在做一款新的街区贴纸。Ganke 又在帮我打掩护。努力不去想 Aaron 叔叔的事。'
   ),
-  nowDate: L('Fall 2024, Brooklyn', '2024 年秋天，布鲁克林'),
+  nowDate: L('Fall, Brooklyn', '秋天，布鲁克林'),
 }
 
 export const NAV = [
@@ -51,264 +53,279 @@ export const NAV = [
   { num: '02', id: 'journey',     label: L('Timeline', '时间线'),    en: L('journey',     '旅程') },
   { num: '03', id: 'works',       label: L('Missions', '任务'),      en: L('portfolio',   '作品集') },
   { num: '04', id: 'library',     label: L('Stacks',   '私藏'),      en: L('library',     '书影音') },
-  { num: '05', id: 'gallery',     label: L('Murals',   '壁画'),      en: L('gallery',     '艺术') },
+  { num: '05', id: 'gallery',     label: L('Stickers', '贴纸'),      en: L('gallery',     '艺术') },
   { num: '06', id: 'travel',      label: L('Universes', '宇宙'),     en: L('travel',      '宇宙') },
   { num: '07', id: 'contact',     label: L('Signal',   '联络'),      en: L('contact',     '联系') },
 ]
 
 export const ABOUT = {
   intro: L(
-    "I'm Miles — a sophomore at Brooklyn Visions Academy, part-time street artist, full-time Spider-Man. I came from this neighborhood, and I'm not leaving it. That means something.",
-    '我是迈尔斯——布鲁克林愿景学院二年级学生，兼职街头艺术家，全职蜘蛛侠。我来自这个街区，也不会离开。这意味着什么。'
+    "I'm Miles — I won a charter school lottery and ended up at Brooklyn Visions Academy. My mom Rio is a nurse, my dad Jefferson is a cop, and one of them is going to figure out I'm Spider-Man before this year is over.",
+    '我是迈尔斯——抽签抽中了 Brooklyn Visions Academy 特许学校。我妈妈 Rio 是护士，爸爸 Jefferson 是警察，他俩里总有一个会在这学年结束前发现我是蜘蛛侠。'
   ),
   paragraphs: [
     L(
-      'My dad is a cop. My mom is a surgeon. I\'m somewhere in between—trying to do the right thing without always knowing what that is. The Venom symbiote gave me powers, but it took my parents\' trust to teach me responsibility.',
-      '我爸爸是警察。我妈妈是外科医生。我在两者之间——努力做对的事，虽然不总是知道什么是对的。毒液共生体给了我力量，但我的父母的信任教会我责任。'
+      "I wasn't supposed to be Spider-Man. Peter Parker was. But a genetically-modified spider from Oscorp followed my Uncle Aaron home from a heist — he didn't know it, I didn't know it — and bit me on the hand while I was sitting on his couch. A week later, Peter died. The job needed someone.",
+      "我本来不该当蜘蛛侠。彼得·帕克才是蜘蛛侠。但一只从 Oscorp 实验室出来的基因改造蜘蛛，跟着我 Aaron 叔叔从一次入室盗窃后回了家——他不知道，我也不知道——我坐在他沙发上的时候，它咬了我的手。一周后，彼得死了。这份工作总得有人接。"
     ),
     L(
-      'The mural on my street—that was my first real art. Then I became Spider-Man, and the art had to fit around the web-slinging. But I haven\'t stopped. Every piece is about where I come from. Every patrol is about protecting it.',
-      '街上那幅壁画——那是我第一件真正的艺术作品。然后我成了蜘蛛侠，艺术要给蜘蛛丝让路。但我没有停止。每一件作品都讲述我的来处。每一次巡逻都是为了保护它。'
+      "My dad hates Spider-Man. Thinks vigilantes make the city worse. My mom thinks Spider-Man is cool. They argue about it at dinner. I sit there and eat my arroz con pollo and try not to laugh into my plate.",
+      '我爸爸讨厌蜘蛛侠。觉得自警分子让城市更糟。我妈妈觉得蜘蛛侠很酷。他们在饭桌上吵这个。我就坐在那里吃我妈做的鸡肉饭，努力不让自己笑喷到盘子里。'
     ),
     L(
-      'Some days I\'m just a kid with a sketchbook. Some days I\'m fighting off supervillains at 2 AM. Most days I\'m both, and nobody knows except Peter and the people who\'ve seen me drop from the sky.',
-      '有些日子我只是个拿着素描本的孩子。有些日子我在凌晨2点和超级反派搏斗。大多数日子我两者都是，只有彼得和看到我从天而降的人知道。'
+      "Only two people know who I am: Ganke Lee, my roommate at BVA, who figured it out in about forty seconds and now spends most of his time covering for me; and Peter — the other Peter, the older one, from another universe.Even though he's got stubble all over his face and a beer belly，but he's teaching me. Slowly. Patiently. He says I'll get there.",
+      "只有两个人知道我的身份：Ganke Lee，我在 BVA 的室友，他大概用了四十秒就猜到了，现在主要工作是替我打掩护；还有彼得——另一个彼得，更年长的那个(指616B彼得・B・帕克)，来自另一个宇宙。虽然他满脸胡茬、挺着啤酒肚，但他在教我。慢慢地，耐心地。他说我会成长起来的。"
     ),
   ],
   cv: {
     edu: [
-      { year: '2023 – present', title: L('Brooklyn Visions Academy', '布鲁克林愿景学院'), role: L('Sophomore · Debate Team · Art Club', '二年级学生・辩论队・艺术社'), place: L('Brooklyn', '布鲁克林') },
-      { year: '2020 – 2023', title: L('PS 371', '公立第 371 小学'), role: L('Early interest in murals · Tech class', '壁画启蒙・科技课'), place: L('Brooklyn', '布鲁克林') },
+      { year: 'Present', title: L('Brooklyn Visions Academy', 'Brooklyn Visions Academy'), role: L('Charter school lottery winner · Boarding student · Ganke is my roommate', '抽签进入的特许学校・寄宿生・Ganke 是我室友'), place: L('Brooklyn', '布鲁克林') },
+      { year: 'Before', title: L('PS 54, Brooklyn', '布鲁克林公立 54 小学'), role: L('Where I learned to draw on everything that wasn\'t paper.', '在这里学会了在一切非纸张的东西上画画。'), place: L('Brooklyn', '布鲁克林') },
     ],
     work: [
-      { year: '2024 – present', title: L('Street Artist · Commission Work', '街头艺术家・委托作品'), role: L('Murals across Williamsburg and Bushwick. Mostly untraceable.', '遍布威廉斯堡和布什威克的壁画。多数无法追踪。'), place: L('Brooklyn', '布鲁克林') },
-      { year: '2023 – present', title: L('Neighborhood Spider-Man', '邻居蜘蛛侠'), role: L('High-altitude crime prevention. Web design (literally).', '高空犯罪预防。网络设计（字面意思）。'), place: L('Brooklyn', '布鲁克林') },
-      { year: '2023', title: L('Intern, Oscorp (briefly)', '奥斯卡公司实习（短期）'), role: L('Got the symbiote here. Complicated internship.', '在这里得到共生体。很复杂的实习经历。'), place: L('Manhattan', '曼哈顿') },
+      { year: 'Present', title: L('Spider-Man', '蜘蛛侠'), role: L('Brooklyn beat. Peter Parker covers Queens and Manhattan. We trade notes.', '布鲁克林辖区。Queens 和 Manhattan 归彼得·帕克管。我们互通情报。'), place: L('Brooklyn', '布鲁克林') },
+      { year: 'Weekends', title: L('Sticker & Tag Artist (anonymous)', '街头贴纸与涂鸦艺术家（匿名）'), role: L('Hand-drawn stickers on lamp posts and mailboxes. Signed with a spider. Nobody connects the dots.', '路灯柱和邮箱上的手绘贴纸。署名是一只蜘蛛。没人把线索拼起来。'), place: L('Brooklyn', '布鲁克林') },
     ],
     awards: [
-      { year: '2024', title: L('Community Art Recognition · Bushwick Street Fest', '社区艺术认可・布什威克街头节'), role: L('Best Emerging Mural Artist. (They don\'t know it\'s me.)', '最佳新兴壁画艺术家。（他们不知道是我。）'), place: L('Brooklyn', '布鲁克林') },
-      { year: '2023', title: L('Debate Team · Regional Finals', '辩论队・地区决赛'), role: L('Arguing for access and equity — it\'s personal.', '辩论公共资源获取和公平——这很个人。'), place: L('New York', '纽约') },
+      { year: 'Present', title: L('Saved Brooklyn (multiple times)', '拯救了布鲁克林（多次）'), role: L('Mostly Kangaroo. Sometimes worse. No medals. Dad would probably arrest me.', '大多是袋鼠那种小角色。有时更糟。没有奖牌。爸爸大概会逮捕我。'), place: L('Brooklyn', '布鲁克林') },
+      { year: 'Before', title: L('Honor Roll · BVA', 'BVA 荣誉榜'), role: L('Before the spider bite. Grades have… slipped a little since.', '被咬之前的事。之后成绩……有点滑坡。'), place: L('Brooklyn', '布鲁克林') },
     ],
     skills: [
-      { year: 'Visual', title: L('Spray Paint · Stencil · Digital Illustration', '喷枪・版画・数字插图'), role: L('Fast sketches become walls. Walls become statements.', '快速草图变成墙。墙变成声明。'), place: '—' },
-      { year: 'Physical', title: L('Web-Slinging · Parkour · Venom Control', '蜘蛛丝・跑酷・毒液控制'), role: L('Three years learning not to overuse the symbiote. Getting better.', '三年来学着不过度使用共生体。在进步。'), place: '—' },
-      { year: 'Digital', title: L('Adobe Suite · Procreate · Coding (inherited)', 'Adobe 套件・Procreate・编程（继承来的）'), role: L('Dad\'s tech background. Mom\'s attention to detail. Both running through my fingers.', '爸爸的科技背景。妈妈的细节关注。两者都在我手指尖流转。'), place: '—' },
+      { year: 'Powers', title: L('Wall-Crawling · Spider-Sense · Camouflage · Venom Blast', '飞檐走壁・蜘蛛感应・隐身・毒电击'), role: L('The camouflage and the bio-electric blast are mine alone — Peter doesn\'t have those. Still figuring them out.', '隐身和生物电击是我独有的——彼得没有。还在摸索。'), place: '—' },
+      { year: 'Physical', title: L('Web-Slinging · Parkour', '蜘蛛丝・跑酷'), role: L('Peter taught me the basics. The rest I learned by hitting buildings.', '彼得教我基础。剩下的是撞着楼学的。'), place: '—' },
+      { year: 'Real life', title: L('Drawing · Stickers · Algebra (reluctantly)', '画画・贴纸・代数（不情愿）'), role: L('Notebooks full of webs. Margins full of buildings. Math teachers are not impressed.', '笔记本里全是蛛网。页边全是楼。数学老师不太欣赏。'), place: '—' },
     ],
   },
   stats: [
-    { label: L('Dimensions saved', '拯救的人'), value: '*countless*' },
-    { label: L('Murals completed', '完成的壁画'), value: '*17*' },
-    { label: L('Lives balanced', '平衡的生活'), value: L('*Student* · *Artist* · *Hero*', '*学生* ・ *艺术家* ・ *英雄*') },
-    { label: L('Status', '状态'), value: L('Learning. Always learning.', '在学。永远在学。') },
+    { label: L('People who know', '知情者'), value: '*2*' },
+    { label: L('Years as Spider-Man', '当蜘蛛侠的年数'), value: '*~1*' },
+    { label: L('Languages', '语言'), value: L('*English* · Spanish (mom\'s side)', '*英语* · 西班牙语（妈妈那边）') },
+    { label: L('Status', '状态'), value: L('Trying. Mostly.', '在努力。大部分时候。') },
   ],
 }
 
 export const JOURNEY = [
-  { id: 1, year: 2006, label: L('Born', '出生'), place: L('Brooklyn', '布鲁克林'),
-    title: L('*A kid. Nothing special yet.*', '*一个孩子。还没什么特别的。*'),
+  { id: 1, year: 'Y-13', label: L('Born', '出生'), place: L('Brooklyn', '布鲁克林'),
+    title: L('*Brooklyn kid. Both sides of the family.*', '*布鲁克林的孩子。父母两边都是。*'),
     text: L(
-      'Born in Brooklyn, Sunset Park. My dad already dreaming of making captain. My mom already saving lives. I just wanted to draw.',
-      '生于布鲁克林，日落公园。我爸爸已经梦想成为队长。我妈妈已经在拯救生命。我只是想画画。'
+      "Born in Brooklyn to Rio Morales — Puerto Rican, nurse, the warmth in the house — and Jefferson Davis — Black, cop, the rules in the house. I got my mom's last name. Long story.",
+      '生于布鲁克林。妈妈 Rio Morales——波多黎各人，护士，是家里的暖意；爸爸 Jefferson Davis——黑人，警察，是家里的规矩。我跟妈妈姓。说来话长。'
     ),
     tags: ['origin', 'Brooklyn'], chapter: 'I' },
-  { id: 2, year: 2012, label: L('First Mural', '第一幅壁画'), place: L('Brooklyn', '布鲁克林'),
-    title: L('*Aaron\'s wall.*', '*亚伦的墙。*'),
+  { id: 2, year: 'Y-5', label: L('Uncle Aaron', 'Aaron 叔叔'), place: L('Brooklyn', '布鲁克林'),
+    title: L('*The cool uncle Dad didn\'t want me visiting.*', '*那个爸爸不让我去找的「酷叔叔」。*'),
     text: L(
-      'Age 6. My neighbor Aaron said I could paint his garage wall. Three days later it was a galaxy. He cried. I was hooked.',
-      '六岁。邻居亚伦说我可以在他的车库墙上画画。三天后它变成了一个星系。他哭了。我成瘾了。'
+      "Uncle Aaron always had stories, a leather jacket, a fridge full of soda, and a brother — my dad — who didn't speak to him. I didn't know why for years. Turns out Aaron was the Prowler. Turns out family is complicated.",
+      "Aaron 叔叔总有讲不完的故事、一件皮夹克、一冰箱汽水，还有一个——我爸爸——和他不说话的兄弟。我多年来都不知道为什么。后来才知道 Aaron 是潜行者（Prowler）。原来家家有本难念的经。"
     ),
-    tags: ['art', 'early'], chapter: 'I' },
-  { id: 3, year: 2018, label: L('Peter Parker', '彼得·帕克'), place: L('Oscorp', '奥斯卡'),
-    title: L('*Met a strange guy at an internship interview.*', '*在实习面试上遇到了一个奇怪的人。*'),
+    tags: ['family', 'foreshadow'], chapter: 'I' },
+  { id: 3, year: 'Y-1', label: L('Lottery', '抽签'), place: L('Brooklyn', '布鲁克林'),
+    title: L('*Won the BVA charter school lottery.*', '*抽中了 BVA 特许学校的名额。*'),
     text: L(
-      'Summer internship screening. He was there, asking weird questions. Didn\'t know then he was Spider-Man. Didn\'t know then that he\'d be my mentor.',
-      '夏季实习筛选。他在那里，问奇怪的问题。不知道他是蜘蛛侠。不知道他会成为我的导师。'
+      "Mom cried. Dad couldn't stop grinning. I was terrified — I'd have to leave my friends and board at the new school. The night before classes started, I ran to Aaron's place to vent. Dad caught me there. They argued. Bad.",
+      "妈妈哭了。爸爸笑得合不拢嘴。我吓坏了——要离开朋友们去新学校寄宿。开学前一晚，我跑去 Aaron 那儿吐槽。爸爸在那儿逮到我。他俩吵起来了，吵得很凶。"
     ),
-    tags: ['mentor', 'meeting'], chapter: 'II' },
-  { id: 4, year: 2023, label: L('The Venom Symbiote', '毒液共生体'), place: L('Oscorp', '奥斯卡'),
-    title: L('*Power and cost.*', '*力量与代价。*'),
+    tags: ['school', 'lottery'], chapter: 'II' },
+  { id: 4, year: 'Y-1', label: L('The bite', '被咬'), place: L("Aaron's apartment", 'Aaron 的公寓'),
+    title: L('*A spider in the wrong bag.*', '*跑错包里的一只蜘蛛。*'),
     text: L(
-      'It chose me. Or maybe I walked into the wrong lab. The black suit—fast, strong, angry. For a week I thought I was invincible. Then I realized I was destructive. Peter helped me see the difference.',
-      '它选择了我。或者也许我走进了错误的实验室。黑色战衣——快、强、愤怒。一周我以为我是无敌的。然后我意识到我是具有破坏性的。彼得帮我看清了差别。'
+      "While Dad and Aaron were yelling, I sat on the couch. A spider crawled out of Aaron's duffel bag and bit my hand. I passed out. Foamed at the mouth. Aaron had stolen it from Oscorp the week before — specimen 42, genetically altered. He had no idea what he was carrying. Neither did I.",
+      "爸爸和 Aaron 在吵的时候，我坐在沙发上。一只蜘蛛从 Aaron 的行李袋里爬出来，咬了我的手。我晕过去了。嘴里冒泡沫。Aaron 上周从 Oscorp 偷出来的——42 号样本，基因改造蜘蛛。他不知道自己带回来了什么。我也不知道。"
     ),
-    tags: ['symbiote', 'turning-point'], chapter: 'II' },
-  { id: 5, year: 2023, label: L('Spider-Man', '蜘蛛侠'), place: L('Brooklyn', '布鲁克林'),
-    title: L('*The suit was already taken. I made my own.*', '*制服已经被占了。我做了自己的。*'),
+    tags: ['origin', 'spider'], chapter: 'II' },
+  { id: 5, year: 'Y-1', label: L('Powers', '能力'), place: L('Brooklyn', '布鲁克林'),
+    title: L('*Invisible. Then sticking. Then everything.*', '*先是隐身。然后能黏墙。然后是一切。*'),
     text: L(
-      "I wasn't trying to be the next Spider-Man. I was trying to be the first Miles. But when you can save people, can you not? Brooklyn became my responsibility, and my responsibility became my identity.",
-      '我没有试图成为下一个蜘蛛侠。我试图成为第一个迈尔斯。但当你能拯救人类时，你能不这样做吗？布鲁克林成了我的责任，我的责任成了我的身份。'
+      "First thing I did was turn invisible by accident hiding from Dad. Then I stuck to a wall. Then my hand crackled with something blue that knocked Ganke off a chair. He looked at me and said, 'Dude. You're Spider-Man.' That's how I found out.",
+      "我做的第一件事是为了躲爸爸不小心隐身了。然后我黏在了墙上。然后我的手噼里啪啦冒出一道蓝光，把 Ganke 从椅子上震下去了。他看着我说：「老兄，你是蜘蛛侠。」我就这么知道了。"
     ),
-    tags: ['origin', 'hero'], chapter: 'III' },
-  { id: 6, year: 2024, label: L('The Kingpin', '金并'), place: L('Everywhere', '到处'),
-    title: L('*Fighting something bigger than myself.*', '*与比我自己更大的东西作斗争。*'),
+    tags: ['powers', 'ganke'], chapter: 'II' },
+  { id: 6, year: 'Y0', label: L('Peter dies', '彼得之死'), place: L('Queens', '皇后区'),
+    title: L('*The original Spider-Man died. The job was open.*', '*原版蜘蛛侠死了。这份工作空了出来。*'),
     text: L(
-      'When Wilson Fisk came, the whole city shook. I was just trying to protect my block. Had to learn fast what protecting a city means. Dad was there. Mom was there. I was terrified I\'d fail them.',
-      '威尔逊·菲斯克来临时，整个城市都震动了。我只是想保护我的街区。必须快速学会保护一个城市意味着什么。爸爸在。妈妈在。我害怕我会辜负他们。'
+      "I watched the news with Ganke. The Green Goblin killed Peter Parker in front of his own family. I went to the funeral in a Halloween Spider-Man costume because I didn't have a suit yet. Gwen Stacy saw me. She told me off. She was right. I made my own suit after that — black and red.",
+      "我和 Ganke 一起看新闻。绿魔在彼得·帕克自己家人面前杀了他。我穿着万圣节蜘蛛侠服装去了葬礼，因为我还没有自己的战衣。Gwen Stacy 看见了我。她把我骂了一顿。她说得对。之后我做了自己的战衣——黑红配色。"
     ),
-    tags: ['now', '现在'], chapter: 'III' },
-  { id: 7, year: 2024, label: L('Now', '现在'), place: L('Brooklyn', '布鲁克林'),
-    title: L('*Sophomore, Artist, Spider-Man.*', '*二年级学生、艺术家、蜘蛛侠。*'),
+    tags: ['peter', 'inheritance'], chapter: 'III' },
+  { id: 7, year: 'Y0', label: L('Uncle Aaron, again', '再次遇见叔叔'), place: L('Brooklyn rooftop', '布鲁克林屋顶'),
+    title: L('*The Prowler knew. He\'d always known.*', '*潜行者知道。他一直都知道。*'),
     text: L(
-      "Still figuring it out. Some nights I'm just a kid. Some nights I'm the only thing standing between home and disaster. Most nights I'm both. The mural gets painted. The homework gets done. The city gets protected. Not always in that order.",
-      '仍在弄清楚。有些夜晚我只是一个孩子。有些夜晚我是唯一站在家和灾难之间的东西。大多数夜晚我两者都是。壁画被画上。功课完成。城市被保护。不总是按这个顺序。'
+      "He figured out I was Spider-Man before I figured out he was the Prowler. He wanted me to be his protégé — wanted us to run Brooklyn together. I said no. We fought. I'm not ready to write down how that ended.",
+      "他比我更早知道我是蜘蛛侠——比我知道他是潜行者还早。他想让我当他的徒弟，想我们一起接管布鲁克林。我拒绝了。我们打了一架。那一架怎么收场的，我还没准备好写下来。"
+    ),
+    tags: ['aaron', 'loss'], chapter: 'III' },
+  { id: 8, year: 'Y+1', label: L('Now', '现在'), place: L('Brooklyn', '布鲁克林'),
+    title: L('*Sophomore. Spider-Man. Still here.*', '*二年级生。蜘蛛侠。还在。*'),
+    text: L(
+      "Junior year of high school. Sleeping four hours a night. Failing chemistry. Ganke's tired. Mom suspects something. Dad still thinks Spider-Man's the problem. Brooklyn's still standing, mostly. So am I.",
+      "高中三年级。每晚睡四小时。化学要挂科。Ganke 累坏了。妈妈起疑心了。爸爸还是觉得蜘蛛侠是问题所在。布鲁克林大体还立着。我也还立着。"
     ),
     tags: ['now', '在做'], chapter: 'IV' },
 ]
 
 export const WORKS = [
   {
-    id: 'bushwick-mural',
-    title: L('Bushwick Renaissance', '布什威克复兴'),
-    subtitle: L('Wall art · 40ft × 60ft', '墙面艺术・40尺 × 60尺'),
-    medium: 'mural',
-    role: L('Artist', '艺术家'),
-    year: '2024',
+    id: 'first-suit',
+    title: L('The Black-and-Red Suit', '黑红战衣'),
+    subtitle: L('Self-designed · Replacing the Halloween costume', '自己设计・替代万圣节服装'),
+    medium: 'design',
+    role: L('Designer · Wearer', '设计・穿着'),
+    year: 'Y0',
     cover: 'cover-1',
     summary: L(
-      'A tribute to the neighborhood\'s immigrant communities and their resilience. Five colors. One wall. Hundreds of hours.',
-      '致敬社区移民群体及其韧性的作品。五种颜色。一面墙。数百小时。'
+      "Designed in the dorm room after Peter's funeral. Black base, red web pattern, white eyes. Ganke pinned the early sketches to the wall. The first version had way too many spikes — Ganke talked me down.",
+      "彼得的葬礼之后，在宿舍里设计的。黑色为底，红色蛛网，白色眼睛。Ganke 把早期草稿钉在墙上。第一版有太多尖刺——Ganke 把我劝下来了。"
     ),
-    tags: ['mural', '街头艺术'],
+    tags: ['suit', 'design'],
     field: {
-      year: '2024',
-      format: L('Spray paint on brick · 40×60 ft', '砖墙喷漆・40×60 尺'),
-      role: L('Artist, Designer', '艺术家、设计师'),
-      crew: L('Solo + community volunteers', '独立完成・社区志愿者'),
-      festivals: L('Bushwick Street Fest 2024', '布什威克街头节 2024'),
-      status: L('Completed', '已完成'),
+      year: 'Y0',
+      format: L('Fabric, found materials, very basic tailoring', '布料、找来的材料、非常基础的裁剪'),
+      role: L('Designer, Tailor (badly)', '设计、（蹩脚的）裁缝'),
+      crew: L('Ganke (creative consultant)', 'Ganke（创意顾问）'),
+      festivals: L('—', '—'),
+      status: L('In active use', '正在使用'),
     },
     body: [
       L(
-        "This wall was grey. It stayed grey for years. Then I realized it didn't have to be, and neither did the neighborhood. Started on a Tuesday, finished on a Thursday. By Friday, people were taking photos.",
-        '这面墙是灰色的。多年来一直是灰色。然后我意识到它不必如此，社区也不必如此。周二开始，周四完成。到周五，人们开始拍照了。'
+        "Gwen Stacy told me wearing Peter's old suit was disrespectful. She was right. The black-and-red was an attempt at saying: same job, different person. Different powers, too — Peter never had the camo or the venom blast. The colors are mine.",
+        "Gwen Stacy 说我穿彼得的旧战衣是不尊重。她说得对。黑红配色是我想说的：同一份工作，不同的人。能力也不一样——彼得没有隐身和毒电击。颜色是我的。"
       ),
     ],
   },
   {
-    id: 'spider-web-design',
-    title: L('Web Design Protocol', '网络设计协议'),
-    subtitle: L('Functional art · Algorithm', '功能艺术・算法'),
-    medium: 'tech',
-    role: L('Designer · Engineer', '设计师・工程师'),
-    year: '2023',
+    id: 'kangaroo-fight',
+    title: L('First Real Fight: Kangaroo', '第一次真正出手：袋鼠'),
+    subtitle: L('Brooklyn streets · 4 minutes', '布鲁克林街头・4 分钟'),
+    medium: 'mission',
+    role: L('Spider-Man (debut)', '蜘蛛侠（首战）'),
+    year: 'Y0',
     cover: 'cover-2',
     summary: L(
-      'Biologically accurate web patterns optimized for swing dynamics and impact resistance. Applied organic geometry to synthetic polymers.',
-      '生物学精确的网格图案，针对摇摆动力学和抗冲击性能进行了优化。将有机几何应用于合成聚合物。'
+      "My first super-villain. He was robbing a bodega. I was wearing the Halloween costume. It went better than it had any right to.",
+      "我遇到的第一个超级反派。他正在抢一家便利店。我还穿着万圣节服装。结果比一切预期都好。"
     ),
-    tags: ['tech', '网络'],
+    tags: ['mission', 'first'],
     field: {
-      year: '2023',
-      format: L('Organic polymer · Patent pending', '有机聚合物・专利待定'),
-      role: L('Designer, Engineer', '设计师、工程师'),
-      crew: L('Solo research', '独立研究'),
+      year: 'Y0',
+      format: L('Live action · Brooklyn pavement', '实战・布鲁克林街道'),
+      role: L('Spider-Man', '蜘蛛侠'),
+      crew: L('Solo (Ganke watching the security cam feed at home)', '单兵作战（Ganke 在家看监控直播）'),
       festivals: L('—', '—'),
-      status: L('In use', '使用中'),
+      status: L('Won, accidentally', '意外赢了'),
     },
     body: [
       L(
-        'When you\'re the one shooting the web, you think about things others don\'t. Tensile strength. Wind resistance. The angle of the swing. Math becomes art becomes survival.',
-        '当你是射网的人时，你会思考别人不会的东西。抗张强度。风阻。摇摆的角度。数学变成艺术变成生存。'
+        "I webbed his feet together by accident. He fell into a fire hydrant. The bodega owner gave me a Snapple. Best day of my life until I got home and Ganke had compiled a 12-slide PowerPoint on what I'd done wrong.",
+        "我不小心用蛛丝把他的脚黏在了一起。他摔进了消防栓。便利店老板请了我一瓶 Snapple。是我人生最好的一天——直到我回到家，Ganke 已经做了一个 12 页的 PPT 讲我犯了哪些错。"
       ),
     ],
   },
   {
-    id: 'community-defense',
-    title: L('Kingpin Defense Initiative', '金并防御计划'),
-    subtitle: L('Nighttime operation · Ongoing', '夜间行动・持续中'),
-    medium: 'mission',
-    role: L('Operative', '操作员'),
-    year: '2024 –',
+    id: 'spider-stickers',
+    title: L('The Spider Stickers', '蜘蛛贴纸'),
+    subtitle: L('Hand-drawn · Brooklyn-wide', '手绘・遍布布鲁克林'),
+    medium: 'sticker',
+    role: L('Artist (anonymous)', '匿名艺术家'),
+    year: 'Y-2 –',
     cover: 'cover-3',
     summary: L(
-      'Coordinated defense against organized crime in Brooklyn. Working with Peter Parker and local law enforcement to dismantle the Kingpin\'s network.',
-      '针对布鲁克林有组织犯罪的协调防御。与彼得·帕克和本地执法部门合作，瓦解金并网络。'
+      "I've been drawing stickers since I was eleven. Now they're on lamp posts and mailboxes all over Brooklyn. The signature is a tiny spider. Nobody connects the dots.",
+      "我从十一岁就开始画贴纸。现在它们在布鲁克林到处的路灯柱和邮箱上。签名是一只小蜘蛛。没人把线索拼起来。"
     ),
-    tags: ['mission', '守护'],
+    tags: ['art', 'sticker'],
     field: {
-      year: '2024 –',
-      format: L('Active patrol · Daily', '主动巡逻・每日'),
-      role: L('Spider-Man', '蜘蛛侠'),
-      crew: L('Partnership with Peter Parker + NYPD', '与彼得·帕克和纽约警察局合作'),
+      year: 'Y-2 –',
+      format: L('Marker, sticker paper, sometimes spray paint', '马克笔、贴纸纸、有时是喷漆'),
+      role: L('Artist', '艺术家'),
+      crew: L('Solo', '独立'),
       festivals: L('—', '—'),
-      status: L('In progress', '进行中'),
+      status: L('Ongoing, always', '持续中，永远') ,
     },
     body: [
       L(
-        'Some nights it\'s broken windows. Some nights it\'s broken bones—other people\'s. Tonight it\'s just a man checking on his neighborhood, making sure people can sleep safe. That\'s the real mission.',
-        '有些夜晚是破碎的窗户。有些夜晚是破碎的骨头——别人的。今晚只是一个人检查他的社区，确保人们能安全睡眠。这才是真正的任务。'
+        "Dad once arrested someone for tagging. I sat at the dinner table and didn't say a word. The stickers are how I exist in the city when I can't be Spider-Man and don't want to be Miles. Just a shape on a wall. Just a spider.",
+        "爸爸有次抓了一个涂鸦的人。我坐在饭桌上一句话都没说。当我不能当蜘蛛侠、也不想当迈尔斯的时候，贴纸是我存在于这座城市的方式。只是墙上的一个图形。只是一只蜘蛛。"
       ),
     ],
   },
 ]
 
 export const BOOKS = [
-  { title: L('Invisible Man', '看不见的人'), author: 'Ralph Ellison', year: '2024', stars: 5, color: '#1a0000', text: '#e8dfcb',
-    note: L("Every page hits different when you're invisible in a different way.", '当你以另一种方式隐形时，每一页的感受都不同。') },
-  { title: L('The Young Ones', '年轻人'), author: 'Julius Lester', year: '2024', stars: 4, color: '#001a00', text: '#e8dfcb',
-    note: L("Poetry about being young and Black in America. It's my mirror.", '关于在美国做年轻黑人的诗歌。这是我的镜子。') },
-  { title: L('Blueprint', '蓝图'), author: 'Kris Freeman', year: '2024', stars: 5, color: '#0a0a3a', text: '#e8dfcb',
-    note: L('Understanding your neighborhood by understanding your own blocks.', '通过理解你自己的街区来理解你的邻居。') },
-  { title: L('Monster', '怪物'), author: 'Walter Dean Myers', year: '2023', stars: 5, color: '#1a1a00', text: '#e8dfcb',
-    note: L('A kid in the system. Too close to home. Read it three times.', '系统中的孩子。太接近现实。读了三遍。') },
-  { title: L('The Fire Next Time', '下次大火'), author: 'James Baldwin', year: '2023', stars: 5, color: '#3a0a0a', text: '#e8dfcb',
-    note: L('Baldwin on race and responsibility. Every word matters when your life does too.', '鲍德温论种族与责任。当你的生活也很重要时，每个词都很重要。') },
+  { title: L('Invisible Man', '看不见的人'), author: 'Ralph Ellison', year: 'Y0', stars: 5, color: '#1a0000', text: '#e8dfcb',
+    note: L("Read for English class. Hit different when one of your literal powers is invisibility.", '英语课上读的。当你字面意义上的能力之一就是隐身时，读起来感受完全不同。') },
+  { title: L('Monster', '怪物'), author: 'Walter Dean Myers', year: 'Y-1', stars: 5, color: '#1a1a00', text: '#e8dfcb',
+    note: L('A Black kid in the courtroom telling his own story. Read it twice. Underlined too much.', '一个黑人少年在法庭上讲自己的故事。读了两遍。划了太多线。') },
+  { title: L('The Brief Wondrous Life of Oscar Wao', '奥斯卡·瓦奥短暂而奇妙的一生'), author: 'Junot Díaz', year: 'Y0', stars: 4, color: '#001a00', text: '#e8dfcb',
+    note: L("Mom gave it to me. Dominican, not Puerto Rican, but the Spanglish hits home.", '妈妈给我的。是多米尼加而不是波多黎各，但那种英语和西语夹杂的感觉特别熟悉。') },
+  { title: L('The Hate U Give', '黑暗中的星光'), author: 'Angie Thomas', year: 'Y-1', stars: 5, color: '#3a0a0a', text: '#e8dfcb',
+    note: L("Hard to read when your dad's a cop. Harder not to.", '当你爸爸是警察时，读这本书很难。不读更难。') },
+  { title: L("Subway Art", '地铁艺术'), author: 'Martha Cooper & Henry Chalfant', year: 'Y-2', stars: 5, color: '#1a1a3a', text: '#e8dfcb',
+    note: L("80s NYC graffiti, photographed before it got buffed. My bible for tags. Hidden under the bed.", '八十年代纽约涂鸦——被刷掉之前拍下来的。我的涂鸦圣经。藏在床底下。') },
 ]
 
 export const FILMS = [
-  { title: 'Spider-Man: Across the Spider-Verse', subtitle: '', year: '2023', director: 'Shawn Levy · 肖恩·莱维',
-    note: L('I know it\'s animated. I watched it twice. He got it right.', '我知道这是动画。我看了两遍。他说对了。') },
-  { title: 'Moonlight', subtitle: '', year: '2016', director: 'Barry Jenkins',
-    note: L('Three chapters. I watched it when I needed to understand who I was becoming.', '三个章节。我在需要理解自己变成什么时看的。') },
-  { title: 'Everything Everywhere All at Once', subtitle: '', year: '2022', director: 'The Daniels',
-    note: L('Multiverse. Doing your best. That\'s the whole thing right there.', '多元宇宙。尽你最好。就是这样。') },
-  { title: 'Do the Right Thing', subtitle: '', year: '1989', director: 'Spike Lee',
-    note: L('Brooklyn. Summer. The heat. The choice. This is my dad\'s favorite movie.', '布鲁克林。夏天。热度。选择。这是我爸爸最喜欢的电影。') },
-  { title: 'The Godfather', subtitle: '', year: '1972', director: 'Francis Ford Coppola',
-    note: L('My dad made me watch it. Kept saying "understand power, Miles." I\'m still learning.', '我爸爸让我看的。一直说「理解力量，迈尔斯」。我还在学。') },
+  { title: 'Spider-Man: Into the Spider-Verse', subtitle: '蜘蛛侠：平行宇宙', year: '2018', director: 'Bob Persichetti, Peter Ramsey, Rodney Rothman',
+    note: L("Weird seeing a movie about you. Almost everything is wrong. Some things are exactly right.", '看一部关于自己的电影感觉很怪。几乎一切都是错的。某些东西又精准得吓人。') },
+  { title: 'Spider-Man: Across the Spider-Verse', subtitle: '蜘蛛侠：纵横宇宙', year: '2023', director: 'Joaquim Dos Santos, Kemp Powers, Justin K. Thompson',
+    note: L("Even weirder. Won't say more. They got the part about Dad right.", '更怪。多余的不说了。爸爸那部分他们拍对了。') },
+  { title: 'Do the Right Thing', subtitle: '为所应为', year: '1989', director: 'Spike Lee',
+    note: L("Dad's favorite movie. He paused it every five minutes to explain. I get it now. Took me until I was thirteen.", '爸爸最爱的电影。他每五分钟暂停一次解释。我现在懂了。直到十三岁才懂。') },
+  { title: 'Moonlight', subtitle: '月光男孩', year: '2016', director: 'Barry Jenkins',
+    note: L("Three chapters of being a Black kid trying to figure out who he is. I watched it the week Uncle Aaron found out.", '一个黑人男孩弄清自己是谁的三个章节。Aaron 叔叔发现真相的那一周，我看的这部。') },
+  { title: 'Crooklyn', subtitle: '布鲁克林轶事', year: '1994', director: 'Spike Lee',
+    note: L("Brooklyn, the seventies. Mom made me watch this with her. She cried at the soundtrack the whole time.", '七十年代的布鲁克林。妈妈让我陪她看。她整场都因为配乐在哭。') },
 ]
 
 export const MUSIC = [
-  { track: 'Sunflower', artist: 'Post Malone & Swae Lee', album: 'Spidey Soundtrack (2018)', duration: 208, mood: L('Swing', '摇摆'), note: L('Web-slinging anthem. Obviously.', '蜘蛛丝摇摆歌曲。显然。') },
-  { track: 'Alright', artist: 'Kendrick Lamar', album: 'To Pimp a Butterfly', duration: 231, mood: L('Hope', '希望'), note: L('Listening to this makes me believe Brooklyn can be saved.', '听这个让我相信布鲁克林可以被拯救。') },
-  { track: 'New God Flow', artist: 'Kanye West ft. Pusha T', album: 'Watch the Throne', duration: 233, mood: L('Power', '力量'), note: L('When the suit is on and the city is waiting.', '当制服穿上，城市在等待时。') },
-  { track: 'King\'s Dead', artist: 'JAY-Z, Kendrick Lamar, Future, Donald Glover', album: 'Black Panther: The Album', duration: 200, mood: L('War', '战争'), note: L('When Kingpin made it personal.', '当金并变得个人化时。') },
-  { track: 'Mask Off', artist: 'Future', album: 'FUTURE', duration: 240, mood: L('Chase', '追逐'), note: L('Fast roof runs. Faster heartbeat.', '快速屋顶奔跑。更快的心跳。') },
+  { track: 'Sunflower', artist: 'Post Malone & Swae Lee', album: 'Spider-Verse Soundtrack', duration: 158, mood: L('Swing', '摆荡'), note: L("They wrote it about me. Or for me. Or because of me. I don't know how this works.", '这首歌是写我的。或写给我的。或因为我才有的。多重宇宙的事我搞不清。') },
+  { track: 'Alright', artist: 'Kendrick Lamar', album: 'To Pimp a Butterfly', duration: 219, mood: L('Hope', '希望'), note: L("Listening to this on the train at 2 AM after a long patrol.", '长时间巡逻后凌晨两点在地铁上听这个。') },
+  { track: "Hum Along (feat. Wendell Pierce)", artist: 'Childish Gambino', album: 'STN MTN / Kauai', duration: 245, mood: L('Memory', '记忆'), note: L("Uncle Aaron played Gambino in his car. Can't listen without thinking of him.", 'Aaron 叔叔在车里放过 Gambino。听这个就会想起他。') },
+  { track: 'Como La Flor', artist: 'Selena', album: 'Entre a Mi Mundo', duration: 184, mood: L('Home', '家'), note: L("Mom plays this on Sundays. The whole apartment smells like sofrito.", '妈妈周日放这个。整个公寓飘着 sofrito 酱的香气。') },
+  { track: "What's My Name?", artist: 'DMX', album: '...And Then There Was X', duration: 235, mood: L('Boost', '提神'), note: L("Suit-up music. Don't tell Ganke I admitted this.", '换战衣的时候听的。别告诉 Ganke 我承认了。') },
 ]
 
 export const TRAVEL = [
-  { city: L('Brooklyn', '布鲁克林'), country: L('New York', '纽约'), year: 2006, kind: 'home', lat: 40.65, lon: -73.94, note: L('home — always', '家——永远') },
-  { city: L('Manhattan', '曼哈顿'), country: L('New York', '纽约'), year: 2023, kind: 'frequent', lat: 40.78, lon: -73.97, note: L('where Oscorp is', '奥斯卡所在地') },
-  { city: L('Queens', '皇后区'), country: L('New York', '纽约'), year: 2023, kind: 'frequent', lat: 40.74, lon: -73.82, note: L('Peter\'s neighborhood', '彼得的邻居') },
-  { city: L('The Multiverse', '多元宇宙'), country: L('Everywhere', '到处'), year: 2024, kind: 'trip', lat: 0, lon: 0, note: L('Sometimes when we swing too fast.', '有时候当我们摇摆太快时。') },
+  { city: L('Brooklyn', '布鲁克林'), country: L('NYC', '纽约市'), year: 'home', kind: 'home', lat: 40.65, lon: -73.94, note: L('home — my block', '家——我的街区') },
+  { city: L('Queens', '皇后区'), country: L('NYC', '纽约市'), year: 'visit', kind: 'frequent', lat: 40.74, lon: -73.82, note: L("where Peter Parker grew up", '彼得·帕克长大的地方') },
+  { city: L('Manhattan', '曼哈顿'), country: L('NYC', '纽约市'), year: 'patrol', kind: 'patrol', lat: 40.78, lon: -73.97, note: L('Oscorp is here. So is trouble.', 'Oscorp 在这里。麻烦也在这里。') },
+  { city: L('Puerto Rico', '波多黎各'), country: L('USA', '美国'), year: 'family', kind: 'family', lat: 18.22, lon: -66.59, note: L("Mom's family. Haven't been in years.", '妈妈的家人。好多年没回去了。') },
+  { city: L('Earth-616', '主世界'), country: L('Another universe', '另一个宇宙'), year: '?', kind: 'trip', lat: 0, lon: 0, note: L("Where the other Peter Parker lives. Visited once. Long story.", '另一个彼得·帕克住的地方。去过一次。说来话长。') },
+  { city: L('Earth-1610', '终极宇宙'), country: L('Home universe', '本宇宙'), year: 'always', kind: 'home', lat: 0, lon: 0, note: L("My home dimension. Officially.", '我的本源宇宙。官方认定。') },
 ]
 
 export const PHOTOS = [
-  { id: 'h1', series: 'murals', caption: L('Williamsburg, golden hour', '威廉斯堡，金色时刻'), date: '2024.09.15', camera: 'iPhone 15 Pro', color: '#6b2c1a' },
-  { id: 'h2', series: 'murals', caption: L('Bushwick wall, in progress', '布什威克墙，进行中'), date: '2024.08.12', camera: 'iPhone 15 Pro', color: '#1a3a2c' },
-  { id: 's1', series: 'moments', caption: L('Rooftop at dawn', '屋顶的黎明'), date: '2024.07.03', camera: 'Web cam', color: '#1a1a2c' },
-  { id: 's2', series: 'moments', caption: L('Father and son', '父亲和儿子'), date: '2024.06.21', camera: 'Phone', color: '#2c1a0a' },
-  { id: 't1', series: 'studies', caption: L('Spray can reflections', '喷枪反射'), date: '2024.09.01', camera: 'Sketch', color: '#0a0a0a' },
+  { id: 'h1', series: 'stickers', caption: L('Stickered lamp post, Sunset Park', '日落公园路灯，贴满贴纸'), date: 'autumn', camera: L('Phone', '手机'), color: '#6b2c1a' },
+  { id: 'h2', series: 'stickers', caption: L('Spider tag, F train platform', 'F 线月台的蜘蛛涂鸦'), date: 'summer', camera: L('Phone', '手机'), color: '#1a3a2c' },
+  { id: 's1', series: 'moments', caption: L('Williamsburg rooftop, before patrol', '威廉斯堡屋顶，巡逻前'), date: 'late', camera: L('Phone', '手机'), color: '#1a1a2c' },
+  { id: 's2', series: 'moments', caption: L("Dad's NYPD jacket on the chair", '椅子上爸爸的 NYPD 制服'), date: 'morning', camera: L('Phone', '手机'), color: '#2c1a0a' },
+  { id: 's3', series: 'moments', caption: L("Ganke's side of the dorm", 'Ganke 那半边宿舍'), date: '—', camera: L('Phone', '手机'), color: '#2a201a' },
+  { id: 't1', series: 'sketches', caption: L('Spider notebook, page 47', '蜘蛛笔记本第 47 页'), date: '—', camera: L('Sketch', '草图'), color: '#0a0a0a' },
+  { id: 't2', series: 'sketches', caption: L('Suit design, v3', '战衣设计第 3 稿'), date: '—', camera: L('Sketch', '草图'), color: '#1a0a0a' },
 ]
 
 export const PHOTO_SERIES = [
   { id: 'all', label: L('All', '全部') },
-  { id: 'murals', label: L('Street Murals', '街头壁画') },
+  { id: 'stickers', label: L('Stickers & Tags', '贴纸与涂鸦') },
   { id: 'moments', label: L('Moments', '时刻') },
-  { id: 'studies', label: L('Studies', '习作') },
+  { id: 'sketches', label: L('Sketchbook', '速写本') },
 ]
 
 export const READING_LOG = []
 
-export const NOW_PLAYING = [
-  {
-    track: L('Sunflower', '向日葵'),
-    artist: L('Post Malone & Swae Lee', '波斯特·马龙 & 斯韦·李'),
-    album: L('Spider-Man: Into the Spider-Verse', '蜘蛛侠：平行宇宙'),
-    cover: '',
-    source: 'Spotify',
-    url: '#',
-    position: 'bottom-left',   // 必须保留，组件就是读的这个属性
-    since: L('Last played: 2 hours ago', '上次播放：2小时前'),
-  }
-]
+export const NOW_PLAYING = {
+  spotify: [
+    { spotifyId: '3qe9zUyfdYBs1QwTwujMHU', track: 'Avril 14th', artist: 'Aphex Twin' },
+    { spotifyId: '2GdcESg4xC7s9TJQbHFGwM', track: 'Spiegel im Spiegel', artist: 'Arvo Pärt' },
+    // 想加多少首加多少首
+  ],
+  netease: [
+    { neteaseId: '17405713', track: L('Avril 14th', 'Avril 14th'), artist: 'Aphex Twin' },
+    { neteaseId: '4875306',  track: 'Spiegel im Spiegel', artist: 'Arvo Pärt' },
+  ],
+  html5: [
+    // 想内置歌曲就放在这里（音频文件放进 public/audio/）
+    // { audio: '/audio/example.mp3', track: 'Example', artist: 'Me' },
+    // 留空也行 —— 用户点"上传"按钮就能添加
+  ],
+}
+

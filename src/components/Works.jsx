@@ -3,12 +3,10 @@ import { useLang } from '../lang'
 import { WORKS } from '../data'
 
 const WORK_MEDIA = [
-  { id: 'all',    label: { en: 'All',            zh: '全部' } },
-  { id: 'short',  label: { en: 'Short film',     zh: '短片' } },
-  { id: 'doc',    label: { en: 'Documentary',    zh: '纪录片' } },
-  { id: 'mv',     label: { en: 'Music video',    zh: '音乐影像' } },
-  { id: 'sound',  label: { en: 'Sound',          zh: '声音' } },
-  { id: 'visual', label: { en: 'Visual / Print', zh: '视觉 / 印刷' } },
+  { id: 'all',     label: { en: 'All',      zh: '全部' } },
+  { id: 'design',  label: { en: 'Design',   zh: '设计' } },
+  { id: 'mission', label: { en: 'Missions', zh: '任务' } },
+  { id: 'sticker', label: { en: 'Stickers', zh: '贴纸' } },
 ]
 
 export default function Works() {
@@ -60,9 +58,18 @@ export default function Works() {
         {filtered.map((w) => (
           <div className="work-card" key={w.id} onClick={() => setOpenId(w.id)} data-reveal>
             <div className={`work-cover ${w.cover}`}>
-              <div className="placeholder">
-                [ {t(w.title).toUpperCase()} — {lang === 'zh' ? '主图' : 'primary image'} ]
-              </div>
+              {w.coverImg ? (
+                <img
+                  src={w.coverImg}
+                  alt={t(w.title)}
+                  className="work-cover-img"
+                  onError={(e) => { e.currentTarget.style.display = 'none' }}
+                />
+              ) : (
+                <div className="placeholder">
+                  [ {t(w.title).toUpperCase()} — {lang === 'zh' ? '主图' : 'primary image'} ]
+                </div>
+              )}
               <div className="work-cover-meta">
                 <span>{w.year}</span>
                 <span>·</span>
@@ -96,15 +103,25 @@ export default function Works() {
           <div className="work-modal-inner" onClick={(e) => e.stopPropagation()}>
             <button className="work-modal-close" onClick={() => setOpenId(null)}>✕</button>
             <div className={`work-modal-hero ${open.cover}`}>
-              <div style={{
-                position: 'absolute', inset: 0,
-                backgroundImage: 'repeating-linear-gradient(-25deg, transparent 0 8px, rgba(255,255,255,0.04) 8px 9px)'
-              }}></div>
+              {open.coverImg ? (
+                <img
+                  src={open.coverImg}
+                  alt={t(open.title)}
+                  className="work-modal-hero-img"
+                  onError={(e) => { e.currentTarget.style.display = 'none' }}
+                />
+              ) : (
+                <div style={{
+                  position: 'absolute', inset: 0,
+                  backgroundImage: 'repeating-linear-gradient(-25deg, transparent 0 8px, rgba(255,255,255,0.04) 8px 9px)'
+                }}></div>
+              )}
               <div style={{
                 position: 'absolute', bottom: 24, left: 40,
                 fontFamily: 'var(--font-mono)', fontSize: 11,
                 letterSpacing: '0.2em', color: 'var(--cream-mute)',
-                textTransform: 'uppercase'
+                textTransform: 'uppercase',
+                zIndex: 2
               }}>
                 {open.year} · {t(open.subtitle)}
               </div>

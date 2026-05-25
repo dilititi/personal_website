@@ -29,7 +29,15 @@ export default function About({ onOpenCV }) {
       <div className="about-grid">
         <aside className="about-sidebar">
           <div>
-            <div className="portrait"></div>
+            <div className="portrait">
+              {SITE.portrait && (
+                <img
+                  src={SITE.portrait}
+                  alt={lang === 'zh' ? '头像' : 'portrait'}
+                  onError={(e) => { e.currentTarget.style.display = 'none' }}
+                />
+              )}
+            </div>
             <div className="portrait-tag">
               <span>[ {lang === 'zh' ? '自拍 · 2025' : 'self, 2025'} ]</span>
               <span>35mm · TX-400</span>
