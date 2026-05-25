@@ -563,8 +563,6 @@ html[lang="zh"] .polaroid-cap { font-family: var(--font-zh-serif); font-style: n
   border-radius: 50%;
   animation: pulse 2.4s ease-in-out infinite;
 }
-
-/* Bottom chapter strip */
 .bottom-strip {
   position: fixed;
   bottom: 0; left: 0; right: 0;
@@ -4313,4 +4311,36 @@ html[lang="zh"] .np-list-track { font-family: var(--font-zh-serif); }
   font-size: 16px; width: 28px; cursor: pointer; transition: color 0.2s;
 }
 .np-list-x:hover { color: var(--rust); }
+}
+
+.python-fullscreen-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100vh;
+  background: #f7f9fc;
+  z-index: 9999;
+  overflow-y: auto;
+}
+
+.close-python-btn {
+  position: fixed;
+  top: 20px;
+  right: 24px;
+  z-index: 10000;
+  background: #1e2a3e;
+  color: white;
+  border: none;
+  border-radius: 40px;
+  padding: 8px 20px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  backdrop-filter: blur(4px);
+  background-color: rgba(30, 42, 62, 0.9);
+  transition: 0.2s;
+}
+
+.close-python-btn:hover {
+  background-color: #306998;
 }

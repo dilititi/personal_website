@@ -18,6 +18,7 @@ import { FilmstripProgress, CursorSpotlight } from './components/Overlays'
 
 function AppInner() {
   const [cvOpen, setCvOpen] = useState(false)
+  const [pyOpen, setPyOpen] = useState(false)
   useReveal()
 
   const onJump = useCallback((id) => {
@@ -32,7 +33,7 @@ function AppInner() {
     <>
       <CursorSpotlight />
       <FilmstripProgress />
-      <NavShell onJump={onJump} />
+      <NavShell onJump={onJump} onOpenPython={() => setPyOpen(true)} />
       <Landing onJump={onJump} />
       <About onOpenCV={() => setCvOpen(true)} />
       <Journey />

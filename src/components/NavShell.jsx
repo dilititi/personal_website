@@ -32,7 +32,7 @@ function BottomStrip({ activeId, onJump }) {
   )
 }
 
-function TopBar({ onJump }) {
+function TopBar({ onJump, onOpenPython }) {
   const { lang, t } = useLang()
   return (
     <div className="top-bar">
@@ -40,16 +40,27 @@ function TopBar({ onJump }) {
         <span className="dot"></span>
         <span>{t(SITE.name)} · {t(SITE.location)}</span>
       </button>
-      <LangToggle />
+      <div className="top-bar-right">
+        {onOpenPython && (
+          <button
+            className="top-bar-tool-btn"
+            onClick={onOpenPython}
+            title={lang === 'zh' ? 'Python 知识脑图' : 'Python knowledge map'}
+          >
+            🐍 <span>{lang === 'zh' ? '脑图' : 'Brain'}</span>
+          </button>
+        )}
+        <LangToggle />
+      </div>
     </div>
   )
 }
 
-export default function NavShell({ onJump }) {
+export default function NavShell({ onJump, onOpenPython }) {
   const active = useActiveSection(NAV.map(n => n.id))
   return (
     <>
-      <TopBar onJump={onJump} />
+      <TopBar onJump={onJump} onOpenPython={onOpenPython} />
       <BottomStrip activeId={active} onJump={onJump} />
     </>
   )
