@@ -1,331 +1,598 @@
 // Helper: bilingual string
 const L = (en, zh) => ({ en, zh })
 
-// Picks string for current language with EN fallback.
+// Picks string for current language with zh -> en fallback.
 export function pick(v, lang) {
   if (v == null) return ''
   if (typeof v === 'string') return v
   if (typeof v === 'object' && (v.en || v.zh)) {
-    return (lang === 'zh' && v.zh) ? v.zh : (v.en || v.zh || '')
+    return v[lang] || v.zh || v.en || ''
   }
-  return v
+  // Defensive: never return a raw object. React can't render it safely.
+  return typeof v === 'object' ? '' : String(v)
 }
 
 export const SITE = {
-  name: L('Miles', '迈尔斯'),
-  nameFull: L('Miles Morales', '迈尔斯·莫拉莱斯'),
-  glyph: 'M',
-  portrait: '/picture/miles.jpg',
+  name: L('CHEN', '陈'),
+  nameRight: L('A.', '安'),
+  nameFull: L('Chen A.', '陈安'),
+  glyph: 'C',
+  cvPdf: '',                   // optional /docs/cv.pdf — overrides print behavior
   tagline: L(
-    'Brooklyn kid. Half Black, half Puerto Rican. Spider-Man. Trying to balance algebra homework with web-slinging, sketchbooks with responsibility.',
-    '布鲁克林的孩子。一半黑人血统，一半波多黎各血统。蜘蛛侠。在代数作业和蜘蛛丝之间、素描本和责任之间找平衡。'
+    'Film student in Hangzhou. A slow notebook of frames, sounds, and things I am still learning to see.',
+    '电影方向的学生，在杭州。这是一本慢慢生长的笔记本——影像、声音，以及还在学着「看见」的事物。'
   ),
-  portrait: '/miles.jpg',
   role: L(
-    'Student · Spider-Man · Sticker & Sketch Kid',
-    '学生・蜘蛛侠・贴纸涂鸦少年'
+    'B.A. Communication Studies, Film & Visual/Audio Direction',
+    '传播学・影视与视听方向 本科在读'
   ),
-  status: L('Patrolling', '巡逻中'),
+  status: L('Watching', '在看'),
   statusObject: L(
-    'Brooklyn — my block, my responsibility',
-    '布鲁克林——我的街区，我的责任'
+    'Wim Wenders — Tokyo-Ga (1985)',
+    '维姆・文德斯《寻找小津》（1985）'
   ),
-  location: L('Brooklyn, New York', '美国纽约布鲁克林'),
-  timezone: 'UTC-5',
-  email: 'miles@bvacademy.edu',
+  location: L('Hangzhou, China', '中国杭州'),
+  timezone: 'UTC+8',
+  email: 'chen@frame.studio',
   social: [
-    { label: L('Instagram', 'Instagram'), handle: '@miles.sketch', url: '#' },
-    { label: L('Discord', 'Discord'), handle: 'ganke_and_miles', url: '#' },
-    { label: L('Tumblr', 'Tumblr'), handle: '/spider-thoughts', url: '#' },
-    { label: L('Spotify', 'Spotify'), handle: 'Miles Vibes', url: '#' },
-    { label: L('Email', '邮箱'), handle: 'miles@bvacademy.edu', url: 'mailto:miles@bvacademy.edu' },
+    { label: L('Letterboxd', 'Letterboxd'), handle: '@chen_a', url: '#' },
+    { label: L('Instagram', 'Instagram'), handle: '@chen.frames', url: '#' },
+    { label: L('Are.na', 'Are.na'), handle: '/chen-a', url: '#' },
+    { label: L('RED · 小红书', '小红书'), handle: '@小陈拍片', url: '#' },
+    { label: L('Email', '邮箱'), handle: 'chen@frame.studio', url: 'mailto:chen@frame.studio' },
   ],
   now: L(
-    "Midterms next week. Dad still thinks Spider-Man's a menace — if only he knew. Working on a new sticker design for the block. Ganke's covering for me again. Trying not to think too hard about Uncle Aaron.",
-    '下周期中考。爸爸还是觉得蜘蛛侠是个祸害——他要是知道就好了。在做一款新的街区贴纸。Ganke 又在帮我打掩护。努力不去想 Aaron 叔叔的事。'
+    'Mid-term: finishing a 12-min short shot in West Lake fog at 5am. Reading Tarkovsky\'s Sculpting in Time again — slower this time. Practicing field recording with a Zoom H5 every Tuesday.',
+    '学期中：一部 12 分钟的短片快剪完了，是在西湖凌晨五点的雾里拍的。重读塔可夫斯基《雕刻时光》，比上次慢。每周二带 Zoom H5 去做实地录音。'
   ),
-  nowDate: L('Fall, Brooklyn', '秋天，布鲁克林'),
+  nowDate: L('May 2026, Hangzhou', '2026 年 5 月，杭州'),
 }
 
 export const NAV = [
-  { num: '00', id: 'home',        label: L('Frame 00', '片头'),      en: L('home',        '首页') },
-  { num: '01', id: 'about',       label: L('About',    '关于'),      en: L('biography',   '简介') },
-  { num: '02', id: 'journey',     label: L('Timeline', '时间线'),    en: L('journey',     '旅程') },
-  { num: '03', id: 'works',       label: L('Missions', '任务'),      en: L('portfolio',   '作品集') },
-  { num: '04', id: 'library',     label: L('Stacks',   '私藏'),      en: L('library',     '书影音') },
-  { num: '05', id: 'gallery',     label: L('Stickers', '贴纸'),      en: L('gallery',     '艺术') },
-  { num: '06', id: 'travel',      label: L('Universes', '宇宙'),     en: L('travel',      '宇宙') },
-  { num: '07', id: 'contact',     label: L('Signal',   '联络'),      en: L('contact',     '联系') },
+  { num: '00', id: 'home',        label: L('Frame 00', '片头'),   en: L('home',        '首页') },
+  { num: '01', id: 'about',       label: L('About',    '关于'),   en: L('biography',   '简介') },
+  { num: '02', id: 'journey',     label: L('Reel',     '影格'),   en: L('journey',     '旅程') },
+  { num: '03', id: 'works',       label: L('Works',    '作品集'),  en: L('portfolio',   '作品集') },
+  { num: '04', id: 'library',     label: L('Stacks',   '私藏'),   en: L('library',     '书影音') },
+  { num: '05', id: 'photography', label: L('Stills',   '影像'),   en: L('photography', '摄影') },
+  { num: '06', id: 'travel',      label: L('Atlas',    '足迹'),   en: L('travel',      '去过的地方') },
+  { num: '07', id: 'contact',     label: L('Signal',   '联络'),   en: L('contact',     '联系') },
 ]
 
 export const ABOUT = {
   intro: L(
-    "I'm Miles — I won a charter school lottery and ended up at Brooklyn Visions Academy. My mom Rio is a nurse, my dad Jefferson is a cop, and one of them is going to figure out I'm Spider-Man before this year is over.",
-    '我是迈尔斯——抽签抽中了 Brooklyn Visions Academy 特许学校。我妈妈 Rio 是护士，爸爸 Jefferson 是警察，他俩里总有一个会在这学年结束前发现我是蜘蛛侠。'
+    "I'm Chen — a third-year student in Communication Studies, specialising in film and visual / audio direction. I make short films, mostly about the cities I have lived in, and write about images when I can't film them.",
+    '我是陈安，传播学院影视与视听方向的大三学生。拍短片，多数关于我生活过的城市；拍不到的时候，就写——写关于影像的事。'
   ),
   paragraphs: [
     L(
-      "I wasn't supposed to be Spider-Man. Peter Parker was. But a genetically-modified spider from Oscorp followed my Uncle Aaron home from a heist — he didn't know it, I didn't know it — and bit me on the hand while I was sitting on his couch. A week later, Peter died. The job needed someone.",
-      "我本来不该当蜘蛛侠。彼得·帕克才是蜘蛛侠。但一只从 Oscorp 实验室出来的基因改造蜘蛛，跟着我 Aaron 叔叔从一次入室盗窃后回了家——他不知道，我也不知道——我坐在他沙发上的时候，它咬了我的手。一周后，彼得死了。这份工作总得有人接。"
+      'I was born in Hangzhou and have never quite left — I went to school here, study here, and I suspect I will keep returning even after I leave. The West Lake is the first thing I learned to look at properly.',
+      '我生在杭州，从未真正离开过——上学在这里，读书在这里，我猜即使将来走远，仍会一次次回来。西湖，是我学着「认真看」的第一样东西。'
     ),
     L(
-      "My dad hates Spider-Man. Thinks vigilantes make the city worse. My mom thinks Spider-Man is cool. They argue about it at dinner. I sit there and eat my arroz con pollo and try not to laugh into my plate.",
-      '我爸爸讨厌蜘蛛侠。觉得自警分子让城市更糟。我妈妈觉得蜘蛛侠很酷。他们在饭桌上吵这个。我就坐在那里吃我妈做的鸡肉饭，努力不让自己笑喷到盘子里。'
+      'My practice circles three things: long-take films, field recording, and the small essay-form. The films are slow; the recordings are quieter than the films; the essays try to explain why. I\'m interested in cinema as a way of paying attention — not a way of telling stories.',
+      '我的实践围绕三件事：长镜头的影片、实地录音、短篇影评。影片是慢的；录音比影片更安静；文字则试着解释这一切。我把电影当作一种「注意」的方式——而非讲故事的方式。'
     ),
     L(
-      "Only two people know who I am: Ganke Lee, my roommate at BVA, who figured it out in about forty seconds and now spends most of his time covering for me; and Peter — the other Peter, the older one, from another universe.Even though he's got stubble all over his face and a beer belly，but he's teaching me. Slowly. Patiently. He says I'll get there.",
-      "只有两个人知道我的身份：Ganke Lee，我在 BVA 的室友，他大概用了四十秒就猜到了，现在主要工作是替我打掩护；还有彼得——另一个彼得，更年长的那个(指616B彼得・B・帕克)，来自另一个宇宙。虽然他满脸胡茬、挺着啤酒肚，但他在教我。慢慢地，耐心地。他说我会成长起来的。"
+      'Currently working on a 30-minute documentary about night taxi drivers in Hangzhou — a film I have been failing to finish for nine months. I am also reading too much Tarkovsky and too little Bresson.',
+      '目前在做一部 30 分钟的纪录片，关于杭州夜班出租车司机——这片子我已经「拍不完」整整九个月。同时，塔可夫斯基读得太多，布列松读得太少。'
     ),
   ],
   cv: {
     edu: [
-      { year: 'Present', title: L('Brooklyn Visions Academy', 'Brooklyn Visions Academy'), role: L('Charter school lottery winner · Boarding student · Ganke is my roommate', '抽签进入的特许学校・寄宿生・Ganke 是我室友'), place: L('Brooklyn', '布鲁克林') },
-      { year: 'Before', title: L('PS 54, Brooklyn', '布鲁克林公立 54 小学'), role: L('Where I learned to draw on everything that wasn\'t paper.', '在这里学会了在一切非纸张的东西上画画。'), place: L('Brooklyn', '布鲁克林') },
+      { year: '2023 – present', title: L('B.A. Communication Studies', '传播学院本科'), role: L('Film & Visual/Audio Direction · expected 2027', '影视与视听方向・预计 2027 年毕业'), place: L('Hangzhou', '杭州') },
+      { year: '2020 – 2023', title: L('Hangzhou High School', '杭州某高中'), role: L('Art track · film club founder', '美术方向・电影社创办人'), place: L('Hangzhou', '杭州') },
     ],
     work: [
-      { year: 'Present', title: L('Spider-Man', '蜘蛛侠'), role: L('Brooklyn beat. Peter Parker covers Queens and Manhattan. We trade notes.', '布鲁克林辖区。Queens 和 Manhattan 归彼得·帕克管。我们互通情报。'), place: L('Brooklyn', '布鲁克林') },
-      { year: 'Weekends', title: L('Sticker & Tag Artist (anonymous)', '街头贴纸与涂鸦艺术家（匿名）'), role: L('Hand-drawn stickers on lamp posts and mailboxes. Signed with a spider. Nobody connects the dots.', '路灯柱和邮箱上的手绘贴纸。署名是一只蜘蛛。没人把线索拼起来。'), place: L('Brooklyn', '布鲁克林') },
+      { year: '2025 – present', title: L('Camera assistant, *Mist Studio*', '雾工作室・摄影助理'), role: L('Independent shorts, music videos, occasional commercials.', '独立短片、MV、偶尔的广告。'), place: L('Hangzhou', '杭州') },
+      { year: '2024', title: L('Editor, *西湖回声* (campus newsletter)', '《西湖回声》校刊编辑'), role: L('Edited the visual section. Designed three issues from scratch.', '负责视觉版面，独立设计了三期。'), place: L('Campus', '校园') },
     ],
     awards: [
-      { year: 'Present', title: L('Saved Brooklyn (multiple times)', '拯救了布鲁克林（多次）'), role: L('Mostly Kangaroo. Sometimes worse. No medals. Dad would probably arrest me.', '大多是袋鼠那种小角色。有时更糟。没有奖牌。爸爸大概会逮捕我。'), place: L('Brooklyn', '布鲁克林') },
-      { year: 'Before', title: L('Honor Roll · BVA', 'BVA 荣誉榜'), role: L('Before the spider bite. Grades have… slipped a little since.', '被咬之前的事。之后成绩……有点滑坡。'), place: L('Brooklyn', '布鲁克林') },
+      { year: '2025', title: L('Student Selection · *Beijing Student Film Festival*', '北京大学生电影节・学生作品入围'), role: L('For *Tide* (5 min, b&w 16mm short).', '凭借短片《潮》入围（5 分钟，16 毫米黑白）。'), place: L('Beijing', '北京') },
+      { year: '2024', title: L('Honourable Mention · *Hangzhou Youth Image Awards*', '杭州青年影像奖・特别提及'), role: L('Documentary category, for *Late Bus*.', '纪录片单元，作品《末班车》。'), place: L('Hangzhou', '杭州') },
     ],
     skills: [
-      { year: 'Powers', title: L('Wall-Crawling · Spider-Sense · Camouflage · Venom Blast', '飞檐走壁・蜘蛛感应・隐身・毒电击'), role: L('The camouflage and the bio-electric blast are mine alone — Peter doesn\'t have those. Still figuring them out.', '隐身和生物电击是我独有的——彼得没有。还在摸索。'), place: '—' },
-      { year: 'Physical', title: L('Web-Slinging · Parkour', '蜘蛛丝・跑酷'), role: L('Peter taught me the basics. The rest I learned by hitting buildings.', '彼得教我基础。剩下的是撞着楼学的。'), place: '—' },
-      { year: 'Real life', title: L('Drawing · Stickers · Algebra (reluctantly)', '画画・贴纸・代数（不情愿）'), role: L('Notebooks full of webs. Margins full of buildings. Math teachers are not impressed.', '笔记本里全是蛛网。页边全是楼。数学老师不太欣赏。'), place: '—' },
+      { year: 'Camera', title: L('Sony FX3 · Bolex H16 (recently)', 'Sony FX3・Bolex H16（最近开始用）'), role: L('Prefer fixed long takes; resisting handheld.', '偏好固定长镜头；克制晃镜的冲动。'), place: '—' },
+      { year: 'Sound', title: L('Zoom H5 · Sennheiser MKH-416', 'Zoom H5・森海塞尔 MKH-416'), role: L('Field recording for ambience + ADR for fiction.', '环境实地录音，配虚构片段的 ADR。'), place: '—' },
+      { year: 'Edit', title: L('DaVinci Resolve · Pro Tools', '达芬奇 Resolve・Pro Tools'), role: L('Cut on Resolve, mix in Pro Tools, never the other way.', 'Resolve 剪，Pro Tools 混；从不调换。'), place: '—' },
+      { year: 'Design', title: L('InDesign · Figma · Glyphs', 'InDesign・Figma・Glyphs'), role: L('For posters, zines, the occasional title sequence.', '海报、独立刊物、偶尔的片头字幕。'), place: '—' },
     ],
   },
   stats: [
-    { label: L('People who know', '知情者'), value: '*2*' },
-    { label: L('Years as Spider-Man', '当蜘蛛侠的年数'), value: '*~1*' },
-    { label: L('Languages', '语言'), value: L('*English* · Spanish (mom\'s side)', '*英语* · 西班牙语（妈妈那边）') },
-    { label: L('Status', '状态'), value: L('Trying. Mostly.', '在努力。大部分时候。') },
+    { label: L('Shorts directed', '执导短片'), value: '*7*' },
+    { label: L('Years filming', '拍摄年数'), value: '*4*' },
+    { label: L('Languages', '语言'), value: L('*中文* · English', '*中文* · 英文') },
+    { label: L('Status', '状态'), value: L('Student. *Open to assistant gigs*.', '在读・*开放摄影/录音助理合作*') },
   ],
 }
 
 export const JOURNEY = [
-  { id: 1, year: 'Y-13', label: L('Born', '出生'), place: L('Brooklyn', '布鲁克林'),
-    title: L('*Brooklyn kid. Both sides of the family.*', '*布鲁克林的孩子。父母两边都是。*'),
+  { id: 1, year: 2004, label: L('Born', '出生'), place: L('Hangzhou', '杭州'),
+    title: L('*A lake city.*', '*一座湖城。*'),
     text: L(
-      "Born in Brooklyn to Rio Morales — Puerto Rican, nurse, the warmth in the house — and Jefferson Davis — Black, cop, the rules in the house. I got my mom's last name. Long story.",
-      '生于布鲁克林。妈妈 Rio Morales——波多黎各人，护士，是家里的暖意；爸爸 Jefferson Davis——黑人，警察，是家里的规矩。我跟妈妈姓。说来话长。'
+      "Born in Hangzhou. Three things from very early: a tape deck, a small black-and-white TV, and my grandfather's habit of walking around the West Lake every Sunday. I think this is the entire shape of me.",
+      '生于杭州。很早的三样东西：一台磁带机、一台小小的黑白电视、外公每个周日绕西湖散步的习惯。我大概的形状，就是这三样东西。'
     ),
-    tags: ['origin', 'Brooklyn'], chapter: 'I' },
-  { id: 2, year: 'Y-5', label: L('Uncle Aaron', 'Aaron 叔叔'), place: L('Brooklyn', '布鲁克林'),
-    title: L('*The cool uncle Dad didn\'t want me visiting.*', '*那个爸爸不让我去找的「酷叔叔」。*'),
+    tags: ['origin', '杭州'], chapter: 'I' },
+  { id: 2, year: 2012, label: L('First camera', '第一台相机'), place: L('Hangzhou', '杭州'),
+    title: L('*A used Canon 550D.*', '*一台二手的 Canon 550D。*'),
     text: L(
-      "Uncle Aaron always had stories, a leather jacket, a fridge full of soda, and a brother — my dad — who didn't speak to him. I didn't know why for years. Turns out Aaron was the Prowler. Turns out family is complicated.",
-      "Aaron 叔叔总有讲不完的故事、一件皮夹克、一冰箱汽水，还有一个——我爸爸——和他不说话的兄弟。我多年来都不知道为什么。后来才知道 Aaron 是潜行者（Prowler）。原来家家有本难念的经。"
+      'Aged 8. My uncle\'s old DSLR. I shot 4,000 frames in the first week — mostly of the cat. I have lost all of them, which is the first cinematic lesson: most footage is for nothing, and that\'s fine.',
+      '八岁。叔叔的旧单反。第一周拍了四千张——大部分是猫。后来全都丢了。这是关于影像的第一课：大部分素材都没有用，这没关系。'
     ),
-    tags: ['family', 'foreshadow'], chapter: 'I' },
-  { id: 3, year: 'Y-1', label: L('Lottery', '抽签'), place: L('Brooklyn', '布鲁克林'),
-    title: L('*Won the BVA charter school lottery.*', '*抽中了 BVA 特许学校的名额。*'),
+    tags: ['camera', 'early'], chapter: 'I' },
+  { id: 3, year: 2017, label: L('Saw In the Mood for Love', '《花样年华》'), place: L('Cinema', '影院'),
+    title: L('*The first film that broke me.*', '*第一次被电影击中。*'),
     text: L(
-      "Mom cried. Dad couldn't stop grinning. I was terrified — I'd have to leave my friends and board at the new school. The night before classes started, I ran to Aaron's place to vent. Dad caught me there. They argued. Bad.",
-      "妈妈哭了。爸爸笑得合不拢嘴。我吓坏了——要离开朋友们去新学校寄宿。开学前一晚，我跑去 Aaron 那儿吐槽。爸爸在那儿逮到我。他俩吵起来了，吵得很凶。"
+      'Aged 13, a re-release at a small art cinema. The noodle-shop scene. I left the theatre changed in some way I am still describing.',
+      '十三岁，小放映厅的复映场。面摊那段。走出影院的时候，我有种被改写的感觉——这种感觉，至今还在描述。'
     ),
-    tags: ['school', 'lottery'], chapter: 'II' },
-  { id: 4, year: 'Y-1', label: L('The bite', '被咬'), place: L("Aaron's apartment", 'Aaron 的公寓'),
-    title: L('*A spider in the wrong bag.*', '*跑错包里的一只蜘蛛。*'),
+    tags: ['王家卫', 'epiphany'], chapter: 'II' },
+  { id: 4, year: 2020, label: L('Film club', '电影社'), place: L('High school', '高中'),
+    title: L('*Founded a high-school film club.*', '*创办了高中电影社。*'),
     text: L(
-      "While Dad and Aaron were yelling, I sat on the couch. A spider crawled out of Aaron's duffel bag and bit my hand. I passed out. Foamed at the mouth. Aaron had stolen it from Oscorp the week before — specimen 42, genetically altered. He had no idea what he was carrying. Neither did I.",
-      "爸爸和 Aaron 在吵的时候，我坐在沙发上。一只蜘蛛从 Aaron 的行李袋里爬出来，咬了我的手。我晕过去了。嘴里冒泡沫。Aaron 上周从 Oscorp 偷出来的——42 号样本，基因改造蜘蛛。他不知道自己带回来了什么。我也不知道。"
+      'Seven of us. We watched one Tarkovsky a month and argued about it for the next four weeks. We made one short — about a girl who waits for a bus that never comes. It is bad. I love it.',
+      '我们七个人。每月看一部塔可夫斯基，然后吵上四个礼拜。社团拍了一部短片——一个女孩等一辆永远不来的车。片子很差，我爱它。'
     ),
-    tags: ['origin', 'spider'], chapter: 'II' },
-  { id: 5, year: 'Y-1', label: L('Powers', '能力'), place: L('Brooklyn', '布鲁克林'),
-    title: L('*Invisible. Then sticking. Then everything.*', '*先是隐身。然后能黏墙。然后是一切。*'),
+    tags: ['club', '学生时代'], chapter: 'II' },
+  { id: 5, year: 2023, label: L('University', '大学'), place: L('Hangzhou', '杭州'),
+    title: L('*Film & visual/audio direction.*', '*影视与视听方向。*'),
     text: L(
-      "First thing I did was turn invisible by accident hiding from Dad. Then I stuck to a wall. Then my hand crackled with something blue that knocked Ganke off a chair. He looked at me and said, 'Dude. You're Spider-Man.' That's how I found out.",
-      "我做的第一件事是为了躲爸爸不小心隐身了。然后我黏在了墙上。然后我的手噼里啪啦冒出一道蓝光，把 Ganke 从椅子上震下去了。他看着我说：「老兄，你是蜘蛛侠。」我就这么知道了。"
+      "Got into the communication school I'd been aiming at. First-year curriculum was 70% theory and I almost left. Second year I got my hands on a Bolex and stayed.",
+      '考进了一直想去的传播学院。大一七成是理论课，我差点退学。大二上手了 Bolex，留了下来。'
     ),
-    tags: ['powers', 'ganke'], chapter: 'II' },
-  { id: 6, year: 'Y0', label: L('Peter dies', '彼得之死'), place: L('Queens', '皇后区'),
-    title: L('*The original Spider-Man died. The job was open.*', '*原版蜘蛛侠死了。这份工作空了出来。*'),
+    tags: ['university', '学习'], chapter: 'III' },
+  { id: 6, year: 2024, label: L('First festival', '首次入选'), place: L('Hangzhou', '杭州'),
+    title: L('*Late Bus — first official screening.*', '*《末班车》——首次正式放映。*'),
     text: L(
-      "I watched the news with Ganke. The Green Goblin killed Peter Parker in front of his own family. I went to the funeral in a Halloween Spider-Man costume because I didn't have a suit yet. Gwen Stacy saw me. She told me off. She was right. I made my own suit after that — black and red.",
-      "我和 Ganke 一起看新闻。绿魔在彼得·帕克自己家人面前杀了他。我穿着万圣节蜘蛛侠服装去了葬礼，因为我还没有自己的战衣。Gwen Stacy 看见了我。她把我骂了一顿。她说得对。之后我做了自己的战衣——黑红配色。"
+      "A 9-minute documentary about night-shift bus drivers. Got into the Hangzhou Youth Image Awards. I sat in the back row and didn't breathe for the entire screening.",
+      '九分钟的纪录片，关于夜班公交司机。入选了杭州青年影像奖。我坐在最后一排，整场没敢喘气。'
     ),
-    tags: ['peter', 'inheritance'], chapter: 'III' },
-  { id: 7, year: 'Y0', label: L('Uncle Aaron, again', '再次遇见叔叔'), place: L('Brooklyn rooftop', '布鲁克林屋顶'),
-    title: L('*The Prowler knew. He\'d always known.*', '*潜行者知道。他一直都知道。*'),
+    tags: ['doc', 'first'], chapter: 'III' },
+  { id: 7, year: 2025, label: L('16mm short', '16 毫米'), place: L('Beijing', '北京'),
+    title: L('*Tide — black-and-white 16mm.*', '*《潮》——黑白 16 毫米。*'),
     text: L(
-      "He figured out I was Spider-Man before I figured out he was the Prowler. He wanted me to be his protégé — wanted us to run Brooklyn together. I said no. We fought. I'm not ready to write down how that ended.",
-      "他比我更早知道我是蜘蛛侠——比我知道他是潜行者还早。他想让我当他的徒弟，想我们一起接管布鲁克林。我拒绝了。我们打了一架。那一架怎么收场的，我还没准备好写下来。"
+      'Five minutes, shot on actual film stock — terrifying and expensive. Took it to the Beijing Student Film Festival. The print was scratched in the third reel. It looked better that way.',
+      '五分钟，真正的胶片——又贵又紧张。带去了北京大学生电影节。第三本胶片划了一道，反而更好看。'
     ),
-    tags: ['aaron', 'loss'], chapter: 'III' },
-  { id: 8, year: 'Y+1', label: L('Now', '现在'), place: L('Brooklyn', '布鲁克林'),
-    title: L('*Sophomore. Spider-Man. Still here.*', '*二年级生。蜘蛛侠。还在。*'),
+    tags: ['16mm', 'festival'], chapter: 'III' },
+  { id: 8, year: 2026, label: L('Now', '当下'), place: L('Hangzhou', '杭州'),
+    title: L('*Night taxi project.*', '*夜班出租车项目。*'),
     text: L(
-      "Junior year of high school. Sleeping four hours a night. Failing chemistry. Ganke's tired. Mom suspects something. Dad still thinks Spider-Man's the problem. Brooklyn's still standing, mostly. So am I.",
-      "高中三年级。每晚睡四小时。化学要挂科。Ganke 累坏了。妈妈起疑心了。爸爸还是觉得蜘蛛侠是问题所在。布鲁克林大体还立着。我也还立着。"
+      "Currently the longest thing I've tried — a 30-minute documentary about the city's night taxi drivers. Nine months in, four months to go. Probably more.",
+      '目前为止我尝试过最长的——一部 30 分钟的纪录片，关于这座城市的夜班出租车司机。已经九个月，剩四个月，可能更久。'
     ),
     tags: ['now', '在做'], chapter: 'IV' },
 ]
 
 export const WORKS = [
   {
-    id: 'first-suit',
-    title: L('The Black-and-Red Suit', '黑红战衣'),
-    subtitle: L('Self-designed · Replacing the Halloween costume', '自己设计・替代万圣节服装'),
-    medium: 'design',
-    role: L('Designer · Wearer', '设计・穿着'),
-    year: 'Y0',
+    id: 'tide',
+    title: L('Tide', '潮'),
+    subtitle: L('5 min · 16mm b&w', '5 分钟・16 毫米黑白'),
+    medium: 'short',
+    role: L('Director · DP', '导演・摄影'),
+    year: '2025',
     cover: 'cover-1',
     summary: L(
-      "Designed in the dorm room after Peter's funeral. Black base, red web pattern, white eyes. Ganke pinned the early sketches to the wall. The first version had way too many spikes — Ganke talked me down.",
-      "彼得的葬礼之后，在宿舍里设计的。黑色为底，红色蛛网，白色眼睛。Ganke 把早期草稿钉在墙上。第一版有太多尖刺——Ganke 把我劝下来了。"
+      'A wordless five-minute short about a girl and her grandmother spending one morning by the Qiantang river before the tidal bore arrives.',
+      '一部无对白的五分钟短片：钱塘江观潮前的清晨，一个女孩与她的外婆。'
     ),
-    tags: ['suit', 'design'],
+    tags: ['short', '16mm', '黑白'],
     field: {
-      year: 'Y0',
-      format: L('Fabric, found materials, very basic tailoring', '布料、找来的材料、非常基础的裁剪'),
-      role: L('Designer, Tailor (badly)', '设计、（蹩脚的）裁缝'),
-      crew: L('Ganke (creative consultant)', 'Ganke（创意顾问）'),
-      festivals: L('—', '—'),
-      status: L('In active use', '正在使用'),
+      year: '2025',
+      format: L('16mm b&w · 5 min', '16 毫米黑白・5 分钟'),
+      role: L('Director, DP', '导演、摄影'),
+      crew: L('4 — me, soundie, two grips', '4 人：我、录音、两位场务'),
+      festivals: L('Beijing Student FF 2025', '北京大学生电影节 2025'),
+      status: L('Selected', '入围'),
     },
     body: [
       L(
-        "Gwen Stacy told me wearing Peter's old suit was disrespectful. She was right. The black-and-red was an attempt at saying: same job, different person. Different powers, too — Peter never had the camo or the venom blast. The colors are mine.",
-        "Gwen Stacy 说我穿彼得的旧战衣是不尊重。她说得对。黑红配色是我想说的：同一份工作，不同的人。能力也不一样——彼得没有隐身和毒电击。颜色是我的。"
+        "I'd never shot on film before. The decision to do so was mostly emotional — I'd been reading Tarkovsky for a year and felt that digital was lying to me. I rented a Bolex H16 from a graduate student for two days and used a single 400-foot roll.",
+        '我此前没拍过胶片。这个决定多半出于情绪——我读了一年的塔可夫斯基，开始觉得数字是在骗我。从一位研究生那儿租来 Bolex H16，整整两天，只用了一卷四百英尺。'
+      ),
+      L(
+        'Five minutes of finished film. The third reel was scratched during processing — a continuous vertical line running through the most emotional shot. I was angry for a week, then I realised it was the best thing in the film. I cut around nothing.',
+        '成片五分钟。第三卷在洗片时划了——一道垂直的线，正好穿过最情绪化的那个镜头。我气了一个礼拜，后来反应过来，那是全片最好的东西。我什么也没遮，全留着。'
       ),
     ],
   },
   {
-    id: 'kangaroo-fight',
-    title: L('First Real Fight: Kangaroo', '第一次真正出手：袋鼠'),
-    subtitle: L('Brooklyn streets · 4 minutes', '布鲁克林街头・4 分钟'),
-    medium: 'mission',
-    role: L('Spider-Man (debut)', '蜘蛛侠（首战）'),
-    year: 'Y0',
+    id: 'late-bus',
+    title: L('Late Bus', '末班车'),
+    subtitle: L('9 min · documentary', '9 分钟・纪录片'),
+    medium: 'doc',
+    role: L('Director · Sound', '导演・录音'),
+    year: '2024',
     cover: 'cover-2',
     summary: L(
-      "My first super-villain. He was robbing a bodega. I was wearing the Halloween costume. It went better than it had any right to.",
-      "我遇到的第一个超级反派。他正在抢一家便利店。我还穿着万圣节服装。结果比一切预期都好。"
+      'Three weeks riding the last bus of the night with the same driver. A documentary about the people you meet at 23:47.',
+      '连续三周，跟着同一位司机坐末班车。一部关于「23:47 你会遇到谁」的纪录片。'
     ),
-    tags: ['mission', 'first'],
+    tags: ['doc', '纪录片'],
     field: {
-      year: 'Y0',
-      format: L('Live action · Brooklyn pavement', '实战・布鲁克林街道'),
-      role: L('Spider-Man', '蜘蛛侠'),
-      crew: L('Solo (Ganke watching the security cam feed at home)', '单兵作战（Ganke 在家看监控直播）'),
-      festivals: L('—', '—'),
-      status: L('Won, accidentally', '意外赢了'),
+      year: '2024',
+      format: L('Digital · 9 min', '数字・9 分钟'),
+      role: L('Director, Sound', '导演、录音'),
+      crew: L('Solo', '独立完成'),
+      festivals: L('Hangzhou Youth Image Awards 2024', '杭州青年影像奖 2024'),
+      status: L('Honourable mention', '特别提及'),
     },
     body: [
       L(
-        "I webbed his feet together by accident. He fell into a fire hydrant. The bodega owner gave me a Snapple. Best day of my life until I got home and Ganke had compiled a 12-slide PowerPoint on what I'd done wrong.",
-        "我不小心用蛛丝把他的脚黏在了一起。他摔进了消防栓。便利店老板请了我一瓶 Snapple。是我人生最好的一天——直到我回到家，Ganke 已经做了一个 12 页的 PPT 讲我犯了哪些错。"
+        'I rode the 188 line every night for three weeks, sat in the same seat, kept the camera in my lap. The driver, Mr Wu, was 53 and had been driving the same route for 22 years. He told me he could hear the difference in the engine on rainy nights.',
+        '我连着三周乘 188 路末班车，坐在同一个座位上，摄影机搁在腿上。司机吴师傅 53 岁，同一条线开了 22 年。他说，下雨天他能听出发动机的不同。'
       ),
     ],
   },
   {
-    id: 'spider-stickers',
-    title: L('The Spider Stickers', '蜘蛛贴纸'),
-    subtitle: L('Hand-drawn · Brooklyn-wide', '手绘・遍布布鲁克林'),
-    medium: 'sticker',
-    role: L('Artist (anonymous)', '匿名艺术家'),
-    year: 'Y-2 –',
+    id: 'the-fog',
+    title: L('Fog Without Edges', '无边的雾'),
+    subtitle: L('12 min · in post', '12 分钟・后期中'),
+    medium: 'short',
+    role: L('Director', '导演'),
+    year: '2026',
     cover: 'cover-3',
     summary: L(
-      "I've been drawing stickers since I was eleven. Now they're on lamp posts and mailboxes all over Brooklyn. The signature is a tiny spider. Nobody connects the dots.",
-      "我从十一岁就开始画贴纸。现在它们在布鲁克林到处的路灯柱和邮箱上。签名是一只小蜘蛛。没人把线索拼起来。"
+      'A short shot at 5am in West Lake fog over four consecutive Sundays. Currently in post — a study in white, grey, and the patience of strangers.',
+      '一部短片：连续四个周日，凌晨五点在西湖的雾里拍摄。后期中——一篇关于白、灰，以及陌生人之间耐心的研究。'
     ),
-    tags: ['art', 'sticker'],
+    tags: ['in-progress', '短片'],
     field: {
-      year: 'Y-2 –',
-      format: L('Marker, sticker paper, sometimes spray paint', '马克笔、贴纸纸、有时是喷漆'),
-      role: L('Artist', '艺术家'),
-      crew: L('Solo', '独立'),
-      festivals: L('—', '—'),
-      status: L('Ongoing, always', '持续中，永远') ,
+      year: '2026',
+      format: L('Digital · 12 min', '数字・12 分钟'),
+      role: L('Director', '导演'),
+      crew: L('3', '3 人'),
+      festivals: L('Pending', '暂未'),
+      status: L('Post-production', '后期制作'),
     },
     body: [
       L(
-        "Dad once arrested someone for tagging. I sat at the dinner table and didn't say a word. The stickers are how I exist in the city when I can't be Spider-Man and don't want to be Miles. Just a shape on a wall. Just a spider.",
-        "爸爸有次抓了一个涂鸦的人。我坐在饭桌上一句话都没说。当我不能当蜘蛛侠、也不想当迈尔斯的时候，贴纸是我存在于这座城市的方式。只是墙上的一个图形。只是一只蜘蛛。"
+        'The hardest film I have made. The fog only behaves correctly for about forty minutes a morning, and you cannot light it without breaking it.',
+        '拍过最难的一部。雾只在每天清晨大约四十分钟里乖巧地配合，一打光就破了。'
+      ),
+    ],
+  },
+  {
+    id: 'fielding',
+    title: L('Fielding', '采集'),
+    subtitle: L('ongoing · field recording archive', '持续中・实地录音档案'),
+    medium: 'sound',
+    role: L('Recordist', '录音'),
+    year: '2024 –',
+    cover: 'cover-4',
+    summary: L(
+      'An ongoing personal archive of field recordings made every Tuesday with a Zoom H5. Currently 73 entries, each a single take of a single place.',
+      '一份持续的个人录音档案，每个周二用 Zoom H5 采集。目前 73 条，每条是一个地方的一个单独录音。'
+    ),
+    tags: ['sound', 'archive'],
+    field: {
+      year: '2024 –',
+      format: L('Stereo, 24-bit', '立体声 24-bit'),
+      role: L('Recordist', '录音'),
+      crew: L('Solo', '独立'),
+      festivals: L('—', '—'),
+      status: L('73 entries', '73 条'),
+    },
+    body: [
+      L(
+        'Every Tuesday afternoon I go somewhere — usually walking distance — and record a single ten-minute take. No editing. I file each one with the date, place, weather, and one sentence about what I was thinking. It is the closest thing I keep to a diary.',
+        '每个周二下午，我去某个地方——通常步行可达——录一段十分钟的单镜。不剪。每条按日期、地点、天气、还有「我当时在想什么」的一句话归档。这是我最接近日记的东西。'
+      ),
+    ],
+  },
+  {
+    id: 'echoes-mv',
+    title: L('Echoes', '回声'),
+    subtitle: L('3 min · music video', '3 分钟・MV'),
+    medium: 'mv',
+    role: L('Director · Editor', '导演・剪辑'),
+    year: '2024',
+    cover: 'cover-2',
+    summary: L(
+      'A music video for the indie band 苇 — three minutes of one long take through the lanes behind the old paper mill, scored to a song about leaving and not.',
+      '为独立乐队「苇」拍的 MV——三分钟的长镜头，穿过老纸厂背后的巷子，配着一首关于「走与不走」的歌。'
+    ),
+    tags: ['MV', 'long-take', 'indie'],
+    field: {
+      year: '2024',
+      format: L('Digital · 3 min', '数字・3 分钟'),
+      role: L('Director, Editor', '导演、剪辑'),
+      crew: L('2 — me + AC', '2 人：我与摄影助理'),
+      festivals: L('Online release · 380k views', '线上发布・38 万播放'),
+      status: L('Released', '已上线'),
+    },
+    body: [
+      L(
+        'Single long take, single morning, four rehearsals before the camera rolled. The band wanted to play live; I made them mime. They forgave me when they saw the cut.',
+        '单镜头，单一个清晨。开机前彩排了四遍。乐队想现场演奏，我让他们对口型。看到成片他们就原谅我了。'
+      ),
+    ],
+  },
+  {
+    id: 'bsff-poster',
+    title: L('BSFF Poster', 'BSFF 海报'),
+    subtitle: L('print · 700×1000mm', '印刷・700×1000mm'),
+    medium: 'visual',
+    role: L('Designer', '设计'),
+    year: '2025',
+    cover: 'cover-1',
+    summary: L(
+      'Poster commissioned by the Beijing Student Film Festival for their 2025 student selection programme. One image, hand-set type, three Pantones.',
+      '为北京大学生电影节 2025 学生作品单元设计的海报。一张图像、手工排字、三种 Pantone 专色。'
+    ),
+    tags: ['poster', 'print', 'type'],
+    field: {
+      year: '2025',
+      format: L('Print · 700×1000mm', '印刷・700×1000mm'),
+      role: L('Designer', '设计'),
+      crew: L('Solo + 1 printer', '独立完成・配一位印工'),
+      festivals: L('BSFF 2025 official poster', 'BSFF 2025 官方海报'),
+      status: L('Printed', '已印刷'),
+    },
+    body: [
+      L(
+        "The brief asked for 'something cinematic.' I gave them a photograph of an empty cinema and set the entire programme title in Yu-Gothic Bold rotated 4°. The festival director said 'this is wrong in the right way.' I took it as a compliment.",
+        '策展人要「电影感的设计」。我给了他们一张空空的电影厅照片，把整个单元名称用 Yu-Gothic Bold 旋转 4° 排版。节展总监说「错得很对」。我当作是夸奖。'
+      ),
+    ],
+  },
+  {
+    id: 'titles',
+    title: L('Spring Titles', '春日片头'),
+    subtitle: L('title sequence · 60s', '片头序列・60 秒'),
+    medium: 'visual',
+    role: L('Designer · Editor', '设计・剪辑'),
+    year: '2024',
+    cover: 'cover-3',
+    summary: L(
+      "Opening title sequence for our school film club's 2024 showcase. Sixty seconds, twenty-three names, one slow zoom across hand-painted Chinese type.",
+      '为校电影社 2024 年展映设计的片头。六十秒、二十三个名字、一段缓慢推近的手绘汉字镜头。'
+    ),
+    tags: ['title-sequence', 'type', 'motion'],
+    field: {
+      year: '2024',
+      format: L('Digital · 60s', '数字・60 秒'),
+      role: L('Designer, Editor', '设计、剪辑'),
+      crew: L('Solo', '独立'),
+      festivals: L('Club showcase', '社团展映'),
+      status: L('Screened', '已放映'),
+    },
+    body: [
+      L(
+        'Twenty-three crew names hand-painted on rice paper, then photographed in sequence and assembled in After Effects with a single linear push. Total runtime: 60 seconds. Total making time: nine weeks.',
+        '二十三位主创的名字，手写在宣纸上，逐张拍摄，然后在 After Effects 里以一条线性推镜串起来。成片：60 秒。制作时间：九周。'
       ),
     ],
   },
 ]
 
 export const BOOKS = [
-  { title: L('Invisible Man', '看不见的人'), author: 'Ralph Ellison', year: 'Y0', stars: 5, color: '#1a0000', text: '#e8dfcb',
-    note: L("Read for English class. Hit different when one of your literal powers is invisibility.", '英语课上读的。当你字面意义上的能力之一就是隐身时，读起来感受完全不同。') },
-  { title: L('Monster', '怪物'), author: 'Walter Dean Myers', year: 'Y-1', stars: 5, color: '#1a1a00', text: '#e8dfcb',
-    note: L('A Black kid in the courtroom telling his own story. Read it twice. Underlined too much.', '一个黑人少年在法庭上讲自己的故事。读了两遍。划了太多线。') },
-  { title: L('The Brief Wondrous Life of Oscar Wao', '奥斯卡·瓦奥短暂而奇妙的一生'), author: 'Junot Díaz', year: 'Y0', stars: 4, color: '#001a00', text: '#e8dfcb',
-    note: L("Mom gave it to me. Dominican, not Puerto Rican, but the Spanglish hits home.", '妈妈给我的。是多米尼加而不是波多黎各，但那种英语和西语夹杂的感觉特别熟悉。') },
-  { title: L('The Hate U Give', '黑暗中的星光'), author: 'Angie Thomas', year: 'Y-1', stars: 5, color: '#3a0a0a', text: '#e8dfcb',
-    note: L("Hard to read when your dad's a cop. Harder not to.", '当你爸爸是警察时，读这本书很难。不读更难。') },
-  { title: L("Subway Art", '地铁艺术'), author: 'Martha Cooper & Henry Chalfant', year: 'Y-2', stars: 5, color: '#1a1a3a', text: '#e8dfcb',
-    note: L("80s NYC graffiti, photographed before it got buffed. My bible for tags. Hidden under the bed.", '八十年代纽约涂鸦——被刷掉之前拍下来的。我的涂鸦圣经。藏在床底下。') },
+  { title: L('Sculpting in Time', '雕刻时光'), author: 'Andrei Tarkovsky', year: '2025', stars: 5, color: '#2a1a14', text: '#e8dfcb',
+    note: L("The bible I'm currently arguing with. Read it twice. Will read it again.", '我目前在「吵架」中的那本书。读了两遍。会再读一遍。') },
+  { title: L('Notes on the Cinematograph', '电影手记'), author: 'Robert Bresson', year: '2025', stars: 5, color: '#0e0f13', text: '#d44a3a',
+    note: L('A book of 100 sentences. Each one is a small bomb. I keep it by my desk and open it when I\'m lost.', '一百句话，每一句都是小炸弹。放在书桌边，迷路时翻开。') },
+  { title: L('On Photography', '论摄影'), author: 'Susan Sontag', year: '2024', stars: 5, color: '#1a1814', text: '#e8dfcb',
+    note: L('The case against taking pictures, made by someone who clearly loved looking at them. Honest the whole way through.', '一本反对「拍照」的书，作者显然热爱「看照片」。从头到尾都诚实。') },
+  { title: L('In Praise of Shadows', '阴翳礼赞'), author: "Tanizaki Jun'ichiro", year: '2024', stars: 5, color: '#26201a', text: '#e8dfcb',
+    note: L('A short essay about why East Asian aesthetics hate overhead lighting. I think about it on every set.', '一篇短文，关于「为什么东亚审美讨厌顶光」。每一次进场都在想。') },
+  { title: L('The Lonely City', '孤独的城市'), author: 'Olivia Laing', year: '2024', stars: 4, color: '#1a2228', text: '#e8dfcb',
+    note: L('Read on the bus between Hangzhou and Shanghai. Cried at Edward Hopper, which I did not see coming.', '在杭州去上海的公交车上读完。读到霍珀那段哭了——没想到自己会。') },
+  { title: L('West Lake Dream', '西湖梦寻'), author: 'Zhang Dai · 张岱', year: '2023', stars: 5, color: '#1a261e', text: '#e8dfcb',
+    note: L("A 17th-century writer's memory of a lake I walk around every Sunday. It hasn't changed as much as you'd think.", '一位十七世纪的人，回忆我每周日仍在散步的湖。变化没有想象的那么大。') },
+  { title: L('The Cinema Book', '电影理论读本'), author: 'Pam Cook (ed.)', year: '2024', stars: 4, color: '#0e1424', text: '#e8dfcb',
+    note: L("Heavy. A doorstop. Useful when I need to pretend I know what 'apparatus theory' means.", '厚得像门挡。当我想假装懂「装置理论」时，很有用。') },
+  { title: L('The Art of Looking Sideways', '侧目而视'), author: 'Alan Fletcher', year: '2024', stars: 5, color: '#241a1a', text: '#e8dfcb',
+    note: L('A 1,000-page chaos in the best way. Open it at random. Always interesting.', '一千页最好的混乱。随便翻开都有意思。') },
+  { title: L('Camera Lucida', '明室'), author: 'Roland Barthes', year: '2024', stars: 5, color: '#0e0f13', text: '#e8dfcb',
+    note: L("The 'punctum' is the most useful idea I have ever stolen. I use it without crediting Barthes weekly.", '「刺点」是我偷过最有用的概念。每周都在用，从不署名。') },
+  { title: L('The Tao of Pooh', '小熊维尼的道'), author: 'Benjamin Hoff', year: '2023', stars: 4, color: '#262214', text: '#e8dfcb',
+    note: L('Read at 12 and at 22. The 22-year-old understood it less. A good sign, I think.', '十二岁读和二十二岁读。后者反而读得更糊涂。我觉得是好事。') },
 ]
 
 export const FILMS = [
-  { title: 'Spider-Man: Into the Spider-Verse', subtitle: '蜘蛛侠：平行宇宙', year: '2018', director: 'Bob Persichetti, Peter Ramsey, Rodney Rothman',
-    note: L("Weird seeing a movie about you. Almost everything is wrong. Some things are exactly right.", '看一部关于自己的电影感觉很怪。几乎一切都是错的。某些东西又精准得吓人。') },
-  { title: 'Spider-Man: Across the Spider-Verse', subtitle: '蜘蛛侠：纵横宇宙', year: '2023', director: 'Joaquim Dos Santos, Kemp Powers, Justin K. Thompson',
-    note: L("Even weirder. Won't say more. They got the part about Dad right.", '更怪。多余的不说了。爸爸那部分他们拍对了。') },
-  { title: 'Do the Right Thing', subtitle: '为所应为', year: '1989', director: 'Spike Lee',
-    note: L("Dad's favorite movie. He paused it every five minutes to explain. I get it now. Took me until I was thirteen.", '爸爸最爱的电影。他每五分钟暂停一次解释。我现在懂了。直到十三岁才懂。') },
-  { title: 'Moonlight', subtitle: '月光男孩', year: '2016', director: 'Barry Jenkins',
-    note: L("Three chapters of being a Black kid trying to figure out who he is. I watched it the week Uncle Aaron found out.", '一个黑人男孩弄清自己是谁的三个章节。Aaron 叔叔发现真相的那一周，我看的这部。') },
-  { title: 'Crooklyn', subtitle: '布鲁克林轶事', year: '1994', director: 'Spike Lee',
-    note: L("Brooklyn, the seventies. Mom made me watch this with her. She cried at the soundtrack the whole time.", '七十年代的布鲁克林。妈妈让我陪她看。她整场都因为配乐在哭。') },
+  { title: 'In the Mood for Love', subtitle: '花樣年華', year: '2000', director: 'Wong Kar-wai · 王家卫',
+    note: L('The film I would watch every year for the rest of my life if asked to choose only one. The noodle scene is everything.', '如果只能选一部反复看，就是这部。面摊那一段就是全部。') },
+  { title: 'Stalker', subtitle: 'Сталкер', year: '1979', director: 'Andrei Tarkovsky · 塔可夫斯基',
+    note: L("Three men walk slowly toward a room. The pace re-set my entire idea of what 'long' could mean.", '三个男人慢慢走向一个房间。它彻底重置了我对「慢」的定义。') },
+  { title: 'Tokyo Story', subtitle: '東京物語', year: '1953', director: 'Yasujirō Ozu · 小津安二郎',
+    note: L("Ozu's tatami shots are the source code of my style. Static, low, patient. I am still trying to earn the right to use them.", '小津的榻榻米机位是我风格的源代码——静止、低、耐心。我还在努力配得上它。') },
+  { title: 'Drive My Car', subtitle: 'ドライブ・マイ・カー', year: '2021', director: 'Ryūsuke Hamaguchi · 滨口龙介',
+    note: L('Three hours that move like one. Proof that talking can be cinematic, if you mean it.', '三小时仿佛一小时。它证明：只要你是认真的，对话也能是电影。') },
+  { title: 'Spring in a Small Town', subtitle: '小城之春', year: '1948', director: 'Fei Mu · 费穆',
+    note: L("The first Chinese film I watched twice. The voiceover is doing things in 1948 that Western cinema didn't manage until the 1960s.", '我看了两遍的第一部华语片。1948 年的画外音，做到了西方电影直到 1960 年代才做到的事。') },
+  { title: 'Tokyo-Ga', year: '1985', director: 'Wim Wenders · 文德斯',
+    note: L('Wenders looking for Ozu in 1980s Tokyo and finding mostly pachinko parlours. A film about loss masquerading as a documentary.', '文德斯在 1980 年代的东京寻找小津，找到的多是弹珠房。一部假装成纪录片的「关于失去」的电影。') },
+  { title: 'Daughters of the Dust', year: '1991', director: 'Julie Dash',
+    note: L("Every frame is a painting. Beyoncé's Lemonade owes it everything. I owe it a lot too.", '每一格都是画。碧昂丝的《Lemonade》欠它一切。我欠它也多。') },
+  { title: 'Yi Yi', subtitle: '一一', year: '2000', director: 'Edward Yang · 杨德昌',
+    note: L("Three hours of a family in Taipei. The eight-year-old who photographs the backs of people's heads is me.", '三小时台北一家人的故事。那个总拍人后脑勺的八岁小孩——就是我。') },
 ]
 
 export const MUSIC = [
-  { track: 'Sunflower', artist: 'Post Malone & Swae Lee', album: 'Spider-Verse Soundtrack', duration: 158, mood: L('Swing', '摆荡'), note: L("They wrote it about me. Or for me. Or because of me. I don't know how this works.", '这首歌是写我的。或写给我的。或因为我才有的。多重宇宙的事我搞不清。') },
-  { track: 'Alright', artist: 'Kendrick Lamar', album: 'To Pimp a Butterfly', duration: 219, mood: L('Hope', '希望'), note: L("Listening to this on the train at 2 AM after a long patrol.", '长时间巡逻后凌晨两点在地铁上听这个。') },
-  { track: "Hum Along (feat. Wendell Pierce)", artist: 'Childish Gambino', album: 'STN MTN / Kauai', duration: 245, mood: L('Memory', '记忆'), note: L("Uncle Aaron played Gambino in his car. Can't listen without thinking of him.", 'Aaron 叔叔在车里放过 Gambino。听这个就会想起他。') },
-  { track: 'Como La Flor', artist: 'Selena', album: 'Entre a Mi Mundo', duration: 184, mood: L('Home', '家'), note: L("Mom plays this on Sundays. The whole apartment smells like sofrito.", '妈妈周日放这个。整个公寓飘着 sofrito 酱的香气。') },
-  { track: "What's My Name?", artist: 'DMX', album: '...And Then There Was X', duration: 235, mood: L('Boost', '提神'), note: L("Suit-up music. Don't tell Ganke I admitted this.", '换战衣的时候听的。别告诉 Ganke 我承认了。') },
-]
-
-export const TRAVEL = [
-  { city: L('Brooklyn', '布鲁克林'), country: L('NYC', '纽约市'), year: 'home', kind: 'home', lat: 40.65, lon: -73.94, note: L('home — my block', '家——我的街区') },
-  { city: L('Queens', '皇后区'), country: L('NYC', '纽约市'), year: 'visit', kind: 'frequent', lat: 40.74, lon: -73.82, note: L("where Peter Parker grew up", '彼得·帕克长大的地方') },
-  { city: L('Manhattan', '曼哈顿'), country: L('NYC', '纽约市'), year: 'patrol', kind: 'patrol', lat: 40.78, lon: -73.97, note: L('Oscorp is here. So is trouble.', 'Oscorp 在这里。麻烦也在这里。') },
-  { city: L('Puerto Rico', '波多黎各'), country: L('USA', '美国'), year: 'family', kind: 'family', lat: 18.22, lon: -66.59, note: L("Mom's family. Haven't been in years.", '妈妈的家人。好多年没回去了。') },
-  { city: L('Earth-616', '主世界'), country: L('Another universe', '另一个宇宙'), year: '?', kind: 'trip', lat: 0, lon: 0, note: L("Where the other Peter Parker lives. Visited once. Long story.", '另一个彼得·帕克住的地方。去过一次。说来话长。') },
-  { city: L('Earth-1610', '终极宇宙'), country: L('Home universe', '本宇宙'), year: 'always', kind: 'home', lat: 0, lon: 0, note: L("My home dimension. Officially.", '我的本源宇宙。官方认定。') },
+  { track: 'Music for Airports 1/1', artist: 'Brian Eno', album: 'Music for Airports', duration: '17:38', mood: L('Edit', '剪辑'), note: L('The album I edit to. Every time. Without exception.', '我剪片时一定在听的一张。无一例外。') },
+  { track: 'Una Mattina', artist: 'Ludovico Einaudi', album: 'Una Mattina', duration: '3:53', mood: L('Morning', '清晨'), note: L('The morning I shoot exteriors, this is on the AirPods.', '拍外景的清晨，这首会在耳机里。') },
+  { track: "Yumeji's Theme", artist: 'Shigeru Umebayashi', album: 'ITMFL OST', duration: '2:41', mood: L('Lovers', '凝望'), note: L("If you don't get goosebumps, we cannot be friends.", '如果你听这首没有起鸡皮疙瘩，我们做不成朋友。') },
+  { track: 'Solaris — Ocean', artist: 'Eduard Artemyev', album: 'Solaris OST', duration: '9:04', mood: L('Drift', '漂浮'), note: L('The score I want to deserve, eventually.', '总有一天，我希望能配得上的一段配乐。') },
+  { track: 'Discreet Music', artist: 'Brian Eno', album: 'Discreet Music', duration: '30:36', mood: L('Write', '写作'), note: L("Half an hour. I write while it plays and I don't notice the time.", '三十分钟。它放着的时候我写字，从不觉察时间。') },
+  { track: '在那遥远的地方', artist: 'Wang Luobin · 王洛宾', album: 'Folk', duration: '3:18', mood: L('Folk', '民歌'), note: L('My grandfather used to whistle this. I learned it through him before I ever heard the original.', '外公以前会哼这首。我先从他那里学会，才听到原版。') },
+  { track: 'Last Day of Summer', artist: 'Hauschka', album: 'Foreign Landscapes', duration: '3:42', mood: L('Memory', '记忆'), note: L('Prepared piano. It sounds the way old photographs feel.', '钢琴里塞了东西。听起来像老照片的感觉。') },
+  { track: 'Spiegel im Spiegel', artist: 'Arvo Pärt', album: 'Alina', duration: '8:24', mood: L('Stillness', '静止'), note: L('I put this on when I need to think clearly. It does the work for me.', '当我需要把事情想清楚时，会放这首。它替我把活儿干了。') },
 ]
 
 export const PHOTOS = [
-  { id: 'h1', series: 'stickers', caption: L('Stickered lamp post, Sunset Park', '日落公园路灯，贴满贴纸'), date: 'autumn', camera: L('Phone', '手机'), color: '#6b2c1a' },
-  { id: 'h2', series: 'stickers', caption: L('Spider tag, F train platform', 'F 线月台的蜘蛛涂鸦'), date: 'summer', camera: L('Phone', '手机'), color: '#1a3a2c' },
-  { id: 's1', series: 'moments', caption: L('Williamsburg rooftop, before patrol', '威廉斯堡屋顶，巡逻前'), date: 'late', camera: L('Phone', '手机'), color: '#1a1a2c' },
-  { id: 's2', series: 'moments', caption: L("Dad's NYPD jacket on the chair", '椅子上爸爸的 NYPD 制服'), date: 'morning', camera: L('Phone', '手机'), color: '#2c1a0a' },
-  { id: 's3', series: 'moments', caption: L("Ganke's side of the dorm", 'Ganke 那半边宿舍'), date: '—', camera: L('Phone', '手机'), color: '#2a201a' },
-  { id: 't1', series: 'sketches', caption: L('Spider notebook, page 47', '蜘蛛笔记本第 47 页'), date: '—', camera: L('Sketch', '草图'), color: '#0a0a0a' },
-  { id: 't2', series: 'sketches', caption: L('Suit design, v3', '战衣设计第 3 稿'), date: '—', camera: L('Sketch', '草图'), color: '#1a0a0a' },
+  { id: 'h1', series: 'walks', caption: L('West Lake, before dawn', '西湖，破晓前'), date: '2026.03.14', camera: 'FX3 · 35mm', color: '#1a2228' },
+  { id: 'h2', series: 'walks', caption: L('Tea district, rain', '茶区，雨'), date: '2026.02.07', camera: 'FX3 · 50mm', color: '#1f261a' },
+  { id: 'h3', series: 'walks', caption: L('Off the 188 bus', '下了 188 路'), date: '2025.11.22', camera: 'FX3 · 28mm', color: '#241a1a' },
+  { id: 'h4', series: 'walks', caption: L('Bridge over canal', '运河桥上'), date: '2025.10.04', camera: 'FX3 · 50mm', color: '#181a22' },
+  { id: 'h5', series: 'walks', caption: L('Hefang street, dusk', '河坊街，黄昏'), date: '2025.09.18', camera: 'Bolex 16mm', color: '#2a1f1a' },
+  { id: 's1', series: 'stills', caption: L('Tide — frame 14', '《潮》——第 14 帧'), date: '2025.06', camera: 'Bolex H16', color: '#0e0f13' },
+  { id: 's2', series: 'stills', caption: L('Tide — frame 47', '《潮》——第 47 帧'), date: '2025.06', camera: 'Bolex H16', color: '#14161b' },
+  { id: 's3', series: 'stills', caption: L('Late Bus — Mr Wu', '《末班车》——吴师傅'), date: '2024.10', camera: 'FX3', color: '#1a1814' },
+  { id: 's4', series: 'stills', caption: L('Late Bus — 23:47', '《末班车》——23:47'), date: '2024.10', camera: 'FX3', color: '#1c1f25' },
+  { id: 'p1', series: 'portraits', caption: L('Mei, after the wrap', '小美，杀青后'), date: '2025.07.02', camera: 'FX3 · 85mm', color: '#26201a' },
+  { id: 'p2', series: 'portraits', caption: L('Bo at the editing desk', '小波，剪辑桌'), date: '2025.04.19', camera: 'FX3 · 50mm', color: '#1a261e' },
+  { id: 'p3', series: 'portraits', caption: L('Self, mirror', '自摄，镜中'), date: '2024.12.31', camera: 'FX3 · 35mm', color: '#0e1424' },
+  { id: 't1', series: 'studies', caption: L('Light through linen', '亚麻布上的光'), date: '2025.05.20', camera: 'FX3', color: '#241a14' },
+  { id: 't2', series: 'studies', caption: L('Concrete and rain', '水泥与雨'), date: '2025.04.11', camera: 'FX3', color: '#181a1f' },
+  { id: 't3', series: 'studies', caption: L('Onions', '洋葱'), date: '2025.03.02', camera: 'FX3 · macro', color: '#221a14' },
+  { id: 't4', series: 'studies', caption: L('Three apples', '三只苹果'), date: '2024.11.16', camera: 'FX3 · macro', color: '#2a1f1a' },
 ]
 
 export const PHOTO_SERIES = [
   { id: 'all', label: L('All', '全部') },
-  { id: 'stickers', label: L('Stickers & Tags', '贴纸与涂鸦') },
-  { id: 'moments', label: L('Moments', '时刻') },
-  { id: 'sketches', label: L('Sketchbook', '速写本') },
+  { id: 'walks', label: L('Hangzhou Walks', '杭州散步') },
+  { id: 'stills', label: L('Film Stills', '电影剧照') },
+  { id: 'portraits', label: L('Portraits', '人像') },
+  { id: 'studies', label: L('Studies', '习作') },
 ]
 
-export const READING_LOG = []
+export const READING_LOG = [
+  { date: '2026.05', title: L('Sculpting in Time', '雕刻时光'), author: 'Andrei Tarkovsky', stars: 5, status: 'reread' },
+  { date: '2026.04', title: L('Notes on the Cinematograph', '电影手记'), author: 'Robert Bresson', stars: 5, status: 'finished' },
+  { date: '2026.03', title: L('The Lonely City', '孤独的城市'), author: 'Olivia Laing', stars: 4, status: 'finished' },
+  { date: '2026.02', title: L('West Lake Dream', '西湖梦寻'), author: 'Zhang Dai · 张岱', stars: 5, status: 'finished' },
+  { date: '2026.01', title: L('Camera Lucida', '明室'), author: 'Roland Barthes', stars: 5, status: 'reread' },
+  { date: '2025.12', title: L('On Photography', '论摄影'), author: 'Susan Sontag', stars: 5, status: 'finished' },
+  { date: '2025.11', title: L('In Praise of Shadows', '阴翳礼赞'), author: "Tanizaki Jun'ichiro", stars: 5, status: 'finished' },
+  { date: '2025.10', title: L('The Cinema Book', '电影理论读本'), author: 'Pam Cook (ed.)', stars: 4, status: 'skimmed' },
+  { date: '2025.09', title: L('The Art of Looking Sideways', '侧目而视'), author: 'Alan Fletcher', stars: 5, status: 'finished' },
+  { date: '2025.08', title: L('Everything is Cinema', '一切皆电影'), author: 'Richard Brody', stars: 4, status: 'finished' },
+  { date: '2025.07', title: L('Ways of Seeing', '观看之道'), author: 'John Berger', stars: 5, status: 'reread' },
+  { date: '2025.06', title: L('The Films in My Life', '我生命中的电影'), author: 'François Truffaut', stars: 4, status: 'finished' },
+  { date: '2025.05', title: L('Bird by Bird', '一鸟接着一鸟'), author: 'Anne Lamott', stars: 4, status: 'finished' },
+  { date: '2025.04', title: L('Long Way Home', '远途归家'), author: 'Saroo Brierley', stars: 3, status: 'abandoned' },
+  { date: '2025.03', title: L('How to Take Smart Notes', '卡片笔记法'), author: 'Sönke Ahrens', stars: 4, status: 'finished' },
+  { date: '2025.02', title: L('Mythologies', '神话学'), author: 'Roland Barthes', stars: 5, status: 'finished' },
+  { date: '2025.01', title: L('The Tao of Pooh', '小熊维尼的道'), author: 'Benjamin Hoff', stars: 4, status: 'reread' },
+  { date: '2024.12', title: L('In the Cut', '在剪辑之中'), author: 'Walter Murch', stars: 5, status: 'finished' },
+  { date: '2024.11', title: L("The Five C's", '摄影五要'), author: 'Joseph Mascelli', stars: 4, status: 'finished' },
+  { date: '2024.10', title: L('Sicily', '西西里'), author: 'John Keahey', stars: 3, status: 'finished' },
+  { date: '2024.09', title: L('Letters to a Young Poet', '给青年诗人的信'), author: 'Rilke', stars: 5, status: 'finished' },
+  { date: '2024.08', title: L('The Cinema Effect', '电影的效果'), author: 'Sean Cubitt', stars: 3, status: 'skimmed' },
+  { date: '2024.07', title: L('Bluets', '蓝色物语'), author: 'Maggie Nelson', stars: 5, status: 'finished' },
+  { date: '2024.06', title: L('Tokyo Year Zero', '东京零年'), author: 'David Peace', stars: 4, status: 'finished' },
+]
+
+export const USER_READING_LOG = []
 
 export const NOW_PLAYING = {
   spotify: [
-    { spotifyId: '3qe9zUyfdYBs1QwTwujMHU', track: 'Avril 14th', artist: 'Aphex Twin' },
+    { spotifyId: '3qe9zUyfdYBs1QwTwujMHU', track: 'Avril 14th',         artist: 'Aphex Twin' },
     { spotifyId: '2GdcESg4xC7s9TJQbHFGwM', track: 'Spiegel im Spiegel', artist: 'Arvo Pärt' },
-    // 想加多少首加多少首
   ],
   netease: [
     { neteaseId: '17405713', track: L('Avril 14th', 'Avril 14th'), artist: 'Aphex Twin' },
     { neteaseId: '4875306',  track: 'Spiegel im Spiegel', artist: 'Arvo Pärt' },
   ],
   html5: [
-    // 想内置歌曲就放在这里（音频文件放进 public/audio/）
-    // { audio: '/audio/example.mp3', track: 'Example', artist: 'Me' },
-    // 留空也行 —— 用户点"上传"按钮就能添加
+    // Optional pre-bundled tracks (place file in public/audio/, reference as '/audio/xxx.mp3').
+    // Users can also upload files at runtime — those appear here too.
   ],
 }
 
+export const TRAVEL = [
+  { city: L('Hangzhou', '杭州'), country: L('China', '中国'), year: 2004, kind: 'home', lat: 30.27, lon: 120.15, note: L('home — every day', '家——每一天') },
+  { city: L('Shanghai', '上海'), country: L('China', '中国'), year: 2014, kind: 'frequent', lat: 31.23, lon: 121.47, note: L('hour by train', '高铁一小时') },
+  { city: L('Suzhou', '苏州'), country: L('China', '中国'), year: 2022, kind: 'frequent', lat: 31.30, lon: 120.59, note: L('garden walks', '逛园林') },
+  { city: L('Beijing', '北京'), country: L('China', '中国'), year: 2025, kind: 'festival', lat: 39.90, lon: 116.41, note: L('BSFF screening', '电影节放映') },
+  { city: L('Chongqing', '重庆'), country: L('China', '中国'), year: 2023, kind: 'trip', lat: 29.56, lon: 106.55, note: L('the fog city', '雾都') },
+  { city: L("Xi'an", '西安'), country: L('China', '中国'), year: 2024, kind: 'trip', lat: 34.34, lon: 108.94, note: L('a week alone', '独自一周') },
+  { city: L('Hong Kong', '香港'), country: L('HKSAR', '香港'), year: 2023, kind: 'trip', lat: 22.32, lon: 114.17, note: L('Wong Kar-wai pilgrimage', '王家卫朝圣') },
+  { city: L('Tokyo', '东京'), country: L('Japan', '日本'), year: 2023, kind: 'trip', lat: 35.68, lon: 139.69, note: L('two weeks · summer', '两周・夏天') },
+  { city: L('Kyoto', '京都'), country: L('Japan', '日本'), year: 2023, kind: 'trip', lat: 35.01, lon: 135.77, note: L("Ozu's grave", '小津之墓') },
+  { city: L('Taipei', '台北'), country: L('Taiwan', '台湾'), year: 2024, kind: 'trip', lat: 25.03, lon: 121.56, note: L('Yang & Hou', '杨德昌、侯孝贤') },
+  { city: L('Seoul', '首尔'), country: L('Korea', '韩国'), year: 2025, kind: 'trip', lat: 37.57, lon: 126.98, note: L('five days · winter', '五天・冬') },
+]
+
+// ─────────────────────────────────────────────────────────────────────────────
+// TEXTS — all hardcoded user-facing strings, now data-driven.
+// Edit through the in-site ContentEditor or here directly.
+// ─────────────────────────────────────────────────────────────────────────────
+
+// ─────────────────────────────────────────────────────────────────────────────
+// MODULES — per-section structure controls. Legacy true/false overrides are
+// still accepted by DataProvider and are normalized into this object shape.
+// ─────────────────────────────────────────────────────────────────────────────
+export const MODULES = {
+  about:       { enabled: true, nav: true,  order: 1,  label: L('About', '关于'),       layout: 'default' },
+  journey:     { enabled: true, nav: true,  order: 2,  label: L('Reel', '影格'),        layout: 'default' },
+  works:       { enabled: true, nav: true,  order: 3,  label: L('Works', '作品集'),     layout: 'default' },
+  library:     { enabled: true, nav: true,  order: 4,  label: L('Stacks', '私藏'),      layout: 'default' },
+  photography: { enabled: true, nav: true,  order: 5,  label: L('Stills', '影像'),      layout: 'default' },
+  travel:      { enabled: true, nav: true,  order: 6,  label: L('Atlas', '足迹'),       layout: 'default' },
+  contact:     { enabled: true, nav: true,  order: 7,  label: L('Signal', '联系'),      layout: 'default' },
+  colophon:    { enabled: true, nav: false, order: 8,  label: L('Colophon', '落款'),    layout: 'default' },
+  cvButton:    { enabled: true, nav: false, order: 90, label: L('Full CV', '完整简历'), layout: 'default' },
+  nowPlaying:  { enabled: true, nav: false, order: 99, label: L('Now Playing', '播放中'), layout: 'default' },
+}
+
+export const TEXTS = {
+  landing: {
+    metaRole:     L('FILM STUDENT · DIRECTOR', '影视方向 · 学生导演'),
+    metaSchool:   L('COMMUNICATION STUDIES', '传播学院 · 在读'),
+    metaEmailLbl: L('EMAIL ↗', '邮箱 ↗'),
+    metaCity:     L('HANGZHOU', '杭州'),
+    nameLeft:     L('Chen', '陈'),
+    nameRight:    L('A.', '安'),
+    pillAboutLbl: L('About', '关于'),
+    pillWorksLbl: L('Works', '作品'),
+    pillLibraryLbl: L('Library', '私藏'),
+    wordA:        L('Film', '电影'),
+    wordB:        L('Student & Director', '学生与导演'),
+    wordC:        L('Based', '现居'),
+    wordD:        L('in Hangzhou', '杭州'),
+  },
+  about: {
+    headerTitle:  L('A short biography', '简短的自述'),
+    headerSubTag: L('biography', '简介'),
+    headerMeta:   L('Read time · 3 min', '阅读约 3 分钟'),
+    portraitTagL: L('[ self, 2025 ]', '[ 自拍 · 2025 ]'),
+    portraitTagR: '35mm · TX-400',
+    fullCvLabel:  L('Full CV / Curriculum', '查看完整简历'),
+    sealChar:     '陈',
+    blockEdu:     L('Education', '学历'),
+    blockWork:    L('Practice',  '工作'),
+    blockAwards:  L('Awards',    '奖项'),
+    blockSkills:  L('Tools',     '技能'),
+  },
+  cvModal: {
+    eyebrow:      L('CURRICULUM VITAE · 简历', '简历 · CURRICULUM VITAE'),
+    sealChar:     '陈',
+    blockEdu:     L('Education',          '学历'),
+    blockWork:    L('Practice',           '工作经历'),
+    blockAwards:  L('Awards & screenings','奖项'),
+    blockSkills:  L('Tools & skills',     '技能 / 工具'),
+    contactLabel: L('Contact',    '联系'),
+    linksLabel:   L('Links',      '链接'),
+    langsLabel:   L('Languages',  '语言'),
+    nowLabel:     L('Currently',  '当前'),
+    langItems: [
+      L('Chinese (native)', '中文（母语）'),
+      L('English (fluent)', '英文（流利）'),
+      L('Japanese (reading)', '日文（阅读）'),
+    ],
+    nowItems: [
+      L('Third-year BA student',     '在读本科三年级'),
+      L('Open to assistant gigs',    '开放助理类合作'),
+    ],
+    printLabel:   L('Print / Save as PDF', '打印 / 存为 PDF'),
+    lastUpdated:  L('Last updated ',       '最后更新 '),
+  },
+  contact: {
+    statementEn: "I'm <em>open</em> to camera/sound assistant gigs, short-film collaborations, and the occasional title-design commission. \nI reply slowly. Usually worth the wait.",
+    statementZh: "目前开放<em>摄影 / 录音助理</em>合作，也欢迎短片创作、独立刊物视觉、片头字幕设计的邀约。\n我回信慢，但通常值得。",
+    writeMeLabel:  L('Write me', '写邮件'),
+    secondaryLbl:  L('Letterboxd ↗', 'Letterboxd ↗'),
+    secondaryUrl:  '#',
+  },
+  colophon: {
+    signoff: L(
+      'A garden, not a portfolio.\nCome back when something has grown.',
+      '这不是作品集，是一座园子。\n等什么东西长出来了，再来看。'
+    ),
+    fontsLine: L('Set in Lora, Manrope & Noto.', 'Lora、Manrope、思源黑/宋体设计排版。'),
+    handCodedLine: L('Hand-coded. No tracking. No cookies.', '纯手写代码。无追踪。无 cookie。'),
+  },
+}

@@ -1,6 +1,6 @@
 import React, { useRef, useEffect, useState } from 'react'
 import { useLang } from '../lang'
-import { NOW_PLAYING } from '../data'
+import { useData } from '../data-context'
 import { useNP } from '../np-context'
 
 const SOURCES = [
@@ -12,6 +12,7 @@ const POS_KEY = 'chen.np.pos'
 
 export default function NowPlaying() {
   const { lang, t } = useLang()
+  const { NOW_PLAYING } = useData()
   const np = useNP()
   const fileRef = useRef(null)
   const widgetRef = useRef(null)
@@ -38,20 +39,24 @@ export default function NowPlaying() {
     if (pos) try { localStorage.setItem(POS_KEY, JSON.stringify(pos)) } catch {}
   }, [pos])
 
-  // Clamp to viewport on resize (so it never ends up off-screen)
+  // Clamp to viewport on resize (so it never ends up off-screen).
+  // Note: no `pos` in deps — we use the functional setter form so the latest pos
+  // is read at clamp time, and the resize listener stays installed once.
   useEffect(() => {
-    if (!pos) return
     const onResize = () => {
       const w = widgetRef.current?.offsetWidth ?? 0
       const h = widgetRef.current?.offsetHeight ?? 0
-      setPos(p => p && ({
-        x: Math.max(8, Math.min(window.innerWidth - w - 8, p.x)),
-        y: Math.max(8, Math.min(window.innerHeight - h - 8, p.y)),
-      }))
+      setPos(p => {
+        if (!p) return p
+        return {
+          x: Math.max(8, Math.min(window.innerWidth - w - 8, p.x)),
+          y: Math.max(8, Math.min(window.innerHeight - h - 8, p.y)),
+        }
+      })
     }
     window.addEventListener('resize', onResize)
     return () => window.removeEventListener('resize', onResize)
-  }, [pos])
+  }, [])
 
   // Suppress the click after a drag (capture-phase listener)
   useEffect(() => {
@@ -116,7 +121,9 @@ export default function NowPlaying() {
     list = [
       ...bundled,
       ...uploads.map((u, k) => ({
-        audio: u.url, track: u.name,
+        id: u.id,
+        audio: u.url,
+        track: u.name,
         artist: lang === 'zh' ? '上传' : 'Uploaded',
         _uploadIdx: k,
       })),
@@ -231,8 +238,9 @@ export default function NowPlaying() {
             {list.map((tr, j) => {
               const playing = isPlayingThis(j)
               const sel = j === selectedIdx
+              const key = tr.id || tr.spotifyId || tr.neteaseId || tr.audio || `idx-${j}`
               return (
-                <div key={j} className={`np-list-row ${sel ? 'sel' : ''} ${playing ? 'playing' : ''}`} role="listitem">
+                <div key={key} className={`np-list-row ${sel ? 'sel' : ''} ${playing ? 'playing' : ''}`} role="listitem">
                   <button className="np-list-item" onClick={() => playFromList(j)}>
                     <span className="np-list-num">{String(j + 1).padStart(2, '0')}</span>
                     <span className="np-list-text">

@@ -1,10 +1,15 @@
 import React, { useState } from 'react'
 import { useLang } from '../lang'
-import { TRAVEL } from '../data'
+import { useData } from '../data-context'
+
+function travelKey(p, fallback = '') {
+  return p?.id || p?.city?.en || p?.city?.zh || (typeof p?.city === 'string' ? p.city : fallback)
+}
 
 export default function Travel() {
   const { lang, t } = useLang()
-  const [active, setActive] = useState(TRAVEL[0].city.en)
+  const { TRAVEL } = useData()
+  const [active, setActive] = useState(() => TRAVEL[0] ? travelKey(TRAVEL[0], '0') : null)
 
   const project = (lat, lon) => {
     const x = ((lon - 100) / (145 - 100)) * 100
@@ -12,7 +17,7 @@ export default function Travel() {
     return { x: Math.max(2, Math.min(98, x)), y: Math.max(2, Math.min(58, y)) }
   }
 
-  const activeNode = TRAVEL.find(p => p.city.en === active)
+  const activeNode = active ? TRAVEL.find((p, i) => travelKey(p, String(i)) === active) : null
 
   return (
     <section id="travel">
@@ -42,7 +47,13 @@ export default function Travel() {
               <line key={`h${y}`} x1="0" y1={y} x2="100" y2={y}
                 stroke="var(--ink-line)" strokeWidth="0.08" vectorEffect="non-scaling-stroke" />
             ))}
-            {[...TRAVEL].sort((a, b) => a.year - b.year).map((p, i, arr) => {
+            {[...TRAVEL].sort((a, b) => {
+              const av = Number(a.year), bv = Number(b.year)
+              if (Number.isNaN(av) && Number.isNaN(bv)) return 0
+              if (Number.isNaN(av)) return 1
+              if (Number.isNaN(bv)) return -1
+              return av - bv
+            }).map((p, i, arr) => {
               if (i === arr.length - 1) return null
               const a = project(p.lat, p.lon)
               const b = project(arr[i + 1].lat, arr[i + 1].lon)
@@ -54,17 +65,18 @@ export default function Travel() {
             })}
           </svg>
 
-          {TRAVEL.map((p) => {
+          {TRAVEL.filter(p => p.lat !== 0 || p.lon !== 0).map((p) => {
             const { x, y } = project(p.lat, p.lon)
-            const isActive = p.city.en === active
+            const key = travelKey(p, `${p.lat}-${p.lon}`)
+            const isActive = key === active
             const isHome = p.kind === 'home'
             return (
               <button
-                key={p.city.en}
+                key={key}
                 className={`atlas-pin ${isActive ? 'active' : ''} ${isHome ? 'home' : ''}`}
                 style={{ left: `${x}%`, top: `${y}%` }}
-                onMouseEnter={() => setActive(p.city.en)}
-                onClick={() => setActive(p.city.en)}
+                onMouseEnter={() => setActive(key)}
+                onClick={() => setActive(key)}
               >
                 <span className="pin-dot"></span>
                 <span className="pin-label">{t(p.city)}</span>
@@ -95,17 +107,26 @@ export default function Travel() {
           <div className="atlas-list">
             <h6>{lang === 'zh' ? '所有目的地' : 'All destinations'}</h6>
             <ul>
-              {[...TRAVEL].sort((a, b) => a.year - b.year).map((p) => (
+              {[...TRAVEL].sort((a, b) => {
+              const av = Number(a.year), bv = Number(b.year)
+              if (Number.isNaN(av) && Number.isNaN(bv)) return 0
+              if (Number.isNaN(av)) return 1
+              if (Number.isNaN(bv)) return -1
+              return av - bv
+            }).map((p, i) => {
+              const key = travelKey(p, String(i))
+              return (
                 <li
-                  key={p.city.en}
-                  className={p.city.en === active ? 'active' : ''}
-                  onClick={() => setActive(p.city.en)}
+                  key={key}
+                  className={key === active ? 'active' : ''}
+                  onClick={() => setActive(key)}
                 >
                   <span className="atlas-list-year">{p.year}</span>
                   <span className="atlas-list-city">{t(p.city)}</span>
                   <span className="atlas-list-kind">{p.kind === 'home' ? '●' : '○'}</span>
                 </li>
-              ))}
+              )
+            })}
             </ul>
           </div>
         </aside>

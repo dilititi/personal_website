@@ -1,10 +1,12 @@
 import React, { useEffect } from 'react'
 import { useLang } from '../lang'
-import { SITE, ABOUT } from '../data'
+import { useData } from '../data-context'
 import { emph } from '../hooks'
 
 export default function CVModal({ open, onClose }) {
   const { lang, t } = useLang()
+  const { SITE, ABOUT, TEXTS } = useData()
+  const TC = TEXTS.cvModal
 
   useEffect(() => {
     if (!open) return
@@ -18,10 +20,10 @@ export default function CVModal({ open, onClose }) {
   }, [open, onClose])
 
   const blocks = [
-    { key: 'edu',    title: lang === 'zh' ? '学历'       : 'Education' },
-    { key: 'work',   title: lang === 'zh' ? '工作经历'   : 'Practice' },
-    { key: 'awards', title: lang === 'zh' ? '奖项'       : 'Awards & screenings' },
-    { key: 'skills', title: lang === 'zh' ? '技能 / 工具' : 'Tools & skills' },
+    { key: 'edu',    title: t(TC.blockEdu) },
+    { key: 'work',   title: t(TC.blockWork) },
+    { key: 'awards', title: t(TC.blockAwards) },
+    { key: 'skills', title: t(TC.blockSkills) },
   ]
 
   return (
@@ -31,7 +33,7 @@ export default function CVModal({ open, onClose }) {
 
         <header className="cv-doc-head">
           <div>
-            <div className="cv-eyebrow">{lang === 'zh' ? '简历 · CURRICULUM VITAE' : 'CURRICULUM VITAE · 简历'}</div>
+            <div className="cv-eyebrow">{t(TC.eyebrow)}</div>
             <h1>{t(SITE.nameFull)}</h1>
             <p className="cv-role">{t(SITE.role)}</p>
             <p className="cv-contact">
@@ -39,34 +41,31 @@ export default function CVModal({ open, onClose }) {
             </p>
           </div>
           <div className="cv-doc-seal">
-            <div className="seal-stamp" style={{ transform: 'rotate(-3deg)' }}>陈</div>
-            <span className="cv-doc-stamp">{lang === 'zh' ? '最后更新 ' : 'Last updated '}{t(SITE.nowDate)}</span>
+            <div className="seal-stamp" style={{ transform: 'rotate(-3deg)' }}>{TC.sealChar}</div>
+            <span className="cv-doc-stamp">{t(TC.lastUpdated)}{t(SITE.nowDate)}</span>
           </div>
         </header>
 
         <div className="cv-doc-body">
           <aside className="cv-doc-side">
             <div>
-              <h6>{lang === 'zh' ? '联系' : 'Contact'}</h6>
+              <h6>{t(TC.contactLabel)}</h6>
               <p>{SITE.email}</p>
               <p>{t(SITE.location)}</p>
             </div>
             <div>
-              <h6>{lang === 'zh' ? '链接' : 'Links'}</h6>
+              <h6>{t(TC.linksLabel)}</h6>
               {SITE.social.map((s, i) => (
                 <p key={i}>{t(s.label)} · {s.handle}</p>
               ))}
             </div>
             <div>
-              <h6>{lang === 'zh' ? '语言' : 'Languages'}</h6>
-              <p>{lang === 'zh' ? '中文（母语）' : 'Chinese (native)'}</p>
-              <p>{lang === 'zh' ? '英文（流利）' : 'English (fluent)'}</p>
-              <p>{lang === 'zh' ? '日文（阅读）' : 'Japanese (reading)'}</p>
+              <h6>{t(TC.langsLabel)}</h6>
+              {(TC.langItems || []).map((it, i) => <p key={i}>{t(it)}</p>)}
             </div>
             <div>
-              <h6>{lang === 'zh' ? '当前' : 'Currently'}</h6>
-              <p>{lang === 'zh' ? '在读本科三年级' : 'Third-year BA student'}</p>
-              <p>{lang === 'zh' ? '开放助理类合作' : 'Open to assistant gigs'}</p>
+              <h6>{t(TC.nowLabel)}</h6>
+              {(TC.nowItems || []).map((it, i) => <p key={i}>{t(it)}</p>)}
             </div>
           </aside>
 
@@ -92,10 +91,17 @@ export default function CVModal({ open, onClose }) {
 
         <footer className="cv-doc-foot">
           <div>
-            <button className="btn" onClick={() => window.print()}>
-              <span>{lang === 'zh' ? '打印 / 存为 PDF' : 'Print / Save as PDF'}</span>
-              <span className="arrow">↓</span>
-            </button>
+            {SITE.cvPdf ? (
+              <a className="btn" href={SITE.cvPdf} target="_blank" rel="noopener noreferrer" download>
+                <span>{lang === 'zh' ? '下载 PDF 简历' : 'Download PDF CV'}</span>
+                <span className="arrow">↓</span>
+              </a>
+            ) : (
+              <button className="btn" onClick={() => window.print()}>
+                <span>{t(TC.printLabel)}</span>
+                <span className="arrow">↓</span>
+              </button>
+            )}
           </div>
           <div className="cv-doc-stamp-line">
             <span>{t(SITE.nameFull)} · {t(SITE.location)}</span>

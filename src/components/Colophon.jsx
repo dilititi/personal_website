@@ -1,20 +1,22 @@
 import React from 'react'
 import { useLang } from '../lang'
-import { SITE } from '../data'
+import { useData } from '../data-context'
 
 export default function Colophon() {
   const { lang, t } = useLang()
+  const { SITE, TEXTS } = useData()
+  const TX = TEXTS.colophon
+  const signoff = t(TX.signoff) || ''
+  const [sig1, sig2 = ''] = signoff.split('\n')
+
   return (
     <footer className="colophon">
       <div className="colophon-grid">
         <div>
           <h6>{lang === 'zh' ? '最后说一句' : 'One last thing'}</h6>
           <p className="signoff">
-            {lang === 'zh' ? (
-              <>这不是作品集，是一座园子。<br /><em style={{ color: 'var(--cream-mute)' }}>等什么东西长出来了，再来看。</em></>
-            ) : (
-              <>A garden, not a portfolio. <br /><em style={{ color: 'var(--cream-mute)' }}>Come back when something has grown.</em></>
-            )}
+            {sig1}<br />
+            {sig2 && <em style={{ color: 'var(--cream-mute)' }}>{sig2}</em>}
           </p>
         </div>
         <div>
@@ -25,8 +27,8 @@ export default function Colophon() {
         </div>
         <div>
           <h6>{lang === 'zh' ? '版本说明' : 'Colophon'}</h6>
-          <p>{lang === 'zh' ? 'Lora、Manrope、思源黑/宋体设计排版。' : 'Set in Lora, Manrope & Noto.'}</p>
-          <p>{lang === 'zh' ? '纯手写代码。无追踪。无 cookie。' : 'Hand-coded. No tracking. No cookies.'}</p>
+          <p>{t(TX.fontsLine)}</p>
+          <p>{t(TX.handCodedLine)}</p>
         </div>
         <div>
           <h6>{lang === 'zh' ? '最近一次修整' : 'Last tended'}</h6>
@@ -35,7 +37,7 @@ export default function Colophon() {
         </div>
       </div>
       <div className="stamp">
-        <span>© Chen MMXXVI · {lang === 'zh' ? '一切文字图像均属个人' : 'all words & frames mine · all errors mine too'}</span>
+        <span>© {t(SITE.name)} MMXXVI · {lang === 'zh' ? '一切文字图像均属个人' : 'all words & frames mine · all errors mine too'}</span>
         <span>↑ {lang === 'zh' ? '回到顶部' : 'back to top'}</span>
       </div>
     </footer>

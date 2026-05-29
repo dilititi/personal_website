@@ -6,7 +6,7 @@
 
 ## 前置要求
 
-- [Node.js](https://nodejs.org/) 18+ （建议使用 LTS 版本，点击高亮链接即可下载）
+- [Node.js](https://nodejs.org/) 20.19+ 或 22.12+（建议使用当前 LTS 版本，点击高亮链接即可下载）
 - npm（随 Node.js 自动安装）
 
 ## 快速开始

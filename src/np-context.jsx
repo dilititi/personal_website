@@ -43,13 +43,15 @@ export function NowPlayingProvider({ children }) {
   const addUploads = useCallback((fileList, opts = {}) => {
     const files = Array.from(fileList || [])
     if (!files.length) return []
-    const items = files.map(f => ({
+    const items = files.map((f) => ({
+      id: 'u-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8),
       name: f.name.replace(/\.[^.]+$/, ''),
       url: URL.createObjectURL(f),
     }))
+    // Position of the first NEW upload in the merged list = bundled length + current uploads length.
+    const firstNewIdx = (NOW_PLAYING.html5?.length || 0) + uploads.length
     setUploads(prev => [...prev, ...items])
-    setTrackIdx(prev => ({ ...prev, html5: (NOW_PLAYING.html5 || []).length }))
-    // Auto-play the first new upload and switch to local source
+    setTrackIdx(prev => ({ ...prev, html5: firstNewIdx }))
     if (opts.autoplay !== false && items[0]) {
       const first = items[0]
       setActive({
@@ -62,19 +64,15 @@ export function NowPlayingProvider({ children }) {
       setCollapsed(false)
     }
     return items
-  }, [])
+  }, [uploads])
 
   const removeUpload = useCallback((idx) => {
-    setUploads(prev => {
-      const target = prev[idx]
-      if (target) {
-        URL.revokeObjectURL(target.url)
-        // If active is this upload, stop
-        setActive(a => (a && a.source === 'html5' && a.audio === target.url) ? null : a)
-      }
-      return prev.filter((_, k) => k !== idx)
-    })
-  }, [])
+    const target = uploads[idx]
+    if (!target) return
+    URL.revokeObjectURL(target.url)
+    setUploads(prev => prev.filter((_, k) => k !== idx))
+    setActive(a => (a && a.source === 'html5' && a.audio === target.url) ? null : a)
+  }, [uploads])
 
   const value = {
     active, setActive,

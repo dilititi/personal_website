@@ -1,38 +1,42 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { useLang } from '../lang'
-import { PHOTOS, PHOTO_SERIES } from '../data'
+import { useData } from '../data-context'
+import { resizeImage } from '../utils'
 
-const PHOTO_STORAGE_KEY = 'chen.photos.userEntries'
+const LEGACY_PHOTO_STORAGE_KEY = 'chen.photos.userEntries'
 
 export default function Photography() {
   const { lang, t } = useLang()
+  const { PHOTOS, PHOTO_SERIES, setSection } = useData()
   const [series, setSeries] = useState('all')
   const [openId, setOpenId] = useState(null)
-  const [userPhotos, setUserPhotos] = useState(() => {
-    try {
-      const raw = localStorage.getItem(PHOTO_STORAGE_KEY)
-      return raw ? JSON.parse(raw) : []
-    } catch { return [] }
-  })
   const [showForm, setShowForm] = useState(false)
   const [editing, setEditing] = useState(null) // id of editing photo, or null
 
   useEffect(() => {
-    try { localStorage.setItem(PHOTO_STORAGE_KEY, JSON.stringify(userPhotos)) } catch (err) {
-      console.warn('Photo storage write failed (likely quota exceeded):', err)
-    }
-  }, [userPhotos])
+    try {
+      const raw = localStorage.getItem(LEGACY_PHOTO_STORAGE_KEY)
+      const parsed = raw ? JSON.parse(raw) : []
+      if (Array.isArray(parsed) && parsed.length) {
+        const existing = new Set(PHOTOS.map(p => p.id))
+        const migrated = parsed.filter(p => p?.id && !existing.has(p.id))
+        if (migrated.length) setSection('PHOTOS', [...migrated, ...PHOTOS])
+        localStorage.removeItem(LEGACY_PHOTO_STORAGE_KEY)
+      }
+    } catch {}
+  }, [PHOTOS, setSection])
 
-  // Merge user uploads (newest first) with curated PHOTOS
-  const allPhotos = [
-    ...userPhotos.map(p => ({ ...p, _isUser: true })),
-    ...PHOTOS,
-  ]
+  const allPhotos = PHOTOS
   const filtered = allPhotos.filter(p => series === 'all' || p.series === series)
   const open = allPhotos.find(p => p.id === openId)
 
+  // Keyboard navigation. Use refs so the listener installs once and always
+  // reads the latest state — avoids re-registering every time filter changes.
+  const navRef = useRef({ open, openId, filtered })
+  useEffect(() => { navRef.current = { open, openId, filtered } })
   useEffect(() => {
     const onKey = (e) => {
+      const { open, openId, filtered } = navRef.current
       if (!open) return
       if (e.key === 'Escape') setOpenId(null)
       if (e.key === 'ArrowRight') {
@@ -46,21 +50,20 @@ export default function Photography() {
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [open, openId, filtered])
+  }, [])
 
   const addPhoto = (entry) => {
-    if (editing) {
-      setUserPhotos(prev => prev.map(p => p.id === editing ? { ...entry, id: editing } : p))
-    } else {
-      setUserPhotos(prev => [entry, ...prev])
-    }
+    const next = editing
+      ? PHOTOS.map(p => p.id === editing ? { ...entry, id: editing } : p)
+      : [entry, ...PHOTOS]
+    setSection('PHOTOS', next)
     setShowForm(false)
     setEditing(null)
   }
 
   const removePhoto = (id) => {
     if (!window.confirm(lang === 'zh' ? '删除这张照片？' : 'Delete this photo?')) return
-    setUserPhotos(prev => prev.filter(p => p.id !== id))
+    setSection('PHOTOS', PHOTOS.filter(p => p.id !== id))
     if (openId === id) setOpenId(null)
   }
 
@@ -127,16 +130,14 @@ export default function Photography() {
                 </div>
               </div>
             </button>
-            {p._isUser && (
-              <div className="contact-frame-actions">
-                <button onClick={() => editPhoto(p.id)} className="cf-action">
-                  {lang === 'zh' ? '编辑' : 'edit'}
-                </button>
-                <button onClick={() => removePhoto(p.id)} className="cf-action cf-action-danger">
-                  {lang === 'zh' ? '删除' : 'delete'}
-                </button>
-              </div>
-            )}
+            <div className="contact-frame-actions">
+              <button onClick={() => editPhoto(p.id)} className="cf-action">
+                {lang === 'zh' ? '编辑' : 'edit'}
+              </button>
+              <button onClick={() => removePhoto(p.id)} className="cf-action cf-action-danger">
+                {lang === 'zh' ? '删除' : 'delete'}
+              </button>
+            </div>
           </div>
         ))}
       </div>
@@ -176,7 +177,7 @@ export default function Photography() {
 
       {showForm && (
         <PhotoForm
-          initial={editing ? userPhotos.find(p => p.id === editing) : null}
+          initial={editing ? PHOTOS.find(p => p.id === editing) : null}
           onCancel={() => { setShowForm(false); setEditing(null) }}
           onSubmit={addPhoto}
         />
@@ -187,6 +188,7 @@ export default function Photography() {
 
 function PhotoForm({ initial, onSubmit, onCancel }) {
   const { lang } = useLang()
+  const { PHOTO_SERIES } = useData()
   const isEdit = !!initial
   const [image, setImage]         = useState(initial?.image || '')
   const [series, setSeries]       = useState(initial?.series || PHOTO_SERIES.find(s => s.id !== 'all')?.id || 'all')
@@ -276,6 +278,13 @@ function PhotoForm({ initial, onSubmit, onCancel }) {
                     ~{approxKb}KB · {lang === 'zh' ? '已自动压缩到长边 1500px' : 'auto-resized to 1500px'}
                   </span>
                 )}
+                {approxKb > 1200 && (
+                  <span className="photo-form-size photo-form-warning">
+                    {lang === 'zh'
+                      ? '这张图会占用较多浏览器存储；发布版建议改用 /photos/... 路径。'
+                      : 'This image uses a lot of browser storage. Prefer a /photos/... path for publishing.'}
+                  </span>
+                )}
                 <input ref={fileRef} type="file" accept="image/*"
                   onChange={handleImageFile} style={{ display: 'none' }} />
               </div>
@@ -341,32 +350,7 @@ function PhotoForm({ initial, onSubmit, onCancel }) {
   )
 }
 
-// ─── Image utilities ───
-// Resize via canvas. Keeps aspect ratio. Returns data URL.
-function resizeImage(file, maxLongEdge = 1500, quality = 0.82) {
-  return new Promise((resolve, reject) => {
-    const img = new Image()
-    const reader = new FileReader()
-    reader.onload = () => {
-      img.onload = () => {
-        const longEdge = Math.max(img.width, img.height)
-        const scale = longEdge > maxLongEdge ? maxLongEdge / longEdge : 1
-        const w = Math.round(img.width * scale)
-        const h = Math.round(img.height * scale)
-        const canvas = document.createElement('canvas')
-        canvas.width = w; canvas.height = h
-        const ctx = canvas.getContext('2d')
-        ctx.drawImage(img, 0, 0, w, h)
-        const dataUrl = canvas.toDataURL('image/jpeg', quality)
-        resolve(dataUrl)
-      }
-      img.onerror = () => reject(new Error('Image decode failed'))
-      img.src = String(reader.result)
-    }
-    reader.onerror = () => reject(new Error('File read failed'))
-    reader.readAsDataURL(file)
-  })
-}
+// resizeImage imported from ../utils
 
 // Sample average color from the center 20% of the image.
 function sampleColor(dataUrl) {

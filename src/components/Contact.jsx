@@ -1,9 +1,25 @@
 import React from 'react'
 import { useLang } from '../lang'
-import { SITE } from '../data'
+import { useData } from '../data-context'
+
+// Render a TEXTS.contact statement, with <em>...</em> preserved as React <em>.
+function emTags(str) {
+  if (!str) return null
+  const parts = String(str).split(/(<em>[^<]+<\/em>)/g)
+  return parts.map((p, i) => {
+    const m = /^<em>(.+)<\/em>$/.exec(p)
+    if (m) return <em key={i}>{m[1]}</em>
+    return <React.Fragment key={i}>{p}</React.Fragment>
+  })
+}
 
 export default function Contact() {
   const { lang, t } = useLang()
+  const { SITE, TEXTS } = useData()
+  const TC = TEXTS.contact
+
+  const statement = lang === 'zh' ? TC.statementZh : TC.statementEn
+
   return (
     <section id="contact" style={{ minHeight: 'auto' }}>
       <div className="section-header">
@@ -25,28 +41,18 @@ export default function Contact() {
             lineHeight: 1.4,
             color: 'var(--cream)',
             maxWidth: 720,
+            whiteSpace: 'pre-line',
           }}>
-            {lang === 'zh' ? (
-              <>
-                目前开放<em style={{ color: 'var(--ember)', fontStyle: 'normal', fontWeight: 500 }}>摄影 / 录音助理</em>合作，
-                也欢迎短片创作、独立刊物视觉、片头字幕设计的邀约。<br />
-                <span style={{ color: 'var(--cream-mute)' }}>我回信慢，但通常值得。</span>
-              </>
-            ) : (
-              <>
-                I'm <em style={{ color: 'var(--ember)', fontStyle: 'italic' }}>open</em> to camera/sound assistant gigs, short-film collaborations, and the occasional title-design commission. <br />
-                <span style={{ color: 'var(--cream-mute)', fontStyle: 'italic' }}>I reply slowly. Usually worth the wait.</span>
-              </>
-            )}
+            {emTags(statement)}
           </p>
 
           <div style={{ display: 'flex', gap: 16, marginTop: 40, flexWrap: 'wrap' }}>
             <a className="btn" href={`mailto:${SITE.email}`}>
-              <span>{lang === 'zh' ? '写邮件' : 'Write me'} · {SITE.email}</span>
+              <span>{t(TC.writeMeLabel)} · {SITE.email}</span>
               <span className="arrow">↗</span>
             </a>
-            <a className="btn ghost" href="#">
-              <span>Letterboxd ↗</span>
+            <a className="btn ghost" href={TC.secondaryUrl || '#'}>
+              <span>{t(TC.secondaryLbl)}</span>
             </a>
           </div>
         </div>
@@ -60,8 +66,6 @@ export default function Contact() {
                 [lang === 'zh' ? '时区' : 'Time',      SITE.timezone, 'var(--cream-soft)'],
                 [lang === 'zh' ? '状态' : 'Status',    lang === 'zh' ? '在读・开放合作' : 'Student · open', 'var(--ember)'],
                 [lang === 'zh' ? '在看' : 'Watching',  t(SITE.statusObject), 'var(--cream-soft)'],
-                [lang === 'zh' ? '在听' : 'Listening', 'Eno · Music for Airports', 'var(--cream-soft)'],
-                [lang === 'zh' ? '在读' : 'Reading',   'Tarkovsky · Sculpting in Time', 'var(--cream-soft)'],
               ].map(([k, v, c]) => (
                 <tr key={k}>
                   <td className="status-key">{k}</td>

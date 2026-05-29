@@ -1,19 +1,37 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useMemo } from 'react'
 import { useLang } from '../lang'
-import { WORKS } from '../data'
+import { useData } from '../data-context'
 
-const WORK_MEDIA = [
-  { id: 'all',     label: { en: 'All',      zh: '全部' } },
-  { id: 'design',  label: { en: 'Design',   zh: '设计' } },
-  { id: 'mission', label: { en: 'Missions', zh: '任务' } },
-  { id: 'sticker', label: { en: 'Stickers', zh: '贴纸' } },
-]
+const WORK_MEDIA_LABELS = {
+  short:  { en: 'Shorts',  zh: '短片' },
+  doc:    { en: 'Docs',    zh: '纪录片' },
+  sound:  { en: 'Sound',   zh: '声音' },
+  mv:     { en: 'MV',      zh: 'MV' },
+  visual: { en: 'Visual',  zh: '视觉' },
+  design: { en: 'Design',  zh: '设计' },
+  mission:{ en: 'Missions', zh: '任务' },
+  sticker:{ en: 'Stickers', zh: '贴纸' },
+}
+
+function mediaLabel(id) {
+  if (WORK_MEDIA_LABELS[id]) return WORK_MEDIA_LABELS[id]
+  const text = String(id || 'other').replace(/[-_]/g, ' ')
+  return { en: text.replace(/\b\w/g, (m) => m.toUpperCase()), zh: text }
+}
 
 export default function Works() {
   const { lang, t } = useLang()
+  const { WORKS } = useData()
   const [openId, setOpenId] = useState(null)
   const [medium, setMedium] = useState('all')
   const open = WORKS.find(w => w.id === openId)
+  const mediaOptions = useMemo(() => {
+    const ids = [...new Set(WORKS.map(w => w.medium).filter(Boolean))]
+    return [
+      { id: 'all', label: { en: 'All', zh: '全部' } },
+      ...ids.map(id => ({ id, label: mediaLabel(id) })),
+    ]
+  }, [WORKS])
 
   useEffect(() => {
     const onKey = (e) => { if (e.key === 'Escape') setOpenId(null) }
@@ -21,8 +39,14 @@ export default function Works() {
     return () => window.removeEventListener('keydown', onKey)
   }, [])
 
+  useEffect(() => {
+    if (medium !== 'all' && !mediaOptions.some(m => m.id === medium)) {
+      setMedium('all')
+    }
+  }, [medium, mediaOptions])
+
   const filtered = WORKS.filter(w => medium === 'all' || w.medium === medium)
-  const counts = WORK_MEDIA.reduce((acc, m) => {
+  const counts = mediaOptions.reduce((acc, m) => {
     acc[m.id] = m.id === 'all' ? WORKS.length : WORKS.filter(w => w.medium === m.id).length
     return acc
   }, {})
@@ -41,7 +65,7 @@ export default function Works() {
       </div>
 
       <div className="medium-filter">
-        {WORK_MEDIA.map((m) => (
+        {mediaOptions.map((m) => (
           <button
             key={m.id}
             className={`medium-pill ${medium === m.id ? 'active' : ''}`}
@@ -56,7 +80,7 @@ export default function Works() {
 
       <div className="works-grid">
         {filtered.map((w) => (
-          <div className="work-card" key={w.id} onClick={() => setOpenId(w.id)} data-reveal>
+          <button type="button" className="work-card" key={w.id} onClick={() => setOpenId(w.id)} data-reveal>
             <div className={`work-cover ${w.cover}`}>
               {w.coverImg ? (
                 <img
@@ -76,7 +100,7 @@ export default function Works() {
                 <span>{t(w.subtitle)}</span>
               </div>
               <div className="work-cover-badge">
-                {t(WORK_MEDIA.find(m => m.id === w.medium)?.label || '')}
+                {t(mediaOptions.find(m => m.id === w.medium)?.label || mediaLabel(w.medium))}
               </div>
             </div>
             <div className="work-meta">
@@ -93,7 +117,7 @@ export default function Works() {
               </div>
               <span className="open">{lang === 'zh' ? '打开' : 'Open'} <span className="arrow">↗</span></span>
             </div>
-          </div>
+          </button>
         ))}
       </div>
 

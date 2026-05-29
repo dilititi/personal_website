@@ -1,29 +1,32 @@
 import React from 'react'
 import { useLang } from '../lang'
-import { ABOUT, SITE } from '../data'
-import { emph, Stars } from '../hooks'
+import { useData } from '../data-context'
+import { emph } from '../hooks'
 
 export default function About({ onOpenCV }) {
-  const { lang, t } = useLang()
+  const { t } = useLang()
+  const { ABOUT, SITE, TEXTS, isModuleEnabled } = useData()
+  const TA = TEXTS.about
   const cv = ABOUT.cv
+  const showCvButton = isModuleEnabled('cvButton')
   const blocks = [
-    { key: 'edu',    title: lang === 'zh' ? '学历'    : 'Education' },
-    { key: 'work',   title: lang === 'zh' ? '工作'    : 'Practice'  },
-    { key: 'awards', title: lang === 'zh' ? '奖项'    : 'Awards'    },
-    { key: 'skills', title: lang === 'zh' ? '技能'    : 'Tools'     },
+    { key: 'edu',    title: t(TA.blockEdu) },
+    { key: 'work',   title: t(TA.blockWork) },
+    { key: 'awards', title: t(TA.blockAwards) },
+    { key: 'skills', title: t(TA.blockSkills) },
   ]
 
   return (
     <section id="about">
       <div className="section-header" data-reveal>
         <div>
-          <div className="section-num">01 / {lang === 'zh' ? '关于' : 'About'}</div>
+          <div className="section-num">01 / {TA.headerSubTag && t(TA.headerSubTag) || 'About'}</div>
           <h2 className="section-title">
-            {lang === 'zh' ? '简短的自述' : 'A short biography'}
-            <em>{lang === 'zh' ? 'biography' : '简介'}</em>
+            {t(TA.headerTitle)}
+            <em>{t(TA.headerSubTag)}</em>
           </h2>
         </div>
-        <div className="section-meta">{lang === 'zh' ? '阅读约 3 分钟' : 'Read time · 3 min'}</div>
+        <div className="section-meta">{t(TA.headerMeta)}</div>
       </div>
 
       <div className="about-grid">
@@ -33,14 +36,14 @@ export default function About({ onOpenCV }) {
               {SITE.portrait && (
                 <img
                   src={SITE.portrait}
-                  alt={lang === 'zh' ? '头像' : 'portrait'}
+                  alt="portrait"
                   onError={(e) => { e.currentTarget.style.display = 'none' }}
                 />
               )}
             </div>
             <div className="portrait-tag">
-              <span>[ {lang === 'zh' ? '自拍 · 2025' : 'self, 2025'} ]</span>
-              <span>35mm · TX-400</span>
+              <span>{t(TA.portraitTagL)}</span>
+              <span>{TA.portraitTagR}</span>
             </div>
           </div>
 
@@ -53,12 +56,14 @@ export default function About({ onOpenCV }) {
             ))}
           </div>
 
-          <button className="btn" onClick={onOpenCV} style={{ justifyContent: 'space-between', width: '100%' }}>
-            <span>{lang === 'zh' ? '查看完整简历' : 'Full CV / Curriculum'}</span>
-            <span className="arrow">↗</span>
-          </button>
+          {showCvButton && (
+            <button className="btn" onClick={onOpenCV} style={{ justifyContent: 'space-between', width: '100%' }}>
+              <span>{t(TA.fullCvLabel)}</span>
+              <span className="arrow">↗</span>
+            </button>
+          )}
 
-          <div className="seal-stamp" title="陈">陈</div>
+          <div className="seal-stamp" title={TA.sealChar}>{TA.sealChar}</div>
         </aside>
 
         <div className="about-body" data-reveal>

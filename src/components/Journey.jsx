@@ -1,10 +1,11 @@
 import React, { useState, useRef, useEffect } from 'react'
 import { useLang } from '../lang'
-import { JOURNEY } from '../data'
+import { useData } from '../data-context'
 import { emph } from '../hooks'
 
 export default function Journey() {
   const { lang, t } = useLang()
+  const { JOURNEY } = useData()
   const [active, setActive] = useState(JOURNEY[JOURNEY.length - 1].id)
   const node = JOURNEY.find(n => n.id === active)
   const reelRef = useRef(null)
@@ -44,7 +45,8 @@ export default function Journey() {
             <button
               key={n.id}
               data-frame-id={n.id}
-              className={`reel-frame ${active === n.id ? 'active' : ''}`}
+              className={`reel-frame ${active === n.id ? 'active' : ''} ${n.image ? 'has-image' : ''}`}
+              style={n.image ? { backgroundImage: `url(${n.image})` } : undefined}
               onClick={() => setActive(n.id)}
             >
               <div className="reel-frame-inner">

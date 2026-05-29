@@ -1,13 +1,18 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { useLang } from '../lang'
-import { BOOKS, FILMS, MUSIC, READING_LOG } from '../data'
+import { useData } from '../data-context'
 import { Stars } from '../hooks'
 import { useNP } from '../np-context'
 
-const LOG_STORAGE_KEY = 'chen.readingLog.userEntries'
+const LEGACY_LOG_STORAGE_KEY = 'chen.readingLog.userEntries'
+
+function makeId(prefix) {
+  return prefix + '-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8)
+}
 
 export default function Library() {
   const { lang } = useLang()
+  const { BOOKS, FILMS, MUSIC } = useData()
   const [tab, setTab] = useState('books')
 
   const tabs = [
@@ -53,6 +58,7 @@ export default function Library() {
 
 function Bookshelf() {
   const { lang, t } = useLang()
+  const { BOOKS } = useData()
   const [hovered, setHovered] = useState(null)
   return (
     <div className="bookshelf">
@@ -64,6 +70,10 @@ function Bookshelf() {
           onMouseLeave={() => setHovered(curr => curr === i ? null : curr)}
         >
           <div className="book-cover" style={{ background: b.color, color: b.text }}>
+            {b.coverImg && (
+              <img className="book-cover-img" src={b.coverImg} alt=""
+                onError={(e) => { e.currentTarget.style.display = 'none' }} />
+            )}
             <div className="spine"></div>
             <div className="label" style={{ color: b.text }}>
               <h5 style={{ color: b.text }}>{t(b.title)}</h5>
@@ -101,6 +111,7 @@ function Bookshelf() {
 
 function Cinema() {
   const { t } = useLang()
+  const { FILMS } = useData()
   return (
     <div className="cinema-grid">
       {FILMS.map((f, i) => (
@@ -124,6 +135,7 @@ function Cinema() {
 // ─── Playlist (music tab) ─── Click any song with a source ID to play it in NowPlaying.
 function Playlist() {
   const { lang, t } = useLang()
+  const { MUSIC } = useData()
   const np = useNP()
   const fileRef = useRef(null)
 
@@ -197,26 +209,27 @@ function Playlist() {
 // ─── Reading log — magazine layout + add-entry form ───
 function ReadingLog() {
   const { lang, t } = useLang()
-  const [userEntries, setUserEntries] = useState(() => {
-    try {
-      const raw = localStorage.getItem(LOG_STORAGE_KEY)
-      return raw ? JSON.parse(raw) : []
-    } catch { return [] }
-  })
+  const { READING_LOG, USER_READING_LOG, setSection } = useData()
+  const userEntries = Array.isArray(USER_READING_LOG) ? USER_READING_LOG : []
   const [showForm, setShowForm] = useState(false)
-  const [editing, setEditing] = useState(null)  // index of entry being edited, or null
+  const [editing, setEditing] = useState(null)  // id of entry being edited, or null
 
   useEffect(() => {
-    try { localStorage.setItem(LOG_STORAGE_KEY, JSON.stringify(userEntries)) } catch {}
-  }, [userEntries])
+    if (userEntries.length > 0) return
+    try {
+      const raw = localStorage.getItem(LEGACY_LOG_STORAGE_KEY)
+      const parsed = raw ? JSON.parse(raw) : []
+      if (Array.isArray(parsed) && parsed.length) {
+        setSection('USER_READING_LOG', parsed.map((e) => e.id ? e : { ...e, id: makeId('r') }))
+      }
+    } catch {}
+  }, [setSection, userEntries.length])
 
-  // Merge user entries (front, newest first) with curated READING_LOG.
-  // User entries have shape: { date, title:{en,zh}, author, stars, status, cover, excerpt:{en,zh} }
-  // Curated entries are the original simple shape; they coexist.
-  const all = [
-    ...userEntries.map((e, i) => ({ ...e, _userIdx: i })),
-    ...READING_LOG,
-  ]
+  useEffect(() => {
+    if (userEntries.some(e => !e.id)) {
+      setSection('USER_READING_LOG', userEntries.map((e) => e.id ? e : { ...e, id: makeId('r') }))
+    }
+  }, [setSection, userEntries])
 
   const statusLabel = (s) => ({
     finished:  lang === 'zh' ? '读完'   : 'finished',
@@ -226,22 +239,23 @@ function ReadingLog() {
   }[s] || s)
 
   const addEntry = (entry) => {
-    if (editing !== null) {
-      setUserEntries(prev => prev.map((e, i) => i === editing ? entry : e))
-    } else {
-      setUserEntries(prev => [entry, ...prev])
+    const next = editing
+      ? userEntries.map(e => e.id === editing ? { ...entry, id: editing } : e)
+      : [{ ...entry, id: makeId('r') }, ...userEntries]
+    setSection('USER_READING_LOG', next)
+    if (editing) {
+      setEditing(null)
     }
     setShowForm(false)
-    setEditing(null)
   }
 
-  const removeEntry = (idx) => {
+  const removeEntry = (id) => {
     if (!window.confirm(lang === 'zh' ? '确定删除这条记录？' : 'Delete this entry?')) return
-    setUserEntries(prev => prev.filter((_, i) => i !== idx))
+    setSection('USER_READING_LOG', userEntries.filter(e => e.id !== id))
   }
 
-  const editEntry = (idx) => {
-    setEditing(idx)
+  const editEntry = (id) => {
+    setEditing(id)
     setShowForm(true)
   }
 
@@ -259,8 +273,8 @@ function ReadingLog() {
       {/* Personal entries — magazine layout */}
       {userEntries.length > 0 && (
         <div className="rlog-articles">
-          {userEntries.map((e, i) => (
-            <article key={i} className="rlog-article">
+          {userEntries.map((e) => (
+            <article key={e.id} className="rlog-article">
               <div className="rlog-article-img">
                 {e.cover ? (
                   <img src={e.cover} alt="" onError={(ev) => { ev.currentTarget.style.display = 'none' }} />
@@ -280,10 +294,10 @@ function ReadingLog() {
                 <p className="rlog-article-author">{e.author}</p>
                 <p className="rlog-article-excerpt">{t(e.excerpt)}</p>
                 <div className="rlog-article-actions">
-                  <button className="rlog-link" onClick={() => editEntry(i)}>
+                  <button className="rlog-link" onClick={() => editEntry(e.id)}>
                     {lang === 'zh' ? '编辑' : 'Edit'}
                   </button>
-                  <button className="rlog-link rlog-link-danger" onClick={() => removeEntry(i)}>
+                  <button className="rlog-link rlog-link-danger" onClick={() => removeEntry(e.id)}>
                     {lang === 'zh' ? '删除' : 'Delete'}
                   </button>
                 </div>
@@ -303,7 +317,7 @@ function ReadingLog() {
 
       {showForm && (
         <ReadingLogForm
-          initial={editing !== null ? userEntries[editing] : null}
+          initial={editing ? userEntries.find(e => e.id === editing) : null}
           onCancel={() => { setShowForm(false); setEditing(null) }}
           onSubmit={addEntry}
         />
@@ -313,6 +327,7 @@ function ReadingLog() {
 }
 
 function CuratedList({ lang, t, statusLabel }) {
+  const { READING_LOG } = useData()
   const byYear = {}
   READING_LOG.forEach(entry => {
     const year = entry.date.slice(0, 4)
