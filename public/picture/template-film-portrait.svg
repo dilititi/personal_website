@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 1100">
+  <rect width="900" height="1100" fill="#211b16"/>
+  <rect x="90" y="90" width="720" height="920" fill="#34281f" stroke="#d0733f" stroke-width="10"/>
+  <g fill="#f5e6c8" opacity=".22">
+    <rect x="120" y="130" width="70" height="48"/><rect x="710" y="130" width="70" height="48"/>
+    <rect x="120" y="920" width="70" height="48"/><rect x="710" y="920" width="70" height="48"/>
+  </g>
+  <circle cx="450" cy="420" r="182" fill="#d9ad7d"/>
+  <path d="M260 445 C300 250 600 250 640 445 C560 395 345 395 260 445 Z" fill="#17120f"/>
+  <circle cx="386" cy="438" r="13" fill="#211b16"/>
+  <circle cx="515" cy="438" r="13" fill="#211b16"/>
+  <path d="M405 520 C445 548 492 546 526 520" fill="none" stroke="#5c2a1b" stroke-width="12" stroke-linecap="round"/>
+  <path d="M236 912 C285 680 615 680 664 912 Z" fill="#7a3f24"/>
+  <circle cx="690" cy="270" r="120" fill="#d0733f" opacity=".2"/>
+  <text x="118" y="1008" fill="#f5e6c8" font-family="monospace" font-size="32" letter-spacing="6">FILM ROOM PORTRAIT</text>
+</svg>

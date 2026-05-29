@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800">
+  <rect width="1200" height="800" fill="#eef6ff"/>
+  <g stroke="#2563eb" stroke-width="2" opacity=".25"><path d="M0 160 H1200 M0 320 H1200 M0 480 H1200 M0 640 H1200"/><path d="M240 0 V800 M480 0 V800 M720 0 V800 M960 0 V800"/></g>
+  <rect x="170" y="160" width="860" height="480" rx="20" fill="#d8e4ff" stroke="#7c3aed" stroke-width="8"/>
+  <rect x="230" y="230" width="300" height="55" fill="#06b6d4"/>
+  <rect x="230" y="325" width="520" height="34" fill="#140f2d"/>
+  <circle cx="875" cy="405" r="90" fill="#7c3aed" opacity=".72"/>
+  <text x="220" y="595" fill="#140f2d" font-family="monospace" font-size="36" letter-spacing="8">SCREEN STILL</text>
+</svg>

@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 750">
+  <rect width="1200" height="750" fill="#e8e1cd"/>
+  <rect x="90" y="80" width="1020" height="590" rx="28" fill="#d8cfb6" stroke="#587246" stroke-width="8"/>
+  <circle cx="250" cy="240" r="88" fill="#6f8a5f"/>
+  <path d="M150 560 C300 440 390 470 520 360 C710 200 820 420 1040 250" fill="none" stroke="#587246" stroke-width="22" stroke-linecap="round"/>
+  <rect x="165" y="590" width="330" height="28" fill="#f3ead6"/>
+  <rect x="165" y="625" width="520" height="18" fill="#f3ead6" opacity=".72"/>
+  <text x="165" y="150" fill="#1f2117" font-family="monospace" font-size="44" letter-spacing="8">FIELD INTERFACE</text>
+</svg>

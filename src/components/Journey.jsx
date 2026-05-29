@@ -6,9 +6,19 @@ import { emph } from '../hooks'
 export default function Journey() {
   const { lang, t } = useLang()
   const { JOURNEY } = useData()
-  const [active, setActive] = useState(JOURNEY[JOURNEY.length - 1].id)
-  const node = JOURNEY.find(n => n.id === active)
+  const [active, setActive] = useState(() => JOURNEY[JOURNEY.length - 1]?.id ?? null)
+  const node = JOURNEY.find(n => n.id === active) || JOURNEY[JOURNEY.length - 1] || null
   const reelRef = useRef(null)
+
+  useEffect(() => {
+    if (!JOURNEY.length) {
+      setActive(null)
+      return
+    }
+    if (!JOURNEY.some(n => n.id === active)) {
+      setActive(JOURNEY[JOURNEY.length - 1].id)
+    }
+  }, [JOURNEY, active])
 
   useEffect(() => {
     const reel = reelRef.current
@@ -70,34 +80,34 @@ export default function Journey() {
 
         <div className="reel-controls">
           <div className="reel-chapters">
-            <span>{chapters[node.chapter]}</span>
+            <span>{node ? chapters[node.chapter] : ''}</span>
           </div>
           <div className="reel-nav">
-            <button onClick={() => {
+            <button disabled={!JOURNEY.length} onClick={() => {
               const i = JOURNEY.findIndex(n => n.id === active)
               if (i > 0) setActive(JOURNEY[i - 1].id)
             }}>← {lang === 'zh' ? '上一格' : 'PREV'}</button>
             <span className="reel-count">
               {String(JOURNEY.findIndex(n => n.id === active) + 1).padStart(2, '0')} / {String(JOURNEY.length).padStart(2, '0')}
             </span>
-            <button onClick={() => {
+            <button disabled={!JOURNEY.length} onClick={() => {
               const i = JOURNEY.findIndex(n => n.id === active)
-              if (i < JOURNEY.length - 1) setActive(JOURNEY[i + 1].id)
+              if (i >= 0 && i < JOURNEY.length - 1) setActive(JOURNEY[i + 1].id)
             }}>{lang === 'zh' ? '下一格' : 'NEXT'} →</button>
           </div>
         </div>
 
         <div className="reel-detail">
           <div className="reel-detail-side">
-            <div className="reel-detail-year">{node.year}</div>
-            <div className="reel-detail-place">{t(node.place)}</div>
-            <div className="reel-detail-chapter">{chapters[node.chapter]}</div>
+            <div className="reel-detail-year">{node?.year || ''}</div>
+            <div className="reel-detail-place">{node ? t(node.place) : ''}</div>
+            <div className="reel-detail-chapter">{node ? chapters[node.chapter] : ''}</div>
           </div>
           <div className="reel-detail-body">
-            <h3>{emph(t(node.title))}</h3>
-            <p>{t(node.text)}</p>
+            <h3>{node ? emph(t(node.title)) : ''}</h3>
+            <p>{node ? t(node.text) : ''}</p>
             <div className="tags">
-              {node.tags.map(tag => <span key={tag} className="tag">{tag}</span>)}
+              {(node?.tags || []).map(tag => <span key={tag} className="tag">{tag}</span>)}
             </div>
           </div>
         </div>

@@ -1,14 +1,16 @@
-import React, { useEffect, useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { useLang } from '../lang'
 import { useStyle } from '../style-context'
 import { STYLE_ANCHOR_TYPES, STYLE_DIMENSIONS, STYLE_MOOD_KEYWORDS, STYLE_PRESETS } from '../style'
+import { deriveStyleVars } from '../style-engine'
 
-const LIVE_DIMENSIONS = new Set(['color', 'typography', 'space', 'motion', 'texture', 'light', 'depth'])
+const LIVE_DIMENSIONS = new Set(['design', 'color', 'typography', 'space', 'motion', 'texture', 'light', 'depth'])
 
 const STATIC_TABS = [
   { key: 'presets', label: { zh: '预设', en: 'Presets' }, live: true },
-  { key: 'reference', label: { zh: '参考', en: 'Reference' }, live: true },
 ]
+
+const REFERENCE_TAB = { key: 'reference', label: { zh: '参考', en: 'Reference' }, live: true }
 
 const FONT_OPTIONS = [
   { value: 'serif', zh: '衬线 / 文学', en: 'Serif' },
@@ -25,6 +27,14 @@ const EASING_OPTIONS = [
 const MOTION_OPTIONS = [
   { value: 'lively', zh: '生动', en: 'Lively' },
   { value: 'calm', zh: '安静', en: 'Calm' },
+]
+
+const DESIGN_ALIGNMENT_OPTIONS = [
+  { value: 'editorial', zh: '编排 / Editorial', en: 'Editorial' },
+  { value: 'grid', zh: '网格 / Grid', en: 'Grid' },
+  { value: 'center', zh: '居中 / Center', en: 'Center' },
+  { value: 'offset', zh: '错位 / Offset', en: 'Offset' },
+  { value: 'loose', zh: '松弛 / Loose', en: 'Loose' },
 ]
 
 const THUMB_FONTS = {
@@ -121,6 +131,58 @@ function SelectControl({ label, value, options, onChange, lang }) {
         ))}
       </select>
     </Field>
+  )
+}
+
+function previewSrc() {
+  if (typeof window === 'undefined') return '/'
+  const url = new URL(window.location.href)
+  url.searchParams.set('stylePreview', '1')
+  url.hash = ''
+  return url.toString()
+}
+
+function applyPreviewStyle(doc, style) {
+  if (!doc?.documentElement) return
+  const vars = deriveStyleVars(style)
+  Object.entries(vars).forEach(([key, value]) => {
+    doc.documentElement.style.setProperty(key, value)
+  })
+  if (doc.body) {
+    doc.body.dataset.motion = style?.motion?.mode || 'lively'
+    doc.body.dataset.styleAlignment = style?.design?.alignment || 'editorial'
+  }
+}
+
+function LiveSitePreview({ style, lang, activeLabel }) {
+  const iframeRef = useRef(null)
+  const [loadTick, setLoadTick] = useState(0)
+  const src = useMemo(previewSrc, [])
+
+  useEffect(() => {
+    try {
+      const doc = iframeRef.current?.contentDocument
+      applyPreviewStyle(doc, style)
+    } catch {
+      // Same-origin during local dev; if a browser blocks access, the iframe still shows stored style.
+    }
+  }, [style, loadTick])
+
+  return (
+    <section className="se-live-preview" aria-label={lang === 'zh' ? '实时网站预览' : 'Live site preview'}>
+      <div className="se-live-preview-head">
+        <strong>{lang === 'zh' ? '实时网站预览' : 'Live preview'}</strong>
+        <span>{activeLabel}</span>
+      </div>
+      <div className="se-live-preview-frame">
+        <iframe
+          ref={iframeRef}
+          src={src}
+          title={lang === 'zh' ? '网站实时预览' : 'Live site preview'}
+          onLoad={() => setLoadTick((n) => n + 1)}
+        />
+      </div>
+    </section>
   )
 }
 
@@ -368,6 +430,27 @@ function ReferencePanel({ style, setStyle, lang }) {
   )
 }
 
+function DesignPanel({ style, updateDimension, lang }) {
+  const design = style.design || {}
+  const update = (patch) => updateDimension('design', patch)
+  return (
+    <div className="se-panel se-design-panel">
+      <p className="ce-hint">
+        {lang === 'zh'
+          ? '这五项是网站视觉的总控：先决定页面节奏、对齐方式、信息层级、整体对比和图文比例，再去微调色彩、字体和质感。'
+          : 'These five controls shape the site first: rhythm, alignment, hierarchy, contrast, and proportion before finer color, type, and texture tweaks.'}
+      </p>
+      <div className="se-grid">
+        <RangeControl label={lang === 'zh' ? '间距' : 'Spacing'} min={0} max={1} step={0.01} value={design.spacing ?? 0.5} onChange={(spacing) => update({ spacing })} />
+        <SelectControl label={lang === 'zh' ? '对齐' : 'Alignment'} value={design.alignment || 'editorial'} options={DESIGN_ALIGNMENT_OPTIONS} onChange={(alignment) => update({ alignment })} lang={lang} />
+        <RangeControl label={lang === 'zh' ? '层级' : 'Hierarchy'} min={0} max={1} step={0.01} value={design.hierarchy ?? 0.62} onChange={(hierarchy) => update({ hierarchy })} />
+        <RangeControl label={lang === 'zh' ? '对比' : 'Contrast'} min={0} max={1} step={0.01} value={design.contrast ?? 0.66} onChange={(contrast) => update({ contrast })} />
+        <RangeControl label={lang === 'zh' ? '比例' : 'Proportion'} min={0} max={1} step={0.01} value={design.proportion ?? 0.5} onChange={(proportion) => update({ proportion })} />
+      </div>
+    </div>
+  )
+}
+
 function ColorPanel({ style, updateDimension, lang }) {
   const color = style.color
   const update = (patch) => updateDimension('color', patch)
@@ -489,7 +572,7 @@ function ReservedPanel({ dimension, lang }) {
 export default function StyleEditor({ open, onClose }) {
   const { lang } = useLang()
   const { style, setStyle, updateDimension, applyPreset, resetStyle, exportStyle, isCustomized, storageError } = useStyle()
-  const [active, setActive] = useState('presets')
+  const [active, setActive] = useState('design')
   const [copied, setCopied] = useState('')
   const [mode, setMode] = useState(() => {
     try { return localStorage.getItem('chen.se.mode') === 'modal' ? 'modal' : 'side' } catch { return 'side' }
@@ -506,6 +589,7 @@ export default function StyleEditor({ open, onClose }) {
       summary: dim.summary,
       live: LIVE_DIMENSIONS.has(dim.key),
     })),
+    REFERENCE_TAB,
   ], [])
   const activeTab = tabs.find((tab) => tab.key === active) || tabs[0]
   const reservedTabs = tabs.filter((tab) => !tab.live)
@@ -574,6 +658,7 @@ export default function StyleEditor({ open, onClose }) {
   const panel = {
     presets: <PresetPanel lang={lang} activePreset={style.preset} onApply={handleApplyPreset} />,
     reference: <ReferencePanel style={style} setStyle={setStyle} lang={lang} />,
+    design: <DesignPanel style={style} updateDimension={updateDimension} lang={lang} />,
     color: <ColorPanel style={style} updateDimension={updateDimension} lang={lang} />,
     typography: <TypographyPanel style={style} updateDimension={updateDimension} lang={lang} />,
     space: <SpacePanel style={style} updateDimension={updateDimension} lang={lang} />,
@@ -582,6 +667,7 @@ export default function StyleEditor({ open, onClose }) {
     light: <LightPanel style={style} updateDimension={updateDimension} lang={lang} />,
     depth: <DepthPanel style={style} updateDimension={updateDimension} lang={lang} />,
   }[active] || <ReservedPanel dimension={activeTab} lang={lang} />
+  const showLivePreview = mode === 'modal' && active !== 'presets' && active !== 'reference'
 
   return (
     <div
@@ -648,6 +734,9 @@ export default function StyleEditor({ open, onClose }) {
               <em>{style.typography.personality}</em>
             </div>
             {panel}
+            {showLivePreview && (
+              <LiveSitePreview style={style} lang={lang} activeLabel={pick(activeTab.label, lang)} />
+            )}
             {reservedTabs.length > 0 && (
               <div className="se-reserved">
                 <span>{lang === 'zh' ? '后续维度' : 'Next dimensions'}</span>

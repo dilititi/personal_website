@@ -57,6 +57,7 @@ function applyStyleToDocument(style) {
     document.documentElement.style.setProperty(key, value)
   })
   document.body.dataset.motion = style?.motion?.mode || 'lively'
+  document.body.dataset.styleAlignment = style?.design?.alignment || 'editorial'
 }
 
 export function useStyle() {

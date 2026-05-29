@@ -126,6 +126,39 @@ const nowPlayingTrack = [
   { key: 'audio',     type: 'str', label: '本地音频路径' },
 ]
 
+const FILE_IMAGE_TEMPLATES = {
+  picture: [
+    { label: '自然系肖像', path: '/picture/template-organic-portrait.svg' },
+    { label: '放映室肖像', path: '/picture/template-film-portrait.svg' },
+    { label: '数字档案肖像', path: '/picture/template-digital-portrait.svg' },
+  ],
+  journey: [
+    { label: '自然路线', path: '/journey/template-organic-journey.svg' },
+    { label: '胶片影格', path: '/journey/template-film-journey.svg' },
+    { label: '数据节点', path: '/journey/template-digital-journey.svg' },
+  ],
+  works: [
+    { label: '自然作品封面', path: '/works/template-organic-work.svg' },
+    { label: '电影作品封面', path: '/works/template-film-work.svg' },
+    { label: '数字作品封面', path: '/works/template-digital-work.svg' },
+  ],
+  books: [
+    { label: '自然书封', path: '/books/template-organic-book.svg' },
+    { label: '电影书封', path: '/books/template-film-book.svg' },
+    { label: '数字书封', path: '/books/template-digital-book.svg' },
+  ],
+  films: [
+    { label: '自然海报', path: '/films/template-organic-poster.svg' },
+    { label: '放映室海报', path: '/films/template-film-poster.svg' },
+    { label: '数字海报', path: '/films/template-digital-poster.svg' },
+  ],
+  photos: [
+    { label: '森林照片', path: '/photos/template-organic-photo.svg' },
+    { label: '夜色照片', path: '/photos/template-film-photo.svg' },
+    { label: '屏幕照片', path: '/photos/template-digital-photo.svg' },
+  ],
+}
+
 const moduleConfigFields = [
   { key: 'enabled', type: 'bool', label: 'enabled · 是否显示' },
   { key: 'nav',     type: 'bool', label: 'nav · 是否进入导航' },
@@ -441,6 +474,7 @@ function FileField({ value, onChange, subfolder = 'picture', accept = 'image/*',
   const [statusMsg, setStatusMsg] = useState('')
   const [pendingFile, setPendingFile] = useState(null)
   const fileRef = useRef(null)
+  const imageTemplates = !isAudio && accept.includes('image') ? (FILE_IMAGE_TEMPLATES[subfolder] || []) : []
 
   // Verify whether the current path actually points to an existing file in public/
   const checkPath = async (p) => {
@@ -533,6 +567,25 @@ function FileField({ value, onChange, subfolder = 'picture', accept = 'image/*',
       {status && (
         <div className={`ce-file-status ce-file-status-${status}`}>
           {status === 'ok' ? '✓' : status === 'missing' ? '⚠' : '✗'} {statusMsg}
+        </div>
+      )}
+      {imageTemplates.length > 0 && (
+        <div className="ce-file-templates">
+          <span className="ce-file-template-label">预制图片</span>
+          <div className="ce-file-template-grid">
+            {imageTemplates.map((template) => (
+              <button
+                key={template.path}
+                type="button"
+                className={`ce-file-template ${value === template.path ? 'act' : ''}`}
+                onClick={() => onChange(template.path)}
+                title={template.path}
+              >
+                <span style={{ backgroundImage: `url("${template.path}")` }} />
+                <em>{template.label}</em>
+              </button>
+            ))}
+          </div>
         </div>
       )}
       {pendingFile && (
@@ -1177,6 +1230,208 @@ const STARTER_TEMPLATE = {
   TEXTS: {}
 }
 
+const B = (en, zh) => ({ en, zh })
+
+const TEMPLATE_MODULES = {
+  about: { enabled: true, nav: true, order: 1, label: B('About', '关于'), layout: 'default' },
+  journey: { enabled: true, nav: true, order: 2, label: B('Reel', '影格'), layout: 'default' },
+  works: { enabled: true, nav: true, order: 3, label: B('Works', '作品'), layout: 'default' },
+  library: { enabled: true, nav: true, order: 4, label: B('Library', '私藏'), layout: 'default' },
+  photography: { enabled: true, nav: true, order: 5, label: B('Stills', '影像'), layout: 'default' },
+  travel: { enabled: true, nav: true, order: 6, label: B('Atlas', '足迹'), layout: 'default' },
+  contact: { enabled: true, nav: true, order: 7, label: B('Contact', '联系'), layout: 'default' },
+  colophon: { enabled: true, nav: false, order: 8, label: B('Colophon', '落款'), layout: 'default' },
+  cvButton: { enabled: true, nav: false, order: 90, label: B('Full CV', '完整简历'), layout: 'default' },
+  nowPlaying: { enabled: true, nav: false, order: 99, label: B('Now Playing', '播放中'), layout: 'default' },
+}
+
+const CONTENT_PRESETS = [
+  {
+    id: 'organic',
+    label: '自然系 / Organic',
+    description: '森林、手作、慢节奏创作者档案。会给 portrait 填入森林里的卡通人物肖像。',
+    preview: '/picture/template-organic-portrait.svg',
+    data: {
+      MODULES: TEMPLATE_MODULES,
+      SITE: {
+        name: B('LIN', '林'),
+        nameRight: B('M.', '木'),
+        nameFull: B('Lin Mu', '林木'),
+        glyph: 'L',
+        portrait: '/picture/template-organic-portrait.svg',
+        cvPdf: '',
+        tagline: B('A quiet field notebook for web, image, and sound experiments.', '一本关于网页、影像与声音实验的安静田野笔记。'),
+        role: B('Creative technologist and visual researcher', '创意技术与视觉研究者'),
+        status: B('Collecting', '正在采集'),
+        statusObject: B('Leaf shadows, field notes, ambient recordings', '叶影、田野笔记与环境录音'),
+        location: B('Hangzhou, China', '中国杭州'),
+        timezone: 'UTC+8',
+        tzName: 'Asia/Shanghai',
+        email: 'hello@forest-notes.site',
+        now: B('Building a small archive of walks, sketches, and interface studies. Most days begin with a notebook and end with a prototype.', '正在整理一组关于散步、草图和界面研究的小档案。多数日子从一本笔记开始，以一个原型结束。'),
+        nowDate: B('May 2026, Hangzhou', '2026 年 5 月，杭州'),
+        social: [
+          { label: B('GitHub', 'GitHub'), handle: '@forest-notes', url: '#' },
+          { label: B('Instagram', 'Instagram'), handle: '@lin.field', url: '#' },
+          { label: B('Email', '邮箱'), handle: 'hello@forest-notes.site', url: 'mailto:hello@forest-notes.site' },
+        ],
+      },
+      ABOUT: {
+        intro: B('I make gentle digital tools for people who like walking, collecting, and noticing small changes in light.', '我制作温和的数字工具，给那些喜欢散步、收集、观察光线细小变化的人使用。'),
+        paragraphs: [
+          B('My work moves between interface design, nature writing, and small sound sketches. I care about systems that feel alive without becoming loud.', '我的工作在界面设计、自然书写和小型声音草图之间移动。我在意那些有生命感、但不吵闹的系统。'),
+          B('This site is arranged like a field journal: projects, references, photographs, and routes all sit in the same notebook.', '这个网站像一本田野笔记：项目、参考、照片和路线被放在同一本册子里。'),
+        ],
+        stats: [
+          { label: B('Field notes', '田野笔记'), value: '*128*' },
+          { label: B('Prototypes', '原型'), value: '*16*' },
+          { label: B('Tools', '工具'), value: B('*React* · Figma · Audio', '*React* · Figma · 声音') },
+          { label: B('Status', '状态'), value: B('*Open to calm collaborations*', '*开放温和的合作*') },
+        ],
+        cv: {
+          edu: [{ year: '2022 - 2026', title: B('Design research', '设计研究'), role: B('Interfaces, media, field methods', '界面、媒介与田野方法'), place: B('Hangzhou', '杭州') }],
+          work: [{ year: '2025', title: B('Independent web archive', '独立网页档案'), role: B('Design, frontend, writing', '设计、前端、写作'), place: B('Remote', '远程') }],
+          awards: [{ year: '2025', title: B('Student showcase', '学生作品展示'), role: B('Selected interface prototype', '入选界面原型'), place: B('Online', '线上') }],
+          skills: [
+            { year: 'Design', title: B('Figma / typography / systems', 'Figma / 字体 / 系统'), role: B('Quiet visual systems', '安静的视觉系统'), place: '-' },
+            { year: 'Code', title: B('React / CSS / data', 'React / CSS / 数据'), role: B('Small maintainable tools', '小而可维护的工具'), place: '-' },
+          ],
+        },
+      },
+      JOURNEY: [
+        { id: 1, year: '2022', label: B('First archive', '第一个档案'), place: B('Campus garden', '校园花园'), title: B('*Started* with a plant index.', '*从*一份植物索引开始。'), text: B('A class project became a catalog of leaves, paths, and tiny interface ideas.', '一次课程作业变成了叶子、路径和小界面想法的目录。'), tags: ['field', 'archive'], chapter: 'I', image: '/journey/template-organic-journey.svg' },
+        { id: 2, year: '2024', label: B('Sound walks', '声音散步'), place: B('West Lake', '西湖'), title: B('*Listening* became a design method.', '*聆听*变成了一种设计方法。'), text: B('I started recording short walks and using them as briefs for motion and layout.', '我开始录下短途散步，并把它们当作动态和版面的设计简报。'), tags: ['sound', 'walk'], chapter: 'II', image: '/journey/template-organic-journey.svg' },
+        { id: 3, year: '2026', label: B('Now', '当下'), place: B('Studio desk', '工作桌'), title: B('*A personal atlas* is forming.', '*一本个人地图集*正在成形。'), text: B('The current work is a small portfolio generator that keeps content, style, and references editable.', '当前作品是一个小型作品集生成器，让内容、风格和参考都可以被编辑。'), tags: ['web', 'system'], chapter: 'III', image: '/journey/template-organic-journey.svg' },
+      ],
+      WORKS: [
+        { id: 'field-interface', title: B('Field Interface', '田野界面'), subtitle: B('web archive', '网页档案'), medium: 'design', role: B('Design / frontend', '设计 / 前端'), year: '2026', cover: 'cover-1', coverImg: '/works/template-organic-work.svg', summary: B('A soft archive system for walks, notes, photos, and references.', '一个收纳散步、笔记、照片和参考的柔软档案系统。'), tags: ['React', 'archive', 'nature'], field: { year: '2026', format: B('Responsive website', '响应式网站'), role: B('Designer and developer', '设计与开发'), crew: B('Solo', '独立完成'), festivals: B('Personal release', '个人发布'), status: B('Prototype', '原型') }, body: [B('The system treats every project as a small specimen: title, context, method, and afterimage.', '这个系统把每个项目都当作一个小标本：标题、语境、方法和余像。')] },
+      ],
+      BOOKS: [
+        { title: B('The Poetics of Space', '空间诗学'), author: 'Gaston Bachelard', year: '2026', stars: 5, color: '#5f7355', text: '#f3ead6', coverImg: '/books/template-organic-book.svg', note: B('A reminder that rooms can think.', '提醒我房间也会思考。') },
+      ],
+      FILMS: [
+        { title: 'Still Walking', subtitle: '歩いても 歩いても', year: '2008', director: 'Hirokazu Kore-eda', coverImg: '/films/template-organic-poster.svg', note: B('Gentle structure, deep weather.', '温和的结构，很深的天气。') },
+      ],
+      MUSIC: [
+        { track: B('Forest Piano', '森林钢琴'), artist: B('Template Ensemble', '模板合奏'), album: 'Green Room', duration: '3:20', mood: B('Moss', '苔藓'), note: B('A soft placeholder track for quiet pages.', '适合安静页面的占位曲目。'), spotifyId: '', neteaseId: '', audio: '' },
+      ],
+      PHOTOS: [
+        { id: 'organic-1', series: 'portraits', caption: B('Forest portrait placeholder', '森林肖像占位图'), date: '2026.05', camera: 'Template SVG', color: '#6f8a5f', image: '/photos/template-organic-photo.svg' },
+      ],
+      TRAVEL: [
+        { city: B('Hangzhou', '杭州'), country: B('China', '中国'), year: '2026', kind: 'home', lat: 30.25, lon: 120.16, note: B('Mist, lake, notebooks.', '雾、湖、笔记。') },
+        { city: B('Moganshan', '莫干山'), country: B('China', '中国'), year: '2025', kind: 'trip', lat: 30.61, lon: 119.87, note: B('Bamboo paths and field recordings.', '竹径与田野录音。') },
+        { city: B('Anji', '安吉'), country: B('China', '中国'), year: '2024', kind: 'trip', lat: 30.64, lon: 119.68, note: B('Green references for interface rhythm.', '给界面节奏的绿色参考。') },
+      ],
+      NOW_PLAYING: { spotify: [], netease: [], html5: [] },
+    },
+  },
+  {
+    id: 'film',
+    label: '放映室 / Film Room',
+    description: '胶片、暗房、影像作品集。会填入电影感肖像和作品封面。',
+    preview: '/picture/template-film-portrait.svg',
+    data: {
+      MODULES: TEMPLATE_MODULES,
+      SITE: {
+        name: B('REEL', '映'),
+        nameRight: B('R.', '室'),
+        nameFull: B('Reel Room', '放映室'),
+        glyph: 'R',
+        portrait: '/picture/template-film-portrait.svg',
+        cvPdf: '',
+        tagline: B('A portfolio for moving images, edits, and late-night references.', '一个收纳活动影像、剪辑和深夜参考的作品集。'),
+        role: B('Filmmaker and visual editor', '影像创作者与视觉剪辑'),
+        status: B('Editing', '正在剪辑'),
+        statusObject: B('A short film timeline and a stack of stills', '一条短片时间线和一叠剧照'),
+        location: B('Shanghai, China', '中国上海'),
+        timezone: 'UTC+8',
+        tzName: 'Asia/Shanghai',
+        email: 'hello@reel-room.site',
+        now: B('Cutting a short film, rebuilding a credits sequence, and cataloging the references that keep returning.', '正在剪一部短片，重做一版片尾字幕，并整理那些反复出现的参考。'),
+        nowDate: B('May 2026, Shanghai', '2026 年 5 月，上海'),
+        social: [{ label: B('Vimeo', 'Vimeo'), handle: '@reelroom', url: '#' }],
+      },
+      ABOUT: {
+        intro: B('I make short films, title cards, and visual essays about memory, rooms, and difficult light.', '我制作关于记忆、房间和困难光线的短片、字幕卡与视觉随笔。'),
+        paragraphs: [B('The work is cinematic but small: one room, one face, one object held long enough to change.', '这些作品有电影感，但尺度很小：一个房间、一张脸、一个被凝视到发生变化的物件。')],
+        stats: [
+          { label: B('Films', '影片'), value: '*9*' },
+          { label: B('Cuts', '剪辑'), value: '*34*' },
+          { label: B('Tools', '工具'), value: B('*DaVinci* · AE · Figma', '*DaVinci* · AE · Figma') },
+          { label: B('Status', '状态'), value: B('*Available for edits*', '*可接剪辑合作*') },
+        ],
+        cv: { edu: [], work: [], awards: [], skills: [] },
+      },
+      JOURNEY: [
+        { id: 1, year: '2023', label: B('First screening', '第一次放映'), place: B('Black box', '黑匣子'), title: B('*A room* became a cinema.', '*一个房间*变成了影院。'), text: B('A small screening changed how I thought about pacing and silence.', '一场小放映改变了我对节奏和沉默的理解。'), tags: ['screening'], chapter: 'I', image: '/journey/template-film-journey.svg' },
+        { id: 2, year: '2026', label: B('Now', '当下'), place: B('Edit bay', '剪辑室'), title: B('*The timeline* is the notebook.', '*时间线*就是笔记本。'), text: B('Current work lives between edits, stills, and reference boards.', '当前作品存在于剪辑、剧照和参考板之间。'), tags: ['edit'], chapter: 'II', image: '/journey/template-film-journey.svg' },
+      ],
+      WORKS: [
+        { id: 'night-room', title: B('Night Room', '夜房间'), subtitle: B('short film', '短片'), medium: 'short', role: B('Director / editor', '导演 / 剪辑'), year: '2026', cover: 'cover-2', coverImg: '/works/template-film-work.svg', summary: B('A short film about waiting for a call that never arrives.', '一部关于等待一个永远不会到来的电话的短片。'), tags: ['short', 'edit'], field: { year: '2026', format: B('Digital short', '数字短片'), role: B('Director', '导演'), crew: B('Small crew', '小团队'), festivals: B('In progress', '制作中'), status: B('Editing', '剪辑中') }, body: [B('The film uses one lamp and three cuts to make the room feel larger than it is.', '影片用一盏灯和三个剪辑点，让房间显得比实际更大。')] },
+      ],
+      BOOKS: [{ title: B('Sculpting in Time', '雕刻时光'), author: 'Andrei Tarkovsky', year: '2026', stars: 5, color: '#211b16', text: '#f5e6c8', coverImg: '/books/template-film-book.svg', note: B('Useful trouble.', '有用的麻烦。') }],
+      FILMS: [{ title: 'Paris, Texas', subtitle: 'Wim Wenders', year: '1984', director: 'Wim Wenders', coverImg: '/films/template-film-poster.svg', note: B('Color as distance.', '颜色作为距离。') }],
+      MUSIC: [{ track: B('Projector Hum', '放映机低鸣'), artist: B('Template Ensemble', '模板合奏'), album: 'Film Room', duration: '2:48', mood: B('Amber', '琥珀'), note: B('Warm noise for a dark page.', '适合暗色页面的暖噪声。'), spotifyId: '', neteaseId: '', audio: '' }],
+      PHOTOS: [{ id: 'film-1', series: 'portraits', caption: B('Night room placeholder', '夜房间占位图'), date: '2026.05', camera: 'Template SVG', color: '#4f2b1d', image: '/photos/template-film-photo.svg' }],
+      TRAVEL: [{ city: B('Shanghai', '上海'), country: B('China', '中国'), year: '2026', kind: 'home', lat: 31.23, lon: 121.47, note: B('Screens, rain, late edits.', '银幕、雨、深夜剪辑。') }],
+      NOW_PLAYING: { spotify: [], netease: [], html5: [] },
+    },
+  },
+  {
+    id: 'digital',
+    label: '数字档案 / Digital Archive',
+    description: '清晰、结构化、适合代码友好作品集和数据项目。',
+    preview: '/picture/template-digital-portrait.svg',
+    data: {
+      MODULES: TEMPLATE_MODULES,
+      SITE: {
+        name: B('NODE', '节'),
+        nameRight: B('N.', '点'),
+        nameFull: B('Node Archive', '节点档案'),
+        glyph: 'N',
+        portrait: '/picture/template-digital-portrait.svg',
+        cvPdf: '',
+        tagline: B('A structured portfolio for code, data, and interface experiments.', '一个用于代码、数据与界面实验的结构化作品集。'),
+        role: B('Frontend developer and data designer', '前端开发与数据设计'),
+        status: B('Shipping', '正在发布'),
+        statusObject: B('A theme-token system and editable portfolio shell', '一套主题 token 系统和可编辑作品集外壳'),
+        location: B('Online', '线上'),
+        timezone: 'UTC+8',
+        tzName: 'Asia/Shanghai',
+        email: 'hello@node-archive.dev',
+        now: B('Refactoring a personal site generator into cleaner content, module, and theme layers.', '正在把个人网站生成器重构为更清晰的内容层、模块层和主题层。'),
+        nowDate: B('May 2026', '2026 年 5 月'),
+        social: [{ label: B('GitHub', 'GitHub'), handle: '@node-archive', url: '#' }],
+      },
+      ABOUT: {
+        intro: B('I build editable websites, small tools, and data interfaces with a bias for clear systems.', '我制作可编辑网站、小工具和数据界面，偏爱清楚的系统。'),
+        paragraphs: [B('The goal is not more controls, but better defaults and safer ways to customize.', '目标不是更多控制项，而是更好的默认值和更安全的自定义方式。')],
+        stats: [
+          { label: B('Components', '组件'), value: '*42*' },
+          { label: B('Projects', '项目'), value: '*12*' },
+          { label: B('Stack', '技术栈'), value: B('*React* · Vite · CSS', '*React* · Vite · CSS') },
+          { label: B('Status', '状态'), value: B('*Open source minded*', '*偏开源思维*') },
+        ],
+        cv: { edu: [], work: [], awards: [], skills: [] },
+      },
+      JOURNEY: [
+        { id: 1, year: '2024', label: B('First tool', '第一个工具'), place: B('Browser', '浏览器'), title: B('*A config* became an interface.', '*一份配置*变成了界面。'), text: B('A small JSON editor started the habit of building tools around content.', '一个小型 JSON 编辑器让我开始围绕内容构建工具。'), tags: ['tool'], chapter: 'I', image: '/journey/template-digital-journey.svg' },
+        { id: 2, year: '2026', label: B('Now', '当下'), place: B('Localhost', '本地开发'), title: B('*Tokens* control the surface.', '*Token*控制界面表层。'), text: B('Current work separates content data, visual tokens, and module structure.', '当前工作把内容数据、视觉 token 和模块结构分开。'), tags: ['theme'], chapter: 'II', image: '/journey/template-digital-journey.svg' },
+      ],
+      WORKS: [
+        { id: 'style-system', title: B('Style System', '风格系统'), subtitle: B('editable theme tokens', '可编辑主题 token'), medium: 'design', role: B('Frontend / system design', '前端 / 系统设计'), year: '2026', cover: 'cover-3', coverImg: '/works/template-digital-work.svg', summary: B('A local-first theme editor for portfolio websites.', '一个本地优先的作品集主题编辑器。'), tags: ['React', 'tokens'], field: { year: '2026', format: B('SPA', '单页应用'), role: B('Developer', '开发'), crew: B('Solo', '独立'), festivals: B('Template release', '模板发布'), status: B('Active', '进行中') }, body: [B('The system maps friendly controls to CSS variables so the page changes immediately.', '系统把友好的控制项映射到 CSS 变量，让页面立即变化。')] },
+      ],
+      BOOKS: [{ title: B('Designing Data-Intensive Applications', '数据密集型应用系统设计'), author: 'Martin Kleppmann', year: '2026', stars: 5, color: '#d8e4ff', text: '#140f2d', coverImg: '/books/template-digital-book.svg', note: B('Systems thinking for calm interfaces.', '给安静界面的系统思维。') }],
+      FILMS: [{ title: 'Her', subtitle: 'Interface mood reference', year: '2013', director: 'Spike Jonze', coverImg: '/films/template-digital-poster.svg', note: B('A soft machine feeling.', '柔软的机器感。') }],
+      MUSIC: [{ track: B('Signal Path', '信号路径'), artist: B('Template Ensemble', '模板合奏'), album: 'Digital Archive', duration: '3:05', mood: B('Signal', '信号'), note: B('Clean pulse for structured pages.', '适合结构化页面的清晰脉冲。'), spotifyId: '', neteaseId: '', audio: '' }],
+      PHOTOS: [{ id: 'digital-1', series: 'portraits', caption: B('Screen portrait placeholder', '屏幕肖像占位图'), date: '2026.05', camera: 'Template SVG', color: '#2563eb', image: '/photos/template-digital-photo.svg' }],
+      TRAVEL: [{ city: B('Online', '线上'), country: B('Network', '网络'), year: '2026', kind: 'home', lat: 30.25, lon: 120.16, note: B('Most routes begin in localhost.', '多数路线从 localhost 开始。') }],
+      NOW_PLAYING: { spotify: [], netease: [], html5: [] },
+    },
+  },
+]
+
 // ════════════════════════════════════════════════════════════════════
 // IMPORT PANEL — paste AI-generated JSON, validate, apply to site
 // ════════════════════════════════════════════════════════════════════
@@ -1254,10 +1509,37 @@ function ImportPanel() {
     URL.revokeObjectURL(url)
   }
 
+  const applyContentPreset = (preset) => {
+    const sections = Object.keys(preset.data)
+    if (!window.confirm(`应用「${preset.label}」会覆盖这些章节:\n\n${sections.join(', ')}\n\n继续吗?`)) return
+    sections.forEach((key) => data.setSection(key, deepClone(preset.data[key])))
+    setApplied(`✓ 已应用预制模板: ${preset.label}`)
+    setTimeout(() => setApplied(''), 5000)
+  }
+
   return (
     <div className="ce-import">
       <div className="ce-import-intro">
         <p>用自然语言描述你自己,AI 帮你填好整个网站的全部数据 —— 这是模板最有意思的功能。</p>
+      </div>
+
+      <div className="ce-import-step">
+        <h4>预制模板</h4>
+        <p>先选择一个完整方向，文字、模块和图片路径会一起填入。图片只保存 public 路径，不写入大体积 base64。</p>
+        <div className="ce-template-grid">
+          {CONTENT_PRESETS.map((preset) => (
+            <article key={preset.id} className="ce-template-card">
+              <span className="ce-template-thumb" style={{ backgroundImage: `url("${preset.preview}")` }} />
+              <div className="ce-template-copy">
+                <strong>{preset.label}</strong>
+                <p>{preset.description}</p>
+              </div>
+              <button className="ce-btn" type="button" onClick={() => applyContentPreset(preset)}>
+                应用模板
+              </button>
+            </article>
+          ))}
+        </div>
       </div>
 
       <div className="ce-import-step">

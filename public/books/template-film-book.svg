@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 1000">
+  <rect width="700" height="1000" fill="#211b16"/>
+  <rect x="70" y="90" width="560" height="820" fill="#31271e" stroke="#d0733f" stroke-width="8"/>
+  <circle cx="440" cy="330" r="120" fill="#d0733f" opacity=".22"/>
+  <text x="115" y="170" fill="#f5e6c8" font-family="serif" font-size="58">Film</text>
+  <text x="115" y="240" fill="#f5e6c8" font-family="serif" font-size="58">Notes</text>
+  <text x="115" y="845" fill="#f5e6c8" font-family="monospace" font-size="25" letter-spacing="6">TEMPLATE COVER</text>
+</svg>

@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 700">
+  <rect width="1200" height="700" fill="#211b16"/>
+  <g fill="#f5e6c8" opacity=".24">
+    <rect x="40" y="40" width="70" height="46"/><rect x="40" y="615" width="70" height="46"/>
+    <rect x="1090" y="40" width="70" height="46"/><rect x="1090" y="615" width="70" height="46"/>
+  </g>
+  <rect x="150" y="110" width="900" height="480" fill="#31271e" stroke="#d0733f" stroke-width="8"/>
+  <path d="M180 470 C350 330 465 390 610 260 C735 150 895 235 1030 170" fill="none" stroke="#d0733f" stroke-width="16" opacity=".75"/>
+  <circle cx="610" cy="260" r="70" fill="#f5e6c8" opacity=".18"/>
+  <text x="190" y="535" fill="#f5e6c8" font-family="monospace" font-size="38" letter-spacing="8">REEL TIMELINE</text>
+</svg>

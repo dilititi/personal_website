@@ -1,6 +1,13 @@
 export const DEFAULT_STYLE = {
   version: 1,
   preset: 'editorial',
+  design: {
+    spacing: 0.5,
+    alignment: 'editorial',
+    hierarchy: 0.62,
+    contrast: 0.66,
+    proportion: 0.5,
+  },
   color: {
     background: '#ebe2c8',
     surface: '#e0d6ba',
@@ -61,6 +68,7 @@ export const DEFAULT_STYLE = {
 }
 
 export const STYLE_DIMENSIONS = [
+  { key: 'design', label: { zh: '设计基础', en: 'Design' }, summary: 'spacing, alignment, hierarchy, contrast, proportion' },
   { key: 'color', label: { zh: '色彩', en: 'Color' }, summary: 'palette, contrast, saturation' },
   { key: 'typography', label: { zh: '排版', en: 'Type' }, summary: 'font personality, scale, tracking' },
   { key: 'space', label: { zh: '空间', en: 'Space' }, summary: 'density, radius, rhythm' },
@@ -122,6 +130,7 @@ export const STYLE_PRESETS = {
         saturation: 0.28,
         temperature: -0.05,
       },
+      design: { ...DEFAULT_STYLE.design, spacing: 0.72, alignment: 'editorial', hierarchy: 0.48, contrast: 0.46, proportion: 0.42 },
       typography: { ...DEFAULT_STYLE.typography, personality: 'quiet', display: 'serif', body: 'serif', tracking: 6 },
       space: { ...DEFAULT_STYLE.space, density: 0.32, radius: 3, sectionGap: 112 },
       motion: { ...DEFAULT_STYLE.motion, mode: 'calm', duration: 420, easing: 'easeInOut' },
@@ -152,6 +161,7 @@ export const STYLE_PRESETS = {
         saturation: 0.5,
         temperature: -0.45,
       },
+      design: { ...DEFAULT_STYLE.design, spacing: 0.42, alignment: 'grid', hierarchy: 0.62, contrast: 0.78, proportion: 0.58 },
       typography: { ...DEFAULT_STYLE.typography, personality: 'modern', display: 'sans', body: 'sans', tracking: 2 },
       space: { ...DEFAULT_STYLE.space, density: 0.5, radius: 2, sectionGap: 88 },
       motion: { ...DEFAULT_STYLE.motion, duration: 220, easing: 'sharp' },
@@ -182,6 +192,7 @@ export const STYLE_PRESETS = {
         saturation: 0.42,
         temperature: 0.3,
       },
+      design: { ...DEFAULT_STYLE.design, spacing: 0.58, alignment: 'editorial', hierarchy: 0.8, contrast: 0.82, proportion: 0.54 },
       typography: { ...DEFAULT_STYLE.typography, personality: 'literary', display: 'serif', body: 'serif', tracking: 3 },
       space: { ...DEFAULT_STYLE.space, density: 0.42, radius: 4, sectionGap: 104 },
       motion: { ...DEFAULT_STYLE.motion, mode: 'calm', duration: 360 },
@@ -211,6 +222,7 @@ export const STYLE_PRESETS = {
         saturation: 0.48,
         temperature: 0.55,
       },
+      design: { ...DEFAULT_STYLE.design, spacing: 0.64, alignment: 'loose', hierarchy: 0.58, contrast: 0.52, proportion: 0.38 },
       typography: { ...DEFAULT_STYLE.typography, personality: 'journal', display: 'serif', body: 'sans', tracking: 1 },
       space: { ...DEFAULT_STYLE.space, density: 0.38, radius: 12, sectionGap: 106 },
       motion: { ...DEFAULT_STYLE.motion, mode: 'calm', duration: 340 },
@@ -241,6 +253,7 @@ export const STYLE_PRESETS = {
         saturation: 0.58,
         temperature: 0.62,
       },
+      design: { ...DEFAULT_STYLE.design, spacing: 0.5, alignment: 'offset', hierarchy: 0.72, contrast: 0.74, proportion: 0.76 },
       typography: { ...DEFAULT_STYLE.typography, personality: 'cinematic', display: 'serif', body: 'sans', tracking: 8 },
       space: { ...DEFAULT_STYLE.space, density: 0.48, radius: 8, sectionGap: 92 },
       motion: { ...DEFAULT_STYLE.motion, duration: 320, easing: 'easeInOut' },
@@ -271,6 +284,7 @@ export const STYLE_PRESETS = {
         saturation: 0.82,
         temperature: -0.15,
       },
+      design: { ...DEFAULT_STYLE.design, spacing: 0.36, alignment: 'grid', hierarchy: 0.86, contrast: 0.9, proportion: 0.68 },
       typography: { ...DEFAULT_STYLE.typography, personality: 'digital', display: 'sans', body: 'sans', tracking: 12 },
       space: { ...DEFAULT_STYLE.space, density: 0.58, radius: 16, sectionGap: 82 },
       motion: { ...DEFAULT_STYLE.motion, mode: 'lively', duration: 180, easing: 'sharp' },
@@ -300,6 +314,7 @@ export const STYLE_PRESETS = {
         saturation: 0.36,
         temperature: 0.22,
       },
+      design: { ...DEFAULT_STYLE.design, spacing: 0.78, alignment: 'loose', hierarchy: 0.44, contrast: 0.48, proportion: 0.42 },
       typography: { ...DEFAULT_STYLE.typography, personality: 'organic', display: 'serif', body: 'sans', tracking: 0 },
       space: { ...DEFAULT_STYLE.space, density: 0.3, radius: 14, sectionGap: 118 },
       motion: { ...DEFAULT_STYLE.motion, mode: 'calm', duration: 460, easing: 'easeInOut' },

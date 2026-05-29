@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 1100">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#dfe8c8"/>
+      <stop offset="1" stop-color="#6f8a5f"/>
+    </linearGradient>
+  </defs>
+  <rect width="900" height="1100" fill="url(#bg)"/>
+  <circle cx="140" cy="160" r="92" fill="#b9cf8f" opacity=".75"/>
+  <circle cx="760" cy="210" r="118" fill="#4f7046" opacity=".45"/>
+  <path d="M90 980 C220 760 310 700 430 760 C560 830 660 760 810 620 L810 1100 L90 1100 Z" fill="#36583d"/>
+  <g fill="#28452e" opacity=".72">
+    <path d="M80 760 L150 500 L220 760 Z"/>
+    <path d="M680 720 L760 420 L850 720 Z"/>
+    <path d="M520 720 L585 480 L655 720 Z"/>
+  </g>
+  <ellipse cx="450" cy="760" rx="190" ry="230" fill="#e9d1a9"/>
+  <path d="M265 740 C270 510 360 400 470 410 C590 420 655 540 640 750 C560 695 390 700 265 740 Z" fill="#2f3a28"/>
+  <circle cx="450" cy="575" r="150" fill="#f2c9a2"/>
+  <path d="M310 555 C345 450 555 430 610 555 C590 475 540 382 440 390 C345 398 295 480 310 555 Z" fill="#283622"/>
+  <circle cx="394" cy="585" r="13" fill="#1d2419"/>
+  <circle cx="505" cy="585" r="13" fill="#1d2419"/>
+  <path d="M410 660 C440 684 485 682 515 660" fill="none" stroke="#8b5139" stroke-width="12" stroke-linecap="round"/>
+  <path d="M250 1040 C305 875 595 875 650 1040 Z" fill="#6f8a5f"/>
+  <path d="M210 245 C330 205 500 230 615 170" fill="none" stroke="#f3ead6" stroke-width="10" stroke-linecap="round" opacity=".62"/>
+  <text x="52" y="1038" fill="#f3ead6" font-family="monospace" font-size="34" letter-spacing="6">ORGANIC PORTRAIT</text>
+</svg>

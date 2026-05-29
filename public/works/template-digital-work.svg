@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 750">
+  <rect width="1200" height="750" fill="#eef6ff"/>
+  <rect x="100" y="90" width="1000" height="570" rx="18" fill="#d8e4ff" stroke="#2563eb" stroke-width="8"/>
+  <g fill="#7c3aed"><rect x="170" y="160" width="260" height="48"/><rect x="170" y="240" width="520" height="28"/><rect x="170" y="292" width="430" height="28"/></g>
+  <g stroke="#06b6d4" stroke-width="10" fill="none"><path d="M735 510 L850 305 L960 440 L1035 250"/></g>
+  <g fill="#140f2d"><circle cx="850" cy="305" r="26"/><circle cx="960" cy="440" r="26"/><circle cx="1035" cy="250" r="26"/></g>
+  <text x="170" y="610" fill="#140f2d" font-family="monospace" font-size="44" letter-spacing="8">STYLE SYSTEM</text>
+</svg>

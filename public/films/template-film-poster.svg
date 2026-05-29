@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 1000">
+  <rect width="700" height="1000" fill="#211b16"/>
+  <rect x="90" y="120" width="520" height="700" fill="#31271e" stroke="#d0733f" stroke-width="8"/>
+  <circle cx="440" cy="320" r="125" fill="#d0733f" opacity=".28"/>
+  <text x="130" y="730" fill="#f5e6c8" font-family="serif" font-size="64">Paris</text>
+  <text x="130" y="802" fill="#f5e6c8" font-family="serif" font-size="64">Texas</text>
+</svg>

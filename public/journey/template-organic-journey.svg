@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 700">
+  <rect width="1200" height="700" fill="#e8e1cd"/>
+  <path d="M0 520 C180 410 300 470 430 370 C610 230 720 380 900 260 C1030 178 1120 220 1200 190 L1200 700 L0 700 Z" fill="#6f8a5f"/>
+  <path d="M120 590 C300 480 500 540 680 420 C820 328 930 350 1090 285" fill="none" stroke="#f3ead6" stroke-width="18" stroke-linecap="round" stroke-dasharray="28 30"/>
+  <g fill="#36583d"><circle cx="235" cy="300" r="48"/><circle cx="780" cy="170" r="62"/><circle cx="1010" cy="360" r="42"/></g>
+  <text x="70" y="110" fill="#36583d" font-family="monospace" font-size="38" letter-spacing="8">FIELD ROUTE</text>
+</svg>

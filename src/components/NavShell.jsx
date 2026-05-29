@@ -13,6 +13,14 @@ function LangToggle() {
   )
 }
 
+function isStylePreviewSurface() {
+  try {
+    return new URLSearchParams(window.location.search).has('stylePreview')
+  } catch {
+    return false
+  }
+}
+
 function BottomStrip({ activeId, onJump }) {
   const { t } = useLang()
   const { NAV, MODULES, getModuleConfig, isModuleInNav } = useData()
@@ -51,6 +59,7 @@ function BottomStrip({ activeId, onJump }) {
 function TopBar({ onJump, onOpenEditor, onOpenStyleEditor }) {
   const { lang, t } = useLang()
   const { SITE } = useData()
+  const previewSurface = isStylePreviewSurface()
   return (
     <div className="top-bar">
       <button className="nav-mark" onClick={() => onJump('home')}>
@@ -58,7 +67,7 @@ function TopBar({ onJump, onOpenEditor, onOpenStyleEditor }) {
         <span>{t(SITE.name)} · {t(SITE.location)}</span>
       </button>
       <div className="top-bar-right">
-        {(onOpenEditor || onOpenStyleEditor) && (
+        {!previewSurface && (onOpenEditor || onOpenStyleEditor) && (
           <div className="top-bar-editor-group" role="group" aria-label={lang === 'zh' ? '编辑器' : 'Editors'}>
             {onOpenEditor && (
               <button

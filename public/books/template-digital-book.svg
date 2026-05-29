@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 1000">
+  <rect width="700" height="1000" fill="#d8e4ff"/>
+  <g stroke="#2563eb" stroke-width="2" opacity=".3"><path d="M0 200 H700 M0 400 H700 M0 600 H700 M0 800 H700"/><path d="M175 0 V1000 M350 0 V1000 M525 0 V1000"/></g>
+  <rect x="100" y="160" width="500" height="230" fill="#7c3aed"/>
+  <rect x="100" y="450" width="360" height="42" fill="#06b6d4"/>
+  <rect x="100" y="520" width="420" height="32" fill="#140f2d"/>
+  <text x="100" y="835" fill="#140f2d" font-family="monospace" font-size="34" letter-spacing="6">DATA SYSTEMS</text>
+</svg>

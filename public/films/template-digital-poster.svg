@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 1000">
+  <rect width="700" height="1000" fill="#eef6ff"/>
+  <rect x="90" y="130" width="520" height="690" fill="#d8e4ff" stroke="#2563eb" stroke-width="8"/>
+  <circle cx="350" cy="380" r="150" fill="#7c3aed" opacity=".55"/>
+  <rect x="170" y="625" width="360" height="44" fill="#06b6d4"/>
+  <text x="150" y="760" fill="#140f2d" font-family="monospace" font-size="70" letter-spacing="8">HER</text>
+</svg>

@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 1000">
+  <rect width="700" height="1000" fill="#5f7355"/>
+  <path d="M80 790 C180 610 285 700 370 520 C455 350 565 450 630 280" fill="none" stroke="#f3ead6" stroke-width="20" stroke-linecap="round"/>
+  <circle cx="230" cy="300" r="95" fill="#b9cf8f" opacity=".45"/>
+  <text x="70" y="130" fill="#f3ead6" font-family="serif" font-size="62">Field</text>
+  <text x="70" y="205" fill="#f3ead6" font-family="serif" font-size="62">Notebook</text>
+  <text x="70" y="910" fill="#f3ead6" font-family="monospace" font-size="26" letter-spacing="6">TEMPLATE COVER</text>
+</svg>
