@@ -4,6 +4,9 @@
 
 希望能帮助任何人快速入门建立自己的个人网站。
 
+## 示例网站：
+https://personal-website-x3u4.onrender.com
+
 ## 前置要求
 
 - [Node.js](https://nodejs.org/) 20.19+ 或 22.12+（建议使用当前 LTS 版本，点击高亮链接即可下载）
