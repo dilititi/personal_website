@@ -4,6 +4,19 @@ const FONT_STACKS = {
   mono: '"IBM Plex Mono", "SF Mono", monospace',
 }
 
+// typography.personality maps to a default display/body font pairing.
+// Explicit typography.display / typography.body still override this.
+const PERSONALITY_PAIRINGS = {
+  editorial: { display: 'serif', body: 'sans' },
+  literary: { display: 'serif', body: 'serif' },
+  quiet: { display: 'serif', body: 'serif' },
+  journal: { display: 'serif', body: 'sans' },
+  modern: { display: 'sans', body: 'sans' },
+  cinematic: { display: 'serif', body: 'sans' },
+  digital: { display: 'sans', body: 'sans' },
+  organic: { display: 'serif', body: 'sans' },
+}
+
 const EASINGS = {
   easeOut: {
     out: 'cubic-bezier(0.16, 1, 0.3, 1)',
@@ -29,7 +42,10 @@ function normalizeHex(hex, fallback = '#000000') {
   if (typeof hex !== 'string') return fallback
   const raw = hex.trim().replace('#', '')
   if (/^[0-9a-f]{3}$/i.test(raw)) {
-    return `#${raw.split('').map((c) => c + c).join('')}`.toLowerCase()
+    return `#${raw
+      .split('')
+      .map(c => c + c)
+      .join('')}`.toLowerCase()
   }
   if (/^[0-9a-f]{6}$/i.test(raw)) return `#${raw}`.toLowerCase()
   return fallback
@@ -46,7 +62,10 @@ function hexToRgb(hex) {
 }
 
 function rgbToHex({ r, g, b }) {
-  const toHex = (v) => Math.round(clamp(v, 0, 255)).toString(16).padStart(2, '0')
+  const toHex = v =>
+    Math.round(clamp(v, 0, 255))
+      .toString(16)
+      .padStart(2, '0')
   return `#${toHex(r)}${toHex(g)}${toHex(b)}`
 }
 
@@ -76,8 +95,12 @@ export function deriveStyleVars(style) {
   const light = style?.light || {}
   const depth = style?.depth || {}
 
-  const background = normalizeHex(color.background, '#ebe2c8')
-  const surface = normalizeHex(color.surface, '#e0d6ba')
+  // Temperature nudges the paper tone warm (amber) or cool (blue). Subtle by design.
+  const temperature = clamp(color.temperature ?? 0, -1, 1)
+  const tempTint = temperature >= 0 ? '#e0a64a' : '#4a78e0'
+  const tempAmount = Math.abs(temperature) * 0.06
+  const background = mixHex(normalizeHex(color.background, '#ebe2c8'), tempTint, tempAmount)
+  const surface = mixHex(normalizeHex(color.surface, '#e0d6ba'), tempTint, tempAmount)
   const text = normalizeHex(color.text, '#1a1814')
   const muted = normalizeHex(color.muted, '#5e574b')
   const primary = normalizeHex(color.primary, '#3a7a82')
@@ -91,8 +114,14 @@ export function deriveStyleVars(style) {
   const effectiveContrast = clamp(contrast + (designContrast - 0.5) * 0.32)
   const spacingMultiplier = 0.76 + designSpacing * 0.72
 
-  const displayFont = FONT_STACKS[typography.display] || FONT_STACKS.serif
-  const bodyFont = FONT_STACKS[typography.body] || FONT_STACKS.sans
+  const pairing =
+    PERSONALITY_PAIRINGS[
+      String(typography.personality || '')
+        .trim()
+        .toLowerCase()
+    ] || {}
+  const displayFont = FONT_STACKS[typography.display || pairing.display] || FONT_STACKS.serif
+  const bodyFont = FONT_STACKS[typography.body || pairing.body] || FONT_STACKS.sans
   const scale = clamp(typography.scale ?? 1.333, 1.1, 1.7)
   const effectiveTypeScale = clamp(scale * (0.92 + designHierarchy * 0.16), 1.08, 1.86)
   const tracking = clamp(typography.tracking ?? 0, -30, 60)

@@ -5,3 +5,8 @@ dist/
 .env
 .env.local
 .vite/
+
+# Local agent settings and one-off rollback backups
+.claude/
+rollback/
+rollback.zip

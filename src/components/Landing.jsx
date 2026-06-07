@@ -19,7 +19,7 @@ export default function Landing({ onJump }) {
 
   // Frame 00 displayed values derive from SITE — single source of truth.
   const displayName = t(SITE.name) || ''
-  const displayNameR = t(SITE.nameRight) || t(TL.nameRight) || ''  // fallback to old TEXTS
+  const displayNameR = t(SITE.nameRight) || t(TL.nameRight) || '' // fallback to old TEXTS
   const cityRaw = t(SITE.location) || ''
   const displayCity = (cityRaw.split(/[,，]/)[0] || cityRaw).trim().toUpperCase()
 
@@ -30,7 +30,9 @@ export default function Landing({ onJump }) {
       <div className="mh-content">
         <div className="mh-name">
           <div className="mh-name-l">{displayName}</div>
-          <div className="mh-name-r"><i>{displayNameR}</i></div>
+          <div className="mh-name-r">
+            <i>{displayNameR}</i>
+          </div>
         </div>
 
         <div className="mh-rule"></div>
@@ -38,8 +40,12 @@ export default function Landing({ onJump }) {
         <div className="mh-meta">
           <span className="mh-meta-c">{t(TL.metaRole)}</span>
           <span className="mh-meta-c">{t(TL.metaSchool)}</span>
-          <a className="mh-meta-c link" href={`mailto:${SITE.email}`}>{t(TL.metaEmailLbl)}</a>
-          <span className="mh-meta-c right">{displayCity} {formatTime(now, resolveTz(SITE))}</span>
+          <a className="mh-meta-c link" href={`mailto:${SITE.email}`}>
+            {t(TL.metaEmailLbl)}
+          </a>
+          <span className="mh-meta-c right">
+            {displayCity} {formatTime(now, resolveTz(SITE))}
+          </span>
         </div>
 
         <div className="mh-statement">

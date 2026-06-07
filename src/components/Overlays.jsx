@@ -13,7 +13,11 @@ export function FilmstripProgress() {
     onScroll()
     return () => window.removeEventListener('scroll', onScroll)
   }, [])
-  return <div className="filmstrip"><div className="filmstrip-fill"></div></div>
+  return (
+    <div className="filmstrip">
+      <div className="filmstrip-fill"></div>
+    </div>
+  )
 }
 
 export function CursorSpotlight() {
@@ -21,8 +25,16 @@ export function CursorSpotlight() {
   useEffect(() => {
     const el = ref.current
     if (!el) return
-    let raf = 0, x = window.innerWidth / 2, y = window.innerHeight / 2, tx = x, ty = y
-    const onMove = (e) => { tx = e.clientX; ty = e.clientY; document.body.classList.add('cursor-active') }
+    let raf = 0,
+      x = window.innerWidth / 2,
+      y = window.innerHeight / 2,
+      tx = x,
+      ty = y
+    const onMove = e => {
+      tx = e.clientX
+      ty = e.clientY
+      document.body.classList.add('cursor-active')
+    }
     const onLeave = () => document.body.classList.remove('cursor-active')
     const tick = () => {
       x += (tx - x) * 0.18

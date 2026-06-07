@@ -7,8 +7,12 @@ function LangToggle() {
   const { lang, setLang } = useLang()
   return (
     <div className="lang-toggle">
-      <button className={lang === 'en' ? 'active' : ''} onClick={() => setLang('en')}>EN</button>
-      <button className={lang === 'zh' ? 'active' : ''} onClick={() => setLang('zh')}>中</button>
+      <button className={lang === 'en' ? 'active' : ''} onClick={() => setLang('en')}>
+        EN
+      </button>
+      <button className={lang === 'zh' ? 'active' : ''} onClick={() => setLang('zh')}>
+        中
+      </button>
     </div>
   )
 }
@@ -24,13 +28,17 @@ function isStylePreviewSurface() {
 function BottomStrip({ activeId, onJump }) {
   const { t } = useLang()
   const { NAV, MODULES, getModuleConfig, isModuleInNav } = useData()
-  const home = NAV.find(n => n.id === 'home') || { num: '00', id: 'home', label: { en: 'Home', zh: '首页' } }
+  const home = NAV.find(n => n.id === 'home') || {
+    num: '00',
+    id: 'home',
+    label: { en: 'Home', zh: '首页' },
+  }
   const visible = [
     home,
     ...Object.keys(MODULES || {})
-      .filter((id) => isModuleInNav(id))
+      .filter(id => isModuleInNav(id))
       .sort((a, b) => (getModuleConfig(a).order ?? 0) - (getModuleConfig(b).order ?? 0))
-      .map((id) => {
+      .map(id => {
         const config = getModuleConfig(id)
         return {
           id,
@@ -40,8 +48,12 @@ function BottomStrip({ activeId, onJump }) {
       }),
   ]
   return (
-    <nav className="bottom-strip" aria-label="Sections" style={{ gridTemplateColumns: `repeat(${visible.length}, 1fr)` }}>
-      {visible.map((n) => (
+    <nav
+      className="bottom-strip"
+      aria-label="Sections"
+      style={{ gridTemplateColumns: `repeat(${visible.length}, 1fr)` }}
+    >
+      {visible.map(n => (
         <button
           key={n.id}
           className={`bs-ch ${activeId === n.id ? 'act' : ''}`}
@@ -64,11 +76,17 @@ function TopBar({ onJump, onOpenEditor, onOpenStyleEditor }) {
     <div className="top-bar">
       <button className="nav-mark" onClick={() => onJump('home')}>
         <span className="dot"></span>
-        <span>{t(SITE.name)} · {t(SITE.location)}</span>
+        <span>
+          {t(SITE.name)} · {t(SITE.location)}
+        </span>
       </button>
       <div className="top-bar-right">
         {!previewSurface && (onOpenEditor || onOpenStyleEditor) && (
-          <div className="top-bar-editor-group" role="group" aria-label={lang === 'zh' ? '编辑器' : 'Editors'}>
+          <div
+            className="top-bar-editor-group"
+            role="group"
+            aria-label={lang === 'zh' ? '编辑器' : 'Editors'}
+          >
             {onOpenEditor && (
               <button
                 className="top-bar-tool-btn top-bar-tool-btn-segment"
@@ -100,7 +118,7 @@ export default function NavShell({ onJump, onOpenEditor, onOpenStyleEditor }) {
   const navIds = [
     'home',
     ...Object.keys(MODULES || {})
-      .filter((id) => isModuleInNav(id))
+      .filter(id => isModuleInNav(id))
       .sort((a, b) => (getModuleConfig(a).order ?? 0) - (getModuleConfig(b).order ?? 0)),
   ]
   const active = useActiveSection(navIds)

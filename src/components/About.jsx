@@ -3,24 +3,26 @@ import { useLang } from '../lang'
 import { useData } from '../data-context'
 import { emph } from '../hooks'
 
-export default function About({ onOpenCV }) {
+export default function About({ layout = 'default', onOpenCV }) {
   const { t } = useLang()
   const { ABOUT, SITE, TEXTS, isModuleEnabled } = useData()
   const TA = TEXTS.about
   const cv = ABOUT.cv
   const showCvButton = isModuleEnabled('cvButton')
   const blocks = [
-    { key: 'edu',    title: t(TA.blockEdu) },
-    { key: 'work',   title: t(TA.blockWork) },
+    { key: 'edu', title: t(TA.blockEdu) },
+    { key: 'work', title: t(TA.blockWork) },
     { key: 'awards', title: t(TA.blockAwards) },
     { key: 'skills', title: t(TA.blockSkills) },
   ]
 
   return (
-    <section id="about">
+    <section id="about" data-layout={layout}>
       <div className="section-header" data-reveal>
         <div>
-          <div className="section-num">01 / {TA.headerSubTag && t(TA.headerSubTag) || 'About'}</div>
+          <div className="section-num">
+            01 / {(TA.headerSubTag && t(TA.headerSubTag)) || 'About'}
+          </div>
           <h2 className="section-title">
             {t(TA.headerTitle)}
             <em>{t(TA.headerSubTag)}</em>
@@ -37,7 +39,9 @@ export default function About({ onOpenCV }) {
                 <img
                   src={SITE.portrait}
                   alt="portrait"
-                  onError={(e) => { e.currentTarget.style.display = 'none' }}
+                  onError={e => {
+                    e.currentTarget.style.display = 'none'
+                  }}
                 />
               )}
             </div>
@@ -57,22 +61,30 @@ export default function About({ onOpenCV }) {
           </div>
 
           {showCvButton && (
-            <button className="btn" onClick={onOpenCV} style={{ justifyContent: 'space-between', width: '100%' }}>
+            <button
+              className="btn"
+              onClick={onOpenCV}
+              style={{ justifyContent: 'space-between', width: '100%' }}
+            >
               <span>{t(TA.fullCvLabel)}</span>
               <span className="arrow">↗</span>
             </button>
           )}
 
-          <div className="seal-stamp" title={TA.sealChar}>{TA.sealChar}</div>
+          <div className="seal-stamp" title={TA.sealChar}>
+            {TA.sealChar}
+          </div>
         </aside>
 
         <div className="about-body" data-reveal>
           <p className="about-intro">{t(ABOUT.intro)}</p>
           <div className="about-prose">
-            {ABOUT.paragraphs.map((p, i) => <p key={i}>{emph(t(p))}</p>)}
+            {ABOUT.paragraphs.map((p, i) => (
+              <p key={i}>{emph(t(p))}</p>
+            ))}
           </div>
 
-          {blocks.map((b) => (
+          {blocks.map(b => (
             <div className="cv-block" key={b.key}>
               <h4>{b.title}</h4>
               {cv[b.key].map((e, i) => (

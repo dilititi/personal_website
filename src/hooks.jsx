@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 
 export function useClock() {
   const [now, setNow] = useState(new Date())
@@ -12,23 +12,31 @@ export function useClock() {
 export function formatTime(d, tz = 'Asia/Shanghai') {
   try {
     return new Intl.DateTimeFormat('en-GB', {
-      hour: '2-digit', minute: '2-digit', second: '2-digit',
-      hour12: false, timeZone: tz,
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: false,
+      timeZone: tz,
     }).format(d)
-  } catch { return d.toLocaleTimeString() }
+  } catch {
+    return d.toLocaleTimeString()
+  }
 }
 
 export function useReveal() {
   useEffect(() => {
     const els = document.querySelectorAll('[data-reveal]')
-    const obs = new IntersectionObserver((entries) => {
-      entries.forEach(e => {
-        if (e.isIntersecting) {
-          e.target.classList.add('is-revealed')
-          obs.unobserve(e.target)
-        }
-      })
-    }, { threshold: 0.15 })
+    const obs = new IntersectionObserver(
+      entries => {
+        entries.forEach(e => {
+          if (e.isIntersecting) {
+            e.target.classList.add('is-revealed')
+            obs.unobserve(e.target)
+          }
+        })
+      },
+      { threshold: 0.15 },
+    )
     els.forEach(el => obs.observe(el))
     return () => obs.disconnect()
   }, [])
@@ -40,18 +48,21 @@ export function useActiveSection(navIds) {
     const sections = navIds.map(id => document.getElementById(id)).filter(Boolean)
     if (!sections.length) return
     const obs = new IntersectionObserver(
-      (entries) => {
+      entries => {
         let best = null
-        entries.forEach((e) => {
+        entries.forEach(e => {
           if (e.isIntersecting) {
-            if (!best || Math.abs(e.boundingClientRect.top) < Math.abs(best.boundingClientRect.top)) {
+            if (
+              !best ||
+              Math.abs(e.boundingClientRect.top) < Math.abs(best.boundingClientRect.top)
+            ) {
               best = e
             }
           }
         })
         if (best) setActive(best.target.id)
       },
-      { rootMargin: '-30% 0px -55% 0px', threshold: 0 }
+      { rootMargin: '-30% 0px -55% 0px', threshold: 0 },
     )
     sections.forEach(s => obs.observe(s))
     return () => obs.disconnect()

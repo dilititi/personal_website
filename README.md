@@ -1,123 +1,92 @@
 # Personal Website · 个人网站
 
-基于 React 19 + Vite 8 构建的双语（EN / 中文）个人作品集网站，包含关于、旅程、作品、书影音、摄影、旅行和联系等模块。
+基于 **React 19 + Vite 8** 的双语（EN / 中文）个人作品集**模板**。内置站内**内容编辑器**与**风格编辑器**，支持「用 AI 一键生成全部内容」，构建为纯静态站点，可部署到任意静态托管。
 
-希望能帮助任何人快速入门建立自己的个人网站。
+> 仓库里的「Chen · 杭州电影学生」是模板自带的**示例内容**，替换成你自己的即可。
 
-## 示例网站：
+## 示例网站
+
 https://personal-website-x3u4.onrender.com
 
 ## 前置要求
 
-- [Node.js](https://nodejs.org/) 20.19+ 或 22.12+（建议使用当前 LTS 版本，点击高亮链接即可下载）
+- [Node.js](https://nodejs.org/) 20.19+ 或 22.12+（建议当前 LTS 版本）
 - npm（随 Node.js 自动安装）
 
 ## 快速开始
 
 ```bash
-1. 克隆仓库
 git clone https://github.com/dilititi/personal_website.git
 cd personal_website
-
-2. 安装依赖
 npm install
-
-3. 启动开发服务器
-npm run dev
+npm run dev      # 打开 http://localhost:5173/
 ```
-## 如何自定义内容：
 
-网站的所有文字信息都集中在data.js：
+## 自定义内容
 
-src/data.js：包含站点标题、导航、个人简介、旅程、作品、书影音、摄影、旅行等所有双语内容。直接修改这个文件即可更新网站文案。
+有两种方式，**推荐用站内编辑器**。
 
-注意：data.js 导出的变量（如 SITE, ABOUT, WORKS 等）被多个组件引用，修改时请保持数据结构不变。
+### 方式 A · 站内编辑器（推荐）
 
-示例：修改个人介绍
-打开 src/data.js，找到 ABOUT 对象，修改 intro 和 paragraphs 中的文本：
+- 顶栏点 **✏️ 内容** 打开内容编辑器：分章节填写 SITE / ABOUT / WORKS… 改动**实时保存到浏览器 localStorage**，主站即时预览。
+- 顶部的 **🪄 自动填充** 可以让 AI 帮你生成整站数据 —— 复制提示词喂给任意大模型，把返回的 JSON 粘回来一键导入（详见 [CONTENT_GUIDE.md](./CONTENT_GUIDE.md)）。
+- 顶栏点 **🎨 风格** 打开风格编辑器：8 个预设起步，再微调色彩、排版、空间、质感、光影、深度、动态。
+
+> ⚠️ localStorage 里的编辑**不会进 Git，也不会自动上线**。发布前必须点编辑器里的 **📋 全部**，把导出的代码粘进 `src/data.js`（风格则用「复制 STYLE」粘进 `src/style.js`），再提交。
+> 图片 / 音频**上传仅在本地 `npm run dev` 时可用**（依赖 dev server 的 `/api/upload`）；线上编辑器里上传按钮会被禁用，只能直接填 `public/` 路径。
+
+### 方式 B · 直接改 `src/data.js`
+
+`src/data.js` 是所有文案的**最终来源（source of truth）**。所有双语字段用 `L(en, zh)` 包裹：
 
 ```js
 export const ABOUT = {
-  intro: L(
-    "你的英文介绍...",
-    "你的中文介绍..."
-  ),
-  // ...
+  intro: L('Your English intro…', '你的中文介绍…'),
+  // …
 }
 ```
-保存后浏览器会自动刷新，即时看到效果。
 
-部署上线
-构建生产版本后，dist/ 目录即为完整的静态网站，可以直接部署到任何静态托管平台。
+保存后浏览器会自动刷新。**注意**：`data.js` 导出的变量（`SITE`、`ABOUT`、`WORKS`…）被多个组件引用，修改时请保持数据结构不变。
 
-选项一：Cloudflare Pages（推荐）
-```
-将仓库推送到 GitHub。
+## 项目结构
 
-登录 Cloudflare Pages，连接 GitHub 仓库。
-
-构建设置：
-
-构建命令：npm run build
-
-输出目录：dist
-```
-部署，每次推送代码会自动重新构建。
-
-选项二：阿里云 OSS（国内访问最快）
-```
-创建 OSS Bucket（地域选杭州），开启静态网站托管，权限设置为公共读。
-
-使用 ossutil 上传 dist/ 内容：
-
-bash
-ossutil cp -r dist/ oss://你的Bucket名称/ --update
-通过 Bucket 提供的默认域名访问（无需备案），或绑定已备案的自定义域名并开启 CDN 加速。
-```
-更多部署细节请参考官方文档。
-
-项目结构
 ```text
 .
-├── index.html                # Vite 入口 HTML
-├── package.json              # 依赖与脚本
-├── vite.config.js            # Vite 配置
-├── .gitignore                # 忽略 node_modules 和 dist
-├── public/                   # 静态资源（favicon 等）
-├── src/
-│   ├── main.jsx              # React 挂载入口
-│   ├── App.jsx               # 根组件（组装所有区块）
-│   ├── data.js               # 所有双语内容数据
-│   ├── lang.jsx              # 语言切换上下文
-│   ├── hooks.jsx             # 自定义 Hooks
-│   ├── styles.css            # 全局样式
-│   └── components/           # 各区块组件
-│       ├── NavShell.jsx
-│       ├── Landing.jsx
-│       ├── About.jsx
-│       ├── Journey.jsx
-│       ├── Works.jsx
-│       ├── Library.jsx
-│       ├── Photography.jsx
-│       ├── Travel.jsx
-│       ├── Contact.jsx
-│       ├── Colophon.jsx
-│       ├── NowPlaying.jsx
-│       ├── CVModal.jsx
-│       └── Overlays.jsx
-└── dist/                     # 构建输出（上传到服务器）
+├── index.html
+├── vite.config.js            # Vite 配置 + 开发期上传接口 /api/upload（仅 dev）
+├── CONTENT_GUIDE.md          # 内容填充手册（字段清单、双语规则、AI 提示词）
+├── public/                   # 静态资源（图片 / 音频按子目录存放）
+└── src/
+    ├── main.jsx              # React 挂载入口
+    ├── App.jsx               # Provider 链 + 区块组装
+    ├── data.js               # 所有双语内容（source of truth）
+    ├── data-context.jsx      # 内容 overrides + 深合并 + localStorage
+    ├── style.js              # 默认风格 + 8 个预设
+    ├── style-engine.js       # 风格配置 → CSS 变量
+    ├── style-context.jsx     # 把风格应用到文档
+    ├── lang.jsx              # 语言切换上下文
+    ├── np-context.jsx        # Now Playing 播放器状态
+    ├── hooks.jsx  utils.js
+    ├── styles.css  styles/   # 全局样式（base / layout / sections / style-runtime / editors）
+    └── components/
+        ├── NavShell  Landing  About  Journey  Works  Library
+        ├── Photography  Travel  Contact  Colophon  NowPlaying  CVModal  Overlays
+        ├── ContentEditor  StyleEditor
+        └── editor/           # schema · export · validation · contentPresets · ImportPanel · PreviewFrame · fields/
 ```
-技术栈：
 
-React 19
+## 部署上线
 
-Vite 8
+`npm run build` 产出 `dist/`，是完整的静态站点，可部署到任意静态托管平台。
 
-原生 CSS（无第三方 UI 库）
+**Cloudflare Pages（推荐）**：把仓库推到 GitHub → 在 Cloudflare Pages 连接仓库 → 构建命令 `npm run build`，输出目录 `dist`。之后每次推送自动重建。
 
-双语方案：自定义 Context + 数据结构
+**阿里云 OSS（国内访问最快）**：创建 Bucket（地域选杭州）→ 开启静态网站托管、权限公共读 → 用 `ossutil cp -r dist/ oss://你的Bucket名称/ --update` 上传 `dist/`。
 
-许可
-```
+## 技术栈
+
+React 19 · Vite 8 · 原生 CSS（无第三方 UI 库）· 自定义双语 Context · 站内内容 / 风格编辑器 · AI 自动填充导入。
+
+## 许可
+
 MIT © 你的名字
-```

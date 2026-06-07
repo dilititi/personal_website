@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Codebase Analysis — miles.morales (personal-website template)</title>
+<style>
+  :root{
+    --ink:#1a1814; --muted:#5e574b; --line:#d9cfb8; --bg:#fbf8f0; --card:#fff;
+    --accent:#3a7a82; --accent2:#b8924a; --rust:#b4532e; --good:#3f7d4f;
+    --mono:"SF Mono","IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+    --serif:"Iowan Old Style","Palatino Linotype",Georgia,serif;
+    --sans:"Inter",-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);line-height:1.6;font-size:16px}
+  .wrap{max-width:860px;margin:0 auto;padding:56px 28px 96px}
+  header.doc{border-bottom:3px solid var(--ink);padding-bottom:22px;margin-bottom:8px}
+  .eyebrow{font:600 12px/1.4 var(--mono);letter-spacing:.18em;text-transform:uppercase;color:var(--accent)}
+  h1{font-family:var(--serif);font-size:34px;line-height:1.15;margin:.35em 0 .15em;font-weight:600}
+  .sub{color:var(--muted);font-size:15px;margin:0}
+  .meta{display:flex;flex-wrap:wrap;gap:8px 22px;margin-top:16px;font:500 13px/1.5 var(--mono);color:var(--muted)}
+  .meta b{color:var(--ink);font-weight:600}
+  h2{font-family:var(--serif);font-size:24px;margin:46px 0 6px;font-weight:600;border-bottom:1px solid var(--line);padding-bottom:8px}
+  h3{font-size:17px;margin:26px 0 4px;font-weight:650}
+  h3 .tag{font:600 11px/1 var(--mono);letter-spacing:.08em;text-transform:uppercase;vertical-align:middle;
+    padding:3px 7px;border-radius:4px;margin-left:8px;border:1px solid currentColor}
+  .tag.done{color:var(--good)} .tag.plan{color:var(--accent2)}
+  p{margin:.5em 0}
+  .lead{font-size:18px;color:#33302a}
+  code{font-family:var(--mono);font-size:.86em;background:#efe9da;padding:1px 5px;border-radius:4px;color:#43352a}
+  ul,ol{margin:.4em 0 .8em;padding-left:1.3em}
+  li{margin:.3em 0}
+  .ex{list-style:none;padding-left:0;margin:.4em 0}
+  .ex>li{position:relative;padding:8px 12px 8px 14px;margin:.4em 0;background:var(--card);border:1px solid var(--line);
+    border-left:3px solid var(--accent);border-radius:0 6px 6px 0;font-size:14.5px}
+  .ex>li b{color:var(--rust)}
+  .callout{background:#f3eddd;border:1px solid var(--line);border-radius:8px;padding:16px 18px;margin:18px 0}
+  .callout.key{border-left:4px solid var(--accent)}
+  .step{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:14px 18px;margin:12px 0}
+  .step .why{color:var(--muted);font-size:14.5px;margin:.2em 0 .5em}
+  .files{font-family:var(--mono);font-size:13px;color:var(--muted)}
+  .files b{color:var(--ink)}
+  footer.doc{margin-top:54px;border-top:1px solid var(--line);padding-top:16px;color:var(--muted);font-size:13px}
+  .pri{font:600 11px/1 var(--mono);color:#fff;background:var(--accent);padding:3px 7px;border-radius:4px;margin-right:8px}
+  .pri.med{background:var(--accent2)} .pri.low{background:#9a9588}
+  @media print{body{background:#fff} .wrap{padding:0}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="doc">
+  <div class="eyebrow">Codebase Analysis · Pattern &amp; Insight Report</div>
+  <h1>miles.morales — a bilingual portfolio template with an in-browser CMS</h1>
+  <p class="sub">Themes, evolution, contradictions, and a prioritized fix plan — derived from a full read of the source.</p>
+  <div class="meta">
+    <span>Date: <b>2026-06-06</b></span>
+    <span>Scope: <b>43 source files</b> (deps excluded)</span>
+    <span>Stack: <b>React 19 · Vite 8</b></span>
+    <span>Lenses: <b>themes · evolution · contradictions · actions</b></span>
+  </div>
+</header>
+
+<h2>1 · Overview — the reframing that explains the mess</h2>
+<p class="lead">This is not a one-off personal site. It is a <b>reusable bilingual (EN/ZH) portfolio template</b> with a full in-browser content &amp; style editor, an AI auto-fill importer, and a static, no-backend publishing model. &ldquo;Chen, film student in Hangzhou&rdquo; is demo seed data.</p>
+<div class="callout key">
+  Evidence: <code>README.md</code> clones <code>github.com/dilititi/personal_website</code>; <code>CONTENT_GUIDE.md</code> is &ldquo;a manual for users of this template&rdquo;; the headline feature is AI auto-fill (<code>ImportPanel.jsx</code>). <b>Most of the friction below is the seam between two generations of the project</b> — a simple hand-edited site that grew into a templated product.
+</div>
+
+<h2>2 · Recurring themes</h2>
+
+<h3>One data spine; config-driven everything</h3>
+<p>All copy lives in <code>data.js</code> as <code>L(en, zh)</code> pairs; sections render from a <code>MODULES</code> config sorted by <code>order</code> (<code>App.jsx</code>, <code>NavShell.jsx</code>). The site is data first, components second.</p>
+
+<h3>Two parallel &ldquo;localStorage override + deep-merge&rdquo; engines</h3>
+<ul class="ex">
+  <li>Content (<code>data-context.jsx</code>) and style (<code>style-context.jsx</code>) duplicate the same recursive deep-merge (<code>mergeSection</code> &equiv; <code>mergeStyle</code>) and the same load/save/<code>lastSaved</code>/<code>mountedRef</code> dance — down to the identical &ldquo;Browser storage is full&rdquo; message.</li>
+</ul>
+
+<h3>Pervasive defensive + bilingual rendering</h3>
+<p>426 occurrences of <code>t()</code> / <code>?.</code> / <code>=== 'zh'</code> / <code>onError</code> across all 19 components. Missing images hide, unknown media types get humanized fallbacks, every value resolves through <code>pick()</code>. This is a direct consequence of the data being user-editable.</p>
+
+<h3>Heavy investment in &ldquo;edit-in-browser &rarr; promote-to-code&rdquo;</h3>
+<p>Schema-driven validation (<code>validation.js</code>), export warnings for embedded base64 and missing public assets (<code>export.js</code>), AI import with markdown-fence stripping and one-click undo snapshots (<code>ImportPanel.jsx</code>). The tooling around the data is larger than the site itself.</p>
+
+<h3>Asymmetric bilingual discipline</h3>
+<p>The <i>public</i> site is rigorously EN/ZH; the <i>workshop</i> (editor labels, confirm dialogs, code comments, <code>schema.js</code>) is zh-first or zh-only — the template is authored by a Chinese developer for primarily Chinese users, but produces bilingual output sites.</p>
+
+<h2>3 · Evolution of thinking (oldest &rarr; newest)</h2>
+<p>The repository is legible as stratigraphy — each layer is a prior design still visible under the current one.</p>
+<ul class="ex">
+  <li><b>Workflow:</b> <code>README.md</code> still says &ldquo;edit <code>data.js</code> directly&rdquo; and lists a flat, pre-editor file tree. <code>CONTENT_GUIDE.md</code> says the opposite: &ldquo;all data is edited through the in-site editor; you don&rsquo;t need to touch code.&rdquo;</li>
+  <li><b>Module config:</b> booleans &rarr; rich objects. <code>data.js</code> notes &ldquo;legacy true/false overrides are still accepted&hellip; normalized,&rdquo; and <code>normalizeModuleConfig</code> still handles the boolean case.</li>
+  <li><b>Persistence:</b> per-feature keys &rarr; one unified store. Live migration shims read (and delete) <code>chen.readingLog.userEntries</code> (<code>Library.jsx</code>) and <code>chen.photos.userEntries</code> (<code>Photography.jsx</code>) into today&rsquo;s single <code>chen.content.overrides</code>.</li>
+  <li><b>Content model:</b> hardcoded &rarr; seed + user split. <code>READING_LOG</code> holds 24 curated entries; <code>USER_READING_LOG = []</code> is the end-user&rsquo;s; Library shows them as &ldquo;curated&rdquo; vs &ldquo;personal.&rdquo;</li>
+  <li><b>Styling:</b> a fixed dark &ldquo;ember&rdquo; palette &rarr; a configurable engine (8 presets, ~60 derived vars). The old CSS var names are frozen fossils whose values inverted — <code>--ink-void</code> is now light cream <code>#ebe2c8</code>, <code>--cream</code> is near-black text — and are used 544&times; so they can&rsquo;t be renamed.</li>
+  <li><b>Even the docs lag the code:</b> <code>CLAUDE.md</code> says &ldquo;only <code>default</code> layout is stable,&rdquo; but <code>compact</code>/<code>feature</code> are fully implemented in <code>sections.css</code>.</li>
+</ul>
+
+<h2>4 · Contradictions &amp; tensions</h2>
+<ul class="ex">
+  <li><b>Docs disagree on the core workflow:</b> <code>README.md</code> (edit code) vs <code>CONTENT_GUIDE.md</code> (never edit code) — same task, opposite instructions.</li>
+  <li><b>Two serializers, divergent output:</b> per-section &ldquo;Copy&rdquo; emitted idiomatic <code>L('en','zh')</code> via <code>export.js</code>; &ldquo;Copy All&rdquo; and the download used <code>data-context.exportResolvedData</code>, plain <code>JSON.stringify</code>. The same editor pasted two different code styles into <code>data.js</code>. <i>(Fixed — see &sect;5.1.)</i></li>
+  <li><b>Sibling providers built differently:</b> <code>StyleProvider</code> memoizes its value; <code>DataProvider</code> rebuilds <code>resolvedData</code> and <code>value</code> every render (<code>baseData</code> is memoized, <code>resolvedData</code> right below it is not). The two editors even default to opposite modes (content = modal, style = side).</li>
+  <li><b>Editable knobs wired to nothing:</b> <code>color.temperature</code>, <code>typography.personality</code>, <code>culture</code>, style-<code>mood</code>, and <code>anchors</code> were persisted and had editor UI — including a full anchor-builder — but <code>deriveStyleVars</code> never read them. (<code>design.alignment</code> and <code>motion.mode</code> <i>are</i> live.) <i>(Addressed — see &sect;5.2.)</i></li>
+  <li><b>A polished editor whose persistence barely exists in prod:</b> image/audio/PDF uploads POST to <code>/api/upload</code>, a <b>dev-only</b> Vite middleware (<code>vite.config.js</code>); in production those buttons silently no-op, and edits stay in <code>localStorage</code> until manually pasted into <code>data.js</code>.</li>
+  <li><b>Hand-maintained cross-file contracts:</b> &ldquo;medium must match <code>Works.jsx</code>&rsquo;s WORK_MEDIA&rdquo; (<code>schema.js</code>), &ldquo;series must match <code>PHOTO_SERIES</code>&rdquo;, plus two section lists (<code>SECTION_KEYS</code> vs <code>EXPORTABLE_SECTIONS</code>) — documented in prose/labels, not enforced. Softened by graceful fallbacks.</li>
+</ul>
+
+<h2>5 · Action plan (all 8 items)</h2>
+<p>Items 1 and 2 are <b>already implemented</b> in this pass; 3&ndash;8 are scoped for follow-up, ordered by impact-to-effort.</p>
+
+<h3>5.1 Unify the export path <span class="tag done">Done</span></h3>
+<div class="step">
+  <p class="why">Root cause: a second, dumber serializer in the data layer. Now there is one.</p>
+  <p class="files"><b>Changed:</b> <code>ContentEditor.jsx</code> — &ldquo;Copy All&rdquo; and the <code>data.js</code> download now build their payload from <code>EXPORTABLE_SECTIONS.map(s =&gt; exportLine(s.key, data[s.key]))</code>, matching the per-section Copy button. <code>data-context.jsx</code> — removed <code>exportResolvedData()</code> and its <code>JSON.stringify</code>-based <code>jsLiteral</code>. <code>export.js</code> is now the single serializer.</p>
+  <p>Result: every export button emits the same idiomatic <code>L('en','zh')</code> code. <i>Note: <code>SECTION_KEYS</code> is now unused (left exported) — fold into item 6.</i></p>
+</div>
+
+<h3>5.2 Resolve the dead style knobs <span class="tag done">Done</span></h3>
+<div class="step">
+  <p class="why">Stop the Style panel promising controls that render nothing; make the ones with a clean mapping real.</p>
+  <p class="files"><b>Changed:</b> <code>style-engine.js</code> — <code>color.temperature</code> now tints background/surface warm (amber) or cool (blue), subtly (&le;6% mix); added <code>PERSONALITY_PAIRINGS</code> so <code>typography.personality</code> selects a default display/body font pairing (explicit Display/Body still override &rarr; no preset regression). <code>style.js</code> + <code>StyleEditor.jsx</code> — <code>culture</code>/<code>mood</code>/<code>anchors</code> relabeled as a descriptive &ldquo;Mood board&rdquo; that saves with the style but does not drive CSS.</p>
+</div>
+
+<h3>5.3 Close the production upload gap <span class="tag plan">Planned</span></h3>
+<div class="step">
+  <span class="pri">High</span><span>impact</span>
+  <p class="why">The editor&rsquo;s image/audio/PDF buttons fail silently in production; users won&rsquo;t know why nothing saves.</p>
+  <ol>
+    <li>In the file fields (<code>editor/fields/FileField.jsx</code>), branch on <code>import.meta.env.PROD</code>.</li>
+    <li>In prod, disable the upload button and show a short hint (&ldquo;dev-only — run <code>npm run dev</code> to write to <code>public/</code>&rdquo;) or fall back to a manual path input.</li>
+    <li>Add one line to <code>CONTENT_GUIDE.md</code> stating uploads only persist under <code>vite dev</code>.</li>
+  </ol>
+</div>
+
+<h3>5.4 Reconcile the documentation <span class="tag plan">Planned</span></h3>
+<div class="step">
+  <span class="pri">High</span><span>impact, low effort</span>
+  <p class="why">The README actively misleads (wrong workflow, outdated file tree); CLAUDE.md understates the code.</p>
+  <ol>
+    <li>Rewrite/retire <code>README.md</code>: point to the in-site editor workflow and regenerate the project-structure block (it omits <code>data-context</code>, <code>style*</code>, <code>editor/</code>, <code>np-context</code>, the <code>styles/</code> split, etc.).</li>
+    <li>Fix <code>CLAUDE.md</code>: remove &ldquo;only <code>default</code> is stable&rdquo; (compact/feature are implemented); note the single export path from item 1.</li>
+  </ol>
+</div>
+
+<h3>5.5 De-duplicate the provider / persistence machinery <span class="tag plan">Planned</span></h3>
+<div class="step">
+  <span class="pri med">Med</span><span>impact</span>
+  <p class="why">Two near-identical engines drift apart over time (they already have).</p>
+  <ol>
+    <li>Extract one shared <code>deepMerge</code> and a <code>useLocalStorageState</code>-style helper (load/save/<code>lastSaved</code>/first-render skip) used by both contexts.</li>
+    <li>Memoize <code>DataProvider</code>&rsquo;s <code>resolvedData</code> and context <code>value</code> to match <code>StyleProvider</code>.</li>
+    <li>Drop the <code>resetAll</code>/<code>resetData</code> alias (keep one name).</li>
+  </ol>
+</div>
+
+<h3>5.6 Single source of truth for sections <span class="tag plan">Planned</span></h3>
+<div class="step">
+  <span class="pri med">Med</span><span>impact, low effort</span>
+  <p class="why">Two hardcoded section lists can silently diverge; item 1 already left one unused.</p>
+  <ol>
+    <li>Derive <code>SECTION_KEYS</code> from <code>EXPORTABLE_SECTIONS</code> (or remove it entirely now that <code>exportResolvedData</code> is gone).</li>
+    <li>Make <code>schema.js</code> the canonical list that the data layer imports.</li>
+  </ol>
+</div>
+
+<h3>5.7 Add a minimal test net <span class="tag plan">Planned</span></h3>
+<div class="step">
+  <span class="pri med">Med</span><span>impact</span>
+  <p class="why">No test/lint/formatter exists, yet the riskiest, most-evolved code is exactly the merge/normalize/migration/export logic.</p>
+  <ol>
+    <li>Add Vitest.</li>
+    <li>Cover <code>mergeSection</code>/<code>mergeStyle</code>, <code>normalizeModuleConfig</code> (boolean &rarr; object), the legacy migration shims, and an <code>export.js</code> <code>jsLiteral</code> round-trip (serialize &rarr; eval &rarr; deep-equal).</li>
+  </ol>
+</div>
+
+<h3>5.8 Sunset the legacy migration shims <span class="tag plan">Planned</span></h3>
+<div class="step">
+  <span class="pri low">Low</span><span>impact</span>
+  <p class="why">Cleanup once users have migrated off the old per-feature keys.</p>
+  <ol>
+    <li>Remove the reads of <code>chen.readingLog.userEntries</code> (<code>Library.jsx</code>) and <code>chen.photos.userEntries</code> (<code>Photography.jsx</code>), or keep them behind a dated comment with a removal target.</li>
+  </ol>
+</div>
+
+<h2>6 · Changes applied in this pass</h2>
+<p>Five source files were edited (items 1 &amp; 2). All changes are regression-safe for the existing presets and demo content.</p>
+<ul class="ex">
+  <li><b>src/data-context.jsx</b> — removed <code>exportResolvedData()</code> + the JSON <code>jsLiteral</code> + the value-object entry.</li>
+  <li><b>src/components/ContentEditor.jsx</b> — &ldquo;Copy All&rdquo; and &ldquo;&darr; data.js&rdquo; now use <code>exportLine</code> (idiomatic output).</li>
+  <li><b>src/style-engine.js</b> — wired <code>temperature</code> (warm/cool tint) and <code>personality</code> (font pairing) into <code>deriveStyleVars</code>.</li>
+  <li><b>src/style.js</b> — <code>culture</code> dimension relabeled as descriptive mood-board context.</li>
+  <li><b>src/components/StyleEditor.jsx</b> — &ldquo;Reference&rdquo; &rarr; &ldquo;Mood board&rdquo;; hints now state these signals don&rsquo;t change CSS.</li>
+</ul>
+
+<footer class="doc">
+  Generated as HTML because the Node sandbox was unavailable at report time; Microsoft Word opens this file directly (File &rarr; Open) and can re-save it as <code>.docx</code>. A native <code>.docx</code> can be regenerated once the sandbox recovers. All claims are grounded in direct reads of the source at the cited <code>file</code> / <code>file:line</code> locations.
+</footer>
+
+</div>
+</body>
+</html>

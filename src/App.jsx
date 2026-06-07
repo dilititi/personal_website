@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react'
+import React, { useState, useCallback, useMemo } from 'react'
 import { LangProvider } from './lang'
 import { NowPlayingProvider } from './np-context'
 import { DataProvider, useData } from './data-context'
@@ -27,7 +27,7 @@ function AppInner() {
   const { getModuleConfig, isModuleEnabled } = useData()
   useReveal()
 
-  const onJump = useCallback((id) => {
+  const onJump = useCallback(id => {
     const el = document.getElementById(id)
     if (el) {
       const y = el.getBoundingClientRect().top + window.scrollY
@@ -35,20 +35,26 @@ function AppInner() {
     }
   }, [])
 
-  const sections = useMemo(() => ([
-    { key: 'about', render: (layout) => <About layout={layout} onOpenCV={() => setCvOpen(true)} /> },
-    { key: 'journey', render: (layout) => <Journey layout={layout} /> },
-    { key: 'works', render: (layout) => <Works layout={layout} /> },
-    { key: 'library', render: (layout) => <Library layout={layout} /> },
-    { key: 'photography', render: (layout) => <Photography layout={layout} /> },
-    { key: 'travel', render: (layout) => <Travel layout={layout} /> },
-    { key: 'contact', render: (layout) => <Contact layout={layout} /> },
-    { key: 'colophon', render: (layout) => <Colophon layout={layout} /> },
-    { key: 'nowPlaying', render: (layout) => <NowPlaying layout={layout} /> },
-  ])
-    .filter((section) => isModuleEnabled(section.key))
-    .sort((a, b) => (getModuleConfig(a.key).order ?? 0) - (getModuleConfig(b.key).order ?? 0)),
-  [getModuleConfig, isModuleEnabled])
+  const sections = useMemo(
+    () =>
+      [
+        {
+          key: 'about',
+          render: layout => <About layout={layout} onOpenCV={() => setCvOpen(true)} />,
+        },
+        { key: 'journey', render: layout => <Journey layout={layout} /> },
+        { key: 'works', render: layout => <Works layout={layout} /> },
+        { key: 'library', render: layout => <Library layout={layout} /> },
+        { key: 'photography', render: layout => <Photography layout={layout} /> },
+        { key: 'travel', render: layout => <Travel layout={layout} /> },
+        { key: 'contact', render: layout => <Contact layout={layout} /> },
+        { key: 'colophon', render: layout => <Colophon layout={layout} /> },
+        { key: 'nowPlaying', render: layout => <NowPlaying layout={layout} /> },
+      ]
+        .filter(section => isModuleEnabled(section.key))
+        .sort((a, b) => (getModuleConfig(a.key).order ?? 0) - (getModuleConfig(b.key).order ?? 0)),
+    [getModuleConfig, isModuleEnabled],
+  )
 
   return (
     <>
@@ -60,9 +66,13 @@ function AppInner() {
         onOpenStyleEditor={() => setStyleEditorOpen(true)}
       />
       <Landing onJump={onJump} />
-      {sections.map((section) => {
+      {sections.map(section => {
         const config = getModuleConfig(section.key)
-        return <React.Fragment key={section.key}>{section.render(config.layout || 'default')}</React.Fragment>
+        return (
+          <React.Fragment key={section.key}>
+            {section.render(config.layout || 'default')}
+          </React.Fragment>
+        )
       })}
       <CVModal open={cvOpen} onClose={() => setCvOpen(false)} />
       <ContentEditor open={editorOpen} onClose={() => setEditorOpen(false)} />

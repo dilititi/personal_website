@@ -1,7 +1,7 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
-import { writeFileSync, mkdirSync, existsSync } from 'fs'
-import { resolve, dirname } from 'path'
+import { writeFileSync, mkdirSync } from 'fs'
+import { resolve } from 'path'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // uploadPlugin: dev-only endpoint that writes uploaded files into public/.
@@ -19,17 +19,29 @@ function uploadPlugin() {
       server.middlewares.use('/api/upload', (req, res, next) => {
         if (req.method !== 'POST') return next()
         const chunks = []
-        req.on('data', (c) => chunks.push(c))
+        req.on('data', c => chunks.push(c))
         req.on('end', () => {
           try {
             const body = JSON.parse(Buffer.concat(chunks).toString('utf-8'))
             const { subfolder, filename, dataUrl } = body
 
             // Whitelisted subfolders — prevents writing outside public/.
-            const allowed = ['picture', 'works', 'books', 'films', 'audio', 'photos', 'covers', 'journey', 'docs']
+            const allowed = [
+              'picture',
+              'works',
+              'books',
+              'films',
+              'audio',
+              'photos',
+              'covers',
+              'journey',
+              'docs',
+            ]
             if (!allowed.includes(subfolder)) {
               res.statusCode = 400
-              return res.end(JSON.stringify({ error: `subfolder must be one of: ${allowed.join(', ')}` }))
+              return res.end(
+                JSON.stringify({ error: `subfolder must be one of: ${allowed.join(', ')}` }),
+              )
             }
 
             // Filename: no slashes, no dots-only, no traversal.
@@ -80,7 +92,7 @@ function uploadPlugin() {
             res.end(JSON.stringify({ error: String(e?.message || e) }))
           }
         })
-        req.on('error', (e) => {
+        req.on('error', e => {
           res.statusCode = 500
           res.end(JSON.stringify({ error: e.message }))
         })

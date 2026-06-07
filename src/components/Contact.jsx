@@ -13,7 +13,7 @@ function emTags(str) {
   })
 }
 
-export default function Contact() {
+export default function Contact({ layout = 'default' }) {
   const { lang, t } = useLang()
   const { SITE, TEXTS } = useData()
   const TC = TEXTS.contact
@@ -21,7 +21,7 @@ export default function Contact() {
   const statement = lang === 'zh' ? TC.statementZh : TC.statementEn
 
   return (
-    <section id="contact" style={{ minHeight: 'auto' }}>
+    <section id="contact" data-layout={layout} style={{ minHeight: 'auto' }}>
       <div className="section-header">
         <div>
           <div className="section-num">07 / {lang === 'zh' ? '联络' : 'Signal'}</div>
@@ -30,25 +30,31 @@ export default function Contact() {
             <em>{lang === 'zh' ? 'contact' : '联络'}</em>
           </h2>
         </div>
-        <div className="section-meta">{lang === 'zh' ? '通常一周内回复' : 'Replies within a week'}</div>
+        <div className="section-meta">
+          {lang === 'zh' ? '通常一周内回复' : 'Replies within a week'}
+        </div>
       </div>
 
       <div className="contact-grid">
         <div>
-          <p style={{
-            fontFamily: lang === 'zh' ? 'var(--font-zh-serif)' : 'var(--font-serif)',
-            fontSize: 'clamp(26px, 3.2vw, 42px)',
-            lineHeight: 1.4,
-            color: 'var(--cream)',
-            maxWidth: 720,
-            whiteSpace: 'pre-line',
-          }}>
+          <p
+            style={{
+              fontFamily: lang === 'zh' ? 'var(--font-zh-serif)' : 'var(--font-serif)',
+              fontSize: 'clamp(26px, 3.2vw, 42px)',
+              lineHeight: 1.4,
+              color: 'var(--cream)',
+              maxWidth: 720,
+              whiteSpace: 'pre-line',
+            }}
+          >
             {emTags(statement)}
           </p>
 
           <div style={{ display: 'flex', gap: 16, marginTop: 40, flexWrap: 'wrap' }}>
             <a className="btn" href={`mailto:${SITE.email}`}>
-              <span>{t(TC.writeMeLabel)} · {SITE.email}</span>
+              <span>
+                {t(TC.writeMeLabel)} · {SITE.email}
+              </span>
               <span className="arrow">↗</span>
             </a>
             <a className="btn ghost" href={TC.secondaryUrl || '#'}>
@@ -62,14 +68,20 @@ export default function Contact() {
           <table>
             <tbody>
               {[
-                [lang === 'zh' ? '位置' : 'Location',  t(SITE.location), 'var(--cream)'],
-                [lang === 'zh' ? '时区' : 'Time',      SITE.timezone, 'var(--cream-soft)'],
-                [lang === 'zh' ? '状态' : 'Status',    lang === 'zh' ? '在读・开放合作' : 'Student · open', 'var(--ember)'],
-                [lang === 'zh' ? '在看' : 'Watching',  t(SITE.statusObject), 'var(--cream-soft)'],
+                [lang === 'zh' ? '位置' : 'Location', t(SITE.location), 'var(--cream)'],
+                [lang === 'zh' ? '时区' : 'Time', SITE.timezone, 'var(--cream-soft)'],
+                [
+                  lang === 'zh' ? '状态' : 'Status',
+                  lang === 'zh' ? '在读・开放合作' : 'Student · open',
+                  'var(--ember)',
+                ],
+                [lang === 'zh' ? '在看' : 'Watching', t(SITE.statusObject), 'var(--cream-soft)'],
               ].map(([k, v, c]) => (
                 <tr key={k}>
                   <td className="status-key">{k}</td>
-                  <td className="status-val" style={{ color: c }}>{v}</td>
+                  <td className="status-val" style={{ color: c }}>
+                    {v}
+                  </td>
                 </tr>
               ))}
             </tbody>

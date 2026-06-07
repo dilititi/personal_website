@@ -1,0 +1,180 @@
+/* ============ HANGZHOU MIST — a film student's site ============ */
+
+@import url('https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600&family=Manrope:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@300;400;500&family=Noto+Serif+SC:wght@400;500;600;700&family=Noto+Sans+SC:wght@300;400;500&display=swap');
+
+:root {
+  /* Surfaces — warm rice paper tones (formerly "ink-*", now light) */
+  --ink-void: #ebe2c8; /* page background */
+  --ink-deep: #e0d6ba; /* raised surfaces */
+  --ink-soft: #d4c9aa; /* tertiary surfaces */
+  --ink-line: #c8bba0; /* borders */
+  --ink-haze: #b0a489; /* darker borders */
+
+  /* Text — deep inks on cream (formerly "cream-*", now dark) */
+  --cream: #1a1814; /* primary text */
+  --cream-soft: #2e2922; /* secondary text */
+  --cream-mute: #5e574b; /* muted text */
+  --cream-faint: #8a8073; /* faintest text */
+
+  /* Accents */
+  --ember: #3a7a82; /* faded teal — primary accent */
+  --ember-hot: #4e8e95;
+  --ember-glow: rgba(58, 122, 130, 0.18);
+
+  --moss: #b8924a; /* warm ochre — secondary accent */
+  --moss-glow: rgba(184, 146, 74, 0.18);
+
+  --rust: #c44a2a; /* seal vermillion — reserved for the chop/seal accents */
+
+  /* Typography */
+  --font-serif: 'Lora', 'Noto Serif SC', 'Source Han Serif SC', Georgia, serif;
+  --font-sans: 'Manrope', 'Noto Sans SC', 'PingFang SC', -apple-system, sans-serif;
+  --font-mono: 'IBM Plex Mono', 'SF Mono', monospace;
+  --font-zh-serif: 'Noto Serif SC', 'Source Han Serif SC', serif;
+  --font-zh-sans: 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+
+  /* Motion */
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+
+  /* Style editor runtime tokens */
+  --style-motion-duration: 280ms;
+  --style-grain-opacity: 0.09;
+  --style-shadow-card:
+    0 18px 48px -4px rgba(0, 0, 0, 0.11), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  --style-shadow-soft: 0 9px 30px rgba(0, 0, 0, 0.07);
+  --style-shadow-modal: 0 38px 100px rgba(0, 0, 0, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  --style-highlight-color: rgba(255, 255, 255, 0.06);
+  --style-highlight-opacity: 0.06;
+  --style-glass-blur: 2px;
+  --style-glass-alpha: 0.04;
+  --style-depth-blur: 0px;
+  --style-parallax-shift: 2px;
+  --style-radius: 6px;
+  --style-design-spacing: 0.5;
+  --style-design-hierarchy: 0.62;
+  --style-design-contrast: 0.66;
+  --style-design-proportion: 0.5;
+  --style-hierarchy-scale: 1.12;
+  --style-rule-weight: 1px;
+  --style-media-aspect: 1.625;
+  --style-content-max: 1170px;
+  --style-sidebar-fr: 0.88fr;
+  --style-main-fr: 1.43fr;
+  --style-card-min-height: 380px;
+  --style-section-y: 120px;
+  --style-section-x: 80px;
+  --style-section-gap: 60px;
+  --style-card-gap: 20px;
+  --style-type-scale: 1.333;
+  --style-body-tracking: 0em;
+  --style-display-tracking: -0.016em;
+  --style-image-saturation: 1.19;
+  --style-image-contrast: 1.05;
+  --style-image-brightness: 1;
+  --style-image-filter: saturate(1.19) contrast(1.05) brightness(1);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html,
+body {
+  background: var(--ink-void);
+  color: var(--cream);
+  font-family: var(--font-sans);
+  font-weight: 400;
+  line-height: 1.5;
+  letter-spacing: var(--style-body-tracking);
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+/* Chinese language pass — use CJK families when lang=zh */
+html[lang='zh'] body {
+  font-family: var(--font-zh-sans);
+}
+html[lang='zh'] .serif,
+html[lang='zh'] .section-title,
+html[lang='zh'] .landing-name,
+html[lang='zh'] .menu-list li,
+html[lang='zh'] .about-intro,
+html[lang='zh'] .about-prose p,
+html[lang='zh'] .work-title,
+html[lang='zh'] .work-summary,
+html[lang='zh'] .work-modal-body h1,
+html[lang='zh'] .work-modal-body .lead,
+html[lang='zh'] .work-modal-body .prose p,
+html[lang='zh'] .journey-detail .narrative h3,
+html[lang='zh'] .journey-detail .narrative p,
+html[lang='zh'] .film h4,
+html[lang='zh'] .film .quote,
+html[lang='zh'] .playlist-row .track,
+html[lang='zh'] .playlist-row .note,
+html[lang='zh'] .book-note,
+html[lang='zh'] .colophon .signoff {
+  font-family: var(--font-zh-serif);
+}
+/* In CJK, italic-as-emphasis reads poorly — swap to color/weight */
+html[lang='zh'] em,
+html[lang='zh'] .narrative h3 em,
+html[lang='zh'] .menu-list li:hover {
+  font-style: normal;
+}
+
+body {
+  min-height: 100vh;
+  position: relative;
+}
+
+/* Subtle grain texture overlay */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9999;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' /><feColorMatrix values='0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.4 0'/></filter><rect width='200' height='200' filter='url(%23n)' opacity='0.6'/></svg>");
+  opacity: var(--style-grain-opacity);
+  mix-blend-mode: multiply; /* multiply on light cream gives a paper-grain feel */
+}
+
+/* Selection */
+::selection {
+  background: var(--ember);
+  color: var(--ink-void);
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: var(--ink-deep);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--ink-haze);
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--ember);
+}
+
+/* ============ TYPOGRAPHY HELPERS ============ */
+.serif {
+  font-family: var(--font-serif);
+  font-weight: 400;
+}
+.sans {
+  font-family: var(--font-sans);
+}
+.mono {
+  font-family: var(--font-mono);
+}
+.uppercase {
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+}
