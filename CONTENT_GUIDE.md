@@ -186,6 +186,8 @@ git push
 
 然后在 [Render](https://render.com) / [Vercel](https://vercel.com) / [Netlify](https://netlify.com) 创建 Static Site,连接你的 GitHub 仓库,build command `npm run build`,publish dir `dist`——几分钟内你的站点就上线了。
 
+上线前请在 SITE 中填写最终的「站点 URL」。构建期的 canonical、分享卡片 URL、`robots.txt` 和 `sitemap.xml` 都从这个字段生成；模板默认留空，因此未填写时会显示构建警告。
+
 ---
 
 ## FAQ

@@ -273,6 +273,11 @@ export const SECTIONS = [
 export const EXPORTABLE_SECTIONS = SECTIONS.filter(s => !s.key.startsWith('_'))
 
 export const SITE_SCHEMA = [
+  {
+    key: 'url',
+    type: 'str',
+    label: '站点 URL（canonical / OG / sitemap，部署时填真实域名）',
+  },
   { key: 'name', type: 'bi', label: '简称 Name（Frame 00 左侧大字 / 顶栏 / Colophon / CV）' },
   {
     key: 'nameRight',

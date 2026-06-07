@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { useLang } from '../../../lang'
+import { useLang } from '../../../lang.jsx'
 import {
   BilingualField,
   BoolField,
@@ -7,8 +7,8 @@ import {
   SelectField,
   StringArrayField,
   StringField,
-} from './BasicFields'
-import { FileField } from './FileField'
+} from './BasicFields.jsx'
+import { FileField } from './FileField.jsx'
 
 export function ObjectField({ value, onChange, fields, onTemplateApply }) {
   const v = value && typeof value === 'object' ? value : {}

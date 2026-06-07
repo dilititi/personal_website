@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
-import { useLang } from '../lang'
-import { useData } from '../data-context'
+import { useLang } from '../lang.jsx'
+import { useData } from '../data-context.jsx'
 
 function travelKey(p, fallback = '') {
   return p?.id || p?.city?.en || p?.city?.zh || (typeof p?.city === 'string' ? p.city : fallback)

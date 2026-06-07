@@ -1,8 +1,9 @@
-import { useState, useEffect } from 'react'
+import { useEffect, useState } from 'react'
 
-export function useClock() {
-  const [now, setNow] = useState(new Date())
+export function useClock({ defer = false } = {}) {
+  const [now, setNow] = useState(() => (defer || typeof window === 'undefined' ? null : new Date()))
   useEffect(() => {
+    setNow(new Date())
     const id = setInterval(() => setNow(new Date()), 1000)
     return () => clearInterval(id)
   }, [])
@@ -23,7 +24,7 @@ export function formatTime(d, tz = 'Asia/Shanghai') {
   }
 }
 
-export function useReveal() {
+export function useReveal(refreshKey) {
   useEffect(() => {
     const els = document.querySelectorAll('[data-reveal]')
     const obs = new IntersectionObserver(
@@ -39,7 +40,7 @@ export function useReveal() {
     )
     els.forEach(el => obs.observe(el))
     return () => obs.disconnect()
-  }, [])
+  }, [refreshKey])
 }
 
 export function useActiveSection(navIds) {

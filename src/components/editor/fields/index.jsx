@@ -5,7 +5,7 @@ export {
   SelectField,
   StringArrayField,
   StringField,
-} from './BasicFields'
-export { FileField } from './FileField'
-export { JsonEditor } from './JsonEditor'
-export { ObjectArrayField, ObjectField } from './StructuredFields'
+} from './BasicFields.jsx'
+export { FileField } from './FileField.jsx'
+export { JsonEditor } from './JsonEditor.jsx'
+export { ObjectArrayField, ObjectField } from './StructuredFields.jsx'

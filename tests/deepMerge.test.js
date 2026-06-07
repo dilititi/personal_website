@@ -1,5 +1,5 @@
-import { describe, it } from 'node:test'
 import assert from 'node:assert/strict'
+import { describe, it } from 'vitest'
 import { deepMerge, isPlainObject } from '../src/lib/persist.js'
 
 describe('deepMerge', () => {

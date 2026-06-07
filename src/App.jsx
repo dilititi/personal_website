@@ -1,31 +1,39 @@
-import React, { useState, useCallback, useMemo } from 'react'
-import { LangProvider } from './lang'
-import { NowPlayingProvider } from './np-context'
-import { DataProvider, useData } from './data-context'
-import { StyleProvider } from './style-context'
-import { useReveal } from './hooks'
-import NavShell from './components/NavShell'
-import Landing from './components/Landing'
-import About from './components/About'
-import Journey from './components/Journey'
-import Works from './components/Works'
-import Library from './components/Library'
-import Photography from './components/Photography'
-import Travel from './components/Travel'
-import Contact from './components/Contact'
-import Colophon from './components/Colophon'
-import NowPlaying from './components/NowPlaying'
-import CVModal from './components/CVModal'
-import ContentEditor from './components/ContentEditor'
-import StyleEditor from './components/StyleEditor'
-import { FilmstripProgress, CursorSpotlight } from './components/Overlays'
+import React, { lazy, Suspense, useCallback, useEffect, useMemo, useState } from 'react'
+import { LangProvider } from './lang.jsx'
+import { NowPlayingProvider } from './np-context.jsx'
+import { DataProvider, useData } from './data-context.jsx'
+import { StyleProvider } from './style-context.jsx'
+import { useReveal } from './hooks.jsx'
+import { useDocumentHead } from './lib/useDocumentHead.js'
+import NavShell from './components/NavShell.jsx'
+import Landing from './components/Landing.jsx'
+import About from './components/About.jsx'
+import Journey from './components/Journey.jsx'
+import Works from './components/Works.jsx'
+import Library from './components/Library.jsx'
+import Photography from './components/Photography.jsx'
+import Travel from './components/Travel.jsx'
+import Contact from './components/Contact.jsx'
+import Colophon from './components/Colophon.jsx'
+import NowPlaying from './components/NowPlaying.jsx'
+import CVModal from './components/CVModal.jsx'
+import { FilmstripProgress, CursorSpotlight } from './components/Overlays.jsx'
 
-function AppInner() {
+const ContentEditor = lazy(() => import('./components/ContentEditor.jsx'))
+const StyleEditor = lazy(() => import('./components/StyleEditor.jsx'))
+
+function AppInner({ prerendered = false }) {
   const [cvOpen, setCvOpen] = useState(false)
   const [editorOpen, setEditorOpen] = useState(false)
   const [styleEditorOpen, setStyleEditorOpen] = useState(false)
+  const [hydrationComplete, setHydrationComplete] = useState(!prerendered)
   const { getModuleConfig, isModuleEnabled } = useData()
-  useReveal()
+  useDocumentHead()
+  useReveal(hydrationComplete)
+
+  useEffect(() => {
+    if (prerendered) setHydrationComplete(true)
+  }, [prerendered])
 
   const onJump = useCallback(id => {
     const el = document.getElementById(id)
@@ -49,12 +57,16 @@ function AppInner() {
         { key: 'travel', render: layout => <Travel layout={layout} /> },
         { key: 'contact', render: layout => <Contact layout={layout} /> },
         { key: 'colophon', render: layout => <Colophon layout={layout} /> },
-        { key: 'nowPlaying', render: layout => <NowPlaying layout={layout} /> },
+        {
+          key: 'nowPlaying',
+          render: layout => <NowPlaying layout={layout} prerendered={prerendered} />,
+        },
       ]
         .filter(section => isModuleEnabled(section.key))
         .sort((a, b) => (getModuleConfig(a.key).order ?? 0) - (getModuleConfig(b.key).order ?? 0)),
-    [getModuleConfig, isModuleEnabled],
+    [getModuleConfig, isModuleEnabled, prerendered],
   )
+  const renderedSections = prerendered && !hydrationComplete ? sections.slice(0, 1) : sections
 
   return (
     <>
@@ -65,8 +77,8 @@ function AppInner() {
         onOpenEditor={() => setEditorOpen(true)}
         onOpenStyleEditor={() => setStyleEditorOpen(true)}
       />
-      <Landing onJump={onJump} />
-      {sections.map(section => {
+      <Landing onJump={onJump} prerendered={prerendered} />
+      {renderedSections.map(section => {
         const config = getModuleConfig(section.key)
         return (
           <React.Fragment key={section.key}>
@@ -75,19 +87,27 @@ function AppInner() {
         )
       })}
       <CVModal open={cvOpen} onClose={() => setCvOpen(false)} />
-      <ContentEditor open={editorOpen} onClose={() => setEditorOpen(false)} />
-      <StyleEditor open={styleEditorOpen} onClose={() => setStyleEditorOpen(false)} />
+      {editorOpen && (
+        <Suspense fallback={null}>
+          <ContentEditor open onClose={() => setEditorOpen(false)} />
+        </Suspense>
+      )}
+      {styleEditorOpen && (
+        <Suspense fallback={null}>
+          <StyleEditor open onClose={() => setStyleEditorOpen(false)} />
+        </Suspense>
+      )}
     </>
   )
 }
 
-export default function App() {
+export default function App({ prerendered = false, initialLang }) {
   return (
-    <LangProvider>
-      <DataProvider>
-        <StyleProvider>
-          <NowPlayingProvider>
-            <AppInner />
+    <LangProvider initialLang={initialLang} prerendered={prerendered}>
+      <DataProvider prerendered={prerendered}>
+        <StyleProvider prerendered={prerendered}>
+          <NowPlayingProvider prerendered={prerendered}>
+            <AppInner prerendered={prerendered} />
           </NowPlayingProvider>
         </StyleProvider>
       </DataProvider>

@@ -1,7 +1,7 @@
 import React from 'react'
-import { useLang } from '../lang'
-import { useData } from '../data-context'
-import { useClock, formatTime } from '../hooks'
+import { useLang } from '../lang.jsx'
+import { useData } from '../data-context.jsx'
+import { useClock, formatTime } from '../hooks.jsx'
 
 // Pick a valid IANA timezone for the clock.
 // Priority: explicit SITE.tzName → SITE.timezone if it looks IANA → fallback.
@@ -11,11 +11,11 @@ function resolveTz(SITE) {
   return 'Asia/Shanghai'
 }
 
-export default function Landing({ onJump }) {
+export default function Landing({ onJump, prerendered = false }) {
   const { t } = useLang()
   const { SITE, TEXTS, isModuleEnabled } = useData()
   const TL = TEXTS.landing
-  const now = useClock()
+  const now = useClock({ defer: prerendered })
 
   // Frame 00 displayed values derive from SITE — single source of truth.
   const displayName = t(SITE.name) || ''
@@ -44,7 +44,7 @@ export default function Landing({ onJump }) {
             {t(TL.metaEmailLbl)}
           </a>
           <span className="mh-meta-c right">
-            {displayCity} {formatTime(now, resolveTz(SITE))}
+            {displayCity} {now ? formatTime(now, resolveTz(SITE)) : '--:--:--'}
           </span>
         </div>
 

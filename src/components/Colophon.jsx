@@ -1,6 +1,6 @@
 import React from 'react'
-import { useLang } from '../lang'
-import { useData } from '../data-context'
+import { useLang } from '../lang.jsx'
+import { useData } from '../data-context.jsx'
 
 export default function Colophon({ layout = 'default' }) {
   const { lang, t } = useLang()

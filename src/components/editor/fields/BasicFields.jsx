@@ -1,5 +1,5 @@
 import React from 'react'
-import { useLang } from '../../../lang'
+import { useLang } from '../../../lang.jsx'
 
 export function StringField({ value, onChange, placeholder, multiline }) {
   if (multiline) {

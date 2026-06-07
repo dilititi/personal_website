@@ -11,8 +11,11 @@
     "lint:fix": "eslint . --fix",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "test": "node --test",
-    "test:ui": "node --experimental-websocket tests/ui-smoke.mjs"
+    "check:dist": "node scripts/assert-client-bundle.mjs",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:ui": "node --experimental-websocket tests/ui-smoke.mjs",
+    "test:ui:preview": "node --experimental-websocket tests/ui-smoke.mjs --preview"
   },
   "keywords": [],
   "author": "",
@@ -33,6 +36,8 @@
     "eslint-plugin-react-hooks": "^5.0.0",
     "eslint-plugin-react-refresh": "^0.4.14",
     "globals": "^15.11.0",
-    "prettier": "^3.3.3"
+    "prettier": "^3.3.3",
+    "vite-prerender-plugin": "^0.5.13",
+    "vitest": "^4.1.8"
   }
 }

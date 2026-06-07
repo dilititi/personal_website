@@ -13,6 +13,8 @@ export function pick(v, lang) {
 }
 
 export const SITE = {
+  url: '', // 部署时填真实域名
+  portrait: '',
   name: L('CHEN', '陈'),
   nameRight: L('A.', '安'),
   nameFull: L('Chen A.', '陈安'),

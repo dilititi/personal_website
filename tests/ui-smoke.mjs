@@ -8,10 +8,13 @@ import path from 'node:path'
 import process from 'node:process'
 
 const ROOT = path.resolve(import.meta.dirname, '..')
+const PREVIEW_MODE = process.argv.includes('--preview')
 const CONTENT_KEY = 'chen.content.overrides'
 const CONTENT_SAVED_KEY = 'chen.content.lastSaved'
 const STYLE_KEY = 'chen.style.overrides'
 const STYLE_SAVED_KEY = 'chen.style.lastSaved'
+const LEGACY_READING_KEY = 'chen.readingLog.userEntries'
+const LEGACY_PHOTO_KEY = 'chen.photos.userEntries'
 
 function findBrowser() {
   const candidates = [
@@ -123,15 +126,14 @@ async function run() {
   let cdp
 
   try {
-    server = spawn(
-      process.execPath,
-      [viteCli, '--host', '127.0.0.1', '--port', String(serverPort), '--strictPort'],
-      {
-        cwd: ROOT,
-        stdio: ['ignore', 'pipe', 'pipe'],
-        windowsHide: true,
-      },
-    )
+    const serverArgs = PREVIEW_MODE
+      ? [viteCli, 'preview', '--host', '127.0.0.1', '--port', String(serverPort), '--strictPort']
+      : [viteCli, '--host', '127.0.0.1', '--port', String(serverPort), '--strictPort']
+    server = spawn(process.execPath, serverArgs, {
+      cwd: ROOT,
+      stdio: ['ignore', 'pipe', 'pipe'],
+      windowsHide: true,
+    })
     let serverOutput = ''
     server.stdout.on('data', chunk => {
       serverOutput += chunk
@@ -139,11 +141,33 @@ async function run() {
     server.stderr.on('data', chunk => {
       serverOutput += chunk
     })
-    await waitFor(async () => {
-      if (server.exitCode != null) throw new Error(`Vite exited early:\n${serverOutput}`)
-      const response = await fetch(`http://127.0.0.1:${serverPort}/`)
-      return response.ok
-    }, 'Vite dev server')
+    await waitFor(
+      async () => {
+        if (server.exitCode != null) throw new Error(`Vite exited early:\n${serverOutput}`)
+        const response = await fetch(`http://127.0.0.1:${serverPort}/`)
+        return response.ok
+      },
+      PREVIEW_MODE ? 'Vite preview server' : 'Vite dev server',
+    )
+
+    if (PREVIEW_MODE) {
+      const [rootHtml, enHtml, zhHtml] = await Promise.all(
+        ['/', '/en/', '/zh/'].map(async route => {
+          const response = await fetch(`http://127.0.0.1:${serverPort}${route}`)
+          assert(response.ok, `Preview route ${route} must return 200.`)
+          return response.text()
+        }),
+      )
+      ;[
+        ['/', rootHtml, /<html lang="en">/, /class="landing landing-masthead"/],
+        ['/en/', enHtml, /<html lang="en">/, /id="about"/],
+        ['/zh/', zhHtml, /<html lang="zh">/, /id="about"/],
+      ].forEach(([route, html, languagePattern, bodyPattern]) => {
+        assert.match(html, languagePattern, `${route} must contain its static language.`)
+        assert.match(html, bodyPattern, `${route} must contain prerendered body copy.`)
+        assert.doesNotMatch(html, /undefined/, `${route} must not emit undefined values.`)
+      })
+    }
 
     browser = spawn(
       browserPath,
@@ -234,13 +258,143 @@ async function run() {
     await waitForExpression(
       `document.readyState === 'complete' && !!document.querySelector('[title="Content editor"]')`,
       'application shell',
+      30000,
     )
+    if (PREVIEW_MODE) {
+      assert.deepEqual(
+        await evaluate(`window.__CHEN_HYDRATION_ERRORS__ || []`),
+        [],
+        'Root prerender must hydrate without recoverable errors.',
+      )
+    }
+
+    await evaluate(`(() => {
+      localStorage.clear()
+      localStorage.setItem(${JSON.stringify(LEGACY_READING_KEY)}, JSON.stringify([{
+        id: 'legacy-reading',
+        date: '2025.01',
+        title: { en: 'Legacy reading', zh: '旧阅读' },
+        author: 'Archive',
+        status: 'finished',
+        rating: 4,
+        note: { en: 'Migrated entry', zh: '迁移条目' }
+      }]))
+      localStorage.setItem(${JSON.stringify(LEGACY_PHOTO_KEY)}, JSON.stringify([{
+        id: 'legacy-photo',
+        img: '/photos/legacy.jpg',
+        series: 'street',
+        title: { en: 'Legacy photo', zh: '旧照片' },
+        location: { en: 'Archive', zh: '档案' },
+        year: '2025'
+      }]))
+      location.reload()
+    })()`)
+    await waitForExpression(
+      `document.readyState === 'complete' && !!document.querySelector('.collection-tab')`,
+      'application shell with legacy data',
+    )
+    await waitForExpression(
+      `JSON.parse(localStorage.getItem(${JSON.stringify(CONTENT_KEY)}) || '{}').PHOTOS?.some((item) => item.id === 'legacy-photo')`,
+      'legacy photo migration',
+      5000,
+    )
+    await click('.collection-tab:nth-child(4)')
+    await waitForExpression(
+      `JSON.parse(localStorage.getItem(${JSON.stringify(CONTENT_KEY)}) || '{}').USER_READING_LOG?.some((item) => item.id === 'legacy-reading')`,
+      'legacy reading migration',
+      5000,
+    )
+    await waitForExpression(
+      `!localStorage.getItem(${JSON.stringify(LEGACY_READING_KEY)}) && !localStorage.getItem(${JSON.stringify(LEGACY_PHOTO_KEY)})`,
+      'legacy key cleanup',
+      5000,
+    )
+
     await evaluate(`localStorage.clear(); location.reload()`)
     await waitForExpression(
       `document.readyState === 'complete' && !!document.querySelector('[title="Content editor"]')`,
       'clean application shell',
     )
+    assert(
+      await evaluate(`(() => {
+        const description = document.querySelector('meta[name="description"]')?.content || ''
+        return document.title.includes('CHEN')
+          && description.length > 20
+          && !description.includes('*')
+          && document.querySelectorAll('meta[name="description"]').length === 1
+          && document.querySelectorAll('meta[property="og:title"]').length === 1
+          && document.querySelectorAll('meta[name="twitter:card"]').length === 1
+      })()`),
+      'Default runtime SEO metadata must be populated once from SITE.',
+    )
+    const englishTitle = await evaluate(`document.title`)
+    await click('.lang-toggle button', '中')
+    await waitForExpression(`document.documentElement.lang === 'zh'`, 'Chinese document language')
+    if (PREVIEW_MODE) {
+      await waitForExpression(
+        `location.pathname === '/zh/' && document.readyState === 'complete'`,
+        'Chinese prerendered route',
+      )
+      assert.deepEqual(
+        await evaluate(`window.__CHEN_HYDRATION_ERRORS__ || []`),
+        [],
+        'Chinese prerender must hydrate without recoverable errors.',
+      )
+    }
+    await waitForExpression(
+      `document.title !== ${JSON.stringify(englishTitle)}`,
+      'localized document title',
+    )
+    assert(
+      await evaluate(`(() => {
+        const description = document.querySelector('meta[name="description"]')?.content || ''
+        return description.includes('电影')
+          && document.querySelectorAll('meta[name="description"]').length === 1
+          && document.querySelectorAll('meta[property="og:title"]').length === 1
+          && document.querySelectorAll('meta[property="og:locale"]').length === 1
+      })()`),
+      'Language switching must update SEO metadata without duplicating tags.',
+    )
+    await click('.lang-toggle button', 'EN')
+    await waitForExpression(`document.documentElement.lang === 'en'`, 'English document language')
+    if (PREVIEW_MODE) {
+      await waitForExpression(
+        `location.pathname === '/en/' && document.readyState === 'complete'`,
+        'English prerendered route',
+      )
+      assert.deepEqual(
+        await evaluate(`window.__CHEN_HYDRATION_ERRORS__ || []`),
+        [],
+        'English prerender must hydrate without recoverable errors.',
+      )
+    }
     await new Promise(resolve => setTimeout(resolve, 300))
+    await evaluate(`window.scrollTo(0, document.body.scrollHeight * 0.45)`)
+    await waitForExpression(`window.scrollY > 500`, 'scroll away from landing')
+    await evaluate(`location.reload()`)
+    await waitForExpression(
+      `document.readyState === 'complete' && !!document.querySelector('.landing-masthead')`,
+      'application shell after scroll restoration reload',
+    )
+    await new Promise(resolve => setTimeout(resolve, 500))
+    const restoredScrollY = await evaluate(`window.scrollY`)
+    assert(
+      restoredScrollY < 10,
+      `A normal page load must start at the landing masthead instead of restoring an old scroll position (scrollY: ${restoredScrollY}).`,
+    )
+    assert(
+      await evaluate(`(() => {
+        const masthead = document.querySelector('.landing-masthead')
+        const name = document.querySelector('.landing-masthead .mh-name')
+        if (!masthead || !name) return false
+        const mastheadRect = masthead.getBoundingClientRect()
+        const nameRect = name.getBoundingClientRect()
+        return Math.abs(mastheadRect.top) < 10
+          && nameRect.top >= 0
+          && nameRect.bottom <= window.innerHeight
+      })()`),
+      'The landing masthead name must be visible in the first viewport after load.',
+    )
     assert.equal(
       await evaluate(
         `localStorage.getItem(${JSON.stringify(CONTENT_SAVED_KEY)}) || localStorage.getItem(${JSON.stringify(STYLE_SAVED_KEY)})`,
@@ -255,6 +409,26 @@ async function run() {
       'content editor open',
     )
 
+    await evaluate(`(() => {
+      const original = Storage.prototype.setItem
+      window.__uiSmokeOriginalSetItem = original
+      Storage.prototype.setItem = function(key, value) {
+        if (key === ${JSON.stringify(CONTENT_KEY)}) {
+          throw new DOMException('quota reached', 'QuotaExceededError')
+        }
+        return original.call(this, key, value)
+      }
+    })()`)
+    await setValue('.ce-main .ce-bi input', 'UI Smoke Unsaved', 0)
+    await waitForExpression(
+      `document.querySelector('.ce-banner')?.textContent.includes('Local draft is not saved')`,
+      'content unsaved status',
+      5000,
+    )
+    await evaluate(`(() => {
+      Storage.prototype.setItem = window.__uiSmokeOriginalSetItem
+      delete window.__uiSmokeOriginalSetItem
+    })()`)
     await setValue('.ce-main .ce-bi input', 'UI Smoke Name', 0)
     await click('.ce-footer .ce-btn:not(.ce-btn-ghost)')
     await waitForExpression(
@@ -431,8 +605,16 @@ async function run() {
       'style reset clears data and timestamp',
     )
 
+    if (PREVIEW_MODE) {
+      assert.deepEqual(
+        await evaluate(`window.__CHEN_HYDRATION_ERRORS__ || []`),
+        [],
+        'Persisted content and style must restore after hydration without recoverable errors.',
+      )
+    }
+
     console.log(
-      'UI smoke tests passed: editors, refresh-safe timestamps, save/reset, templates, preset linkage, drag order, path audit, and exports.',
+      `UI smoke tests passed${PREVIEW_MODE ? ' against prerendered production output' : ''}: runtime SEO localization, landing scroll reset, legacy migration, storage failure feedback, editors, refresh-safe timestamps, save/reset, templates, preset linkage, drag order, path audit, and exports.`,
     )
   } finally {
     try {

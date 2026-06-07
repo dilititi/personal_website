@@ -1,8 +1,8 @@
 import React, { useRef, useState } from 'react'
-import { useData } from '../../data-context'
-import { useStyle } from '../../style-context'
-import { AI_PROMPT, CONTENT_PRESETS, STARTER_TEMPLATE } from './contentPresets'
-import { validateImportData } from './validation'
+import { useData } from '../../data-context.jsx'
+import { useStyle } from '../../style-context.jsx'
+import { AI_PROMPT, CONTENT_PRESETS, STARTER_TEMPLATE } from './contentPresets.js'
+import { validateImportData } from './validation.js'
 
 const PRE_IMPORT_KEY = 'chen.content.preImport'
 

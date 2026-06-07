@@ -1,6 +1,6 @@
 import React from 'react'
-import { useLang } from '../lang'
-import { useData } from '../data-context'
+import { useLang } from '../lang.jsx'
+import { useData } from '../data-context.jsx'
 
 // Render a TEXTS.contact statement, with <em>...</em> preserved as React <em>.
 function emTags(str) {

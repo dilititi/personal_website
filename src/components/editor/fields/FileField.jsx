@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react'
-import { fileToDataUrl, resizeImage } from '../../../utils'
-import { FILE_IMAGE_TEMPLATES } from '../contentPresets'
+import { fileToDataUrl, resizeImage } from '../../../utils.js'
+import { FILE_IMAGE_TEMPLATES } from '../contentPresets.js'
 
 // Uploads POST to /api/upload, a dev-only Vite middleware (see vite.config.js).
 // Production builds are static and have no such endpoint, so uploading is

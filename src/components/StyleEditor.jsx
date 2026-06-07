@@ -1,9 +1,14 @@
 import React, { useEffect, useMemo, useState } from 'react'
-import { useLang } from '../lang'
-import { useStyle } from '../style-context'
-import { STYLE_ANCHOR_TYPES, STYLE_DIMENSIONS, STYLE_MOOD_KEYWORDS, STYLE_PRESETS } from '../style'
-import { findMissingPublicPaths, pathWarning } from './editor/export'
-import PreviewFrame from './editor/PreviewFrame'
+import { useLang } from '../lang.jsx'
+import { useStyle } from '../style-context.jsx'
+import {
+  STYLE_ANCHOR_TYPES,
+  STYLE_DIMENSIONS,
+  STYLE_MOOD_KEYWORDS,
+  STYLE_PRESETS,
+} from '../style.js'
+import { findMissingPublicPaths, pathWarning } from './editor/export.js'
+import PreviewFrame from './editor/PreviewFrame.jsx'
 
 const LIVE_DIMENSIONS = new Set([
   'design',
@@ -878,6 +883,7 @@ export default function StyleEditor({ open, onClose }) {
     isCustomized,
     storageError,
     lastSaved,
+    isDirty,
   } = useStyle()
   const [active, setActive] = useState('design')
   const [copied, setCopied] = useState('')
@@ -1087,18 +1093,27 @@ export default function StyleEditor({ open, onClose }) {
           </div>
         </header>
 
-        <div className="ce-banner" role="note">
+        <div className="ce-banner" role="status" aria-live="polite">
           <div className="ce-banner-text">
-            {lang === 'zh'
-              ? '当前修改只保存在本浏览器。发布前请点击「复制 STYLE」导出代码并提交到 Git。'
-              : 'Edits live only in this browser. Click "Copy STYLE" to export and commit to Git before publishing.'}
+            {storageError ||
+              (lang === 'zh'
+                ? '当前修改只保存在本浏览器。发布前请点击「复制 STYLE」导出代码并提交到 Git。'
+                : 'Edits live only in this browser. Click "Copy STYLE" to export and commit to Git before publishing.')}
           </div>
-          {lastSaved && (
+          {storageError ? (
+            <div className="ce-banner-meta">
+              {lang === 'zh' ? '本地草稿尚未保存' : 'Local draft is not saved'}
+            </div>
+          ) : isDirty ? (
+            <div className="ce-banner-meta">
+              {lang === 'zh' ? '正在保存本地草稿…' : 'Saving local draft…'}
+            </div>
+          ) : lastSaved ? (
             <div className="ce-banner-meta">
               {lang === 'zh' ? '上次本地保存：' : 'Last local save: '}
               {formatLocalTs(lastSaved)}
             </div>
-          )}
+          ) : null}
         </div>
 
         <div className="ce-body se-body">

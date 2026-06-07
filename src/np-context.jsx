@@ -1,32 +1,44 @@
 import React, { createContext, useContext, useState, useCallback, useEffect } from 'react'
-import { NOW_PLAYING } from './data'
+import { NOW_PLAYING } from './data.js'
 
 const NPContext = createContext(null)
+const DEFAULT_SOURCE = 'spotify'
+const SOURCE_KEY = 'chen.np.source'
+
+function readSource() {
+  try {
+    const saved = localStorage.getItem(SOURCE_KEY)
+    return ['spotify', 'netease', 'html5'].includes(saved) ? saved : DEFAULT_SOURCE
+  } catch {
+    return DEFAULT_SOURCE
+  }
+}
 
 export function useNP() {
   return useContext(NPContext)
 }
 
-export function NowPlayingProvider({ children }) {
+export function NowPlayingProvider({ children, prerendered = false }) {
   const [active, setActive] = useState(null)
   const [uploads, setUploads] = useState([])
-  const [source, setSource] = useState(() => {
-    try {
-      const saved = localStorage.getItem('chen.np.source')
-      return ['spotify', 'netease', 'html5'].includes(saved) ? saved : 'spotify'
-    } catch {
-      return 'spotify'
-    }
-  })
+  const [source, setSource] = useState(() => (prerendered ? DEFAULT_SOURCE : readSource()))
+  const [sourceRestoreComplete, setSourceRestoreComplete] = useState(!prerendered)
   const [trackIdx, setTrackIdx] = useState({ spotify: 0, netease: 0, html5: 0 })
   // Auto-open when an external play happens
   const [collapsed, setCollapsed] = useState(true)
 
   useEffect(() => {
+    if (sourceRestoreComplete) return
+    setSource(readSource())
+    setSourceRestoreComplete(true)
+  }, [sourceRestoreComplete])
+
+  useEffect(() => {
+    if (!sourceRestoreComplete) return
     try {
-      localStorage.setItem('chen.np.source', source)
+      localStorage.setItem(SOURCE_KEY, source)
     } catch {}
-  }, [source])
+  }, [source, sourceRestoreComplete])
 
   // Play a track. trackInfo = { source, spotifyId?, neteaseId?, audio?, track, artist }
   // If no source field, infer from which ID is present (spotifyId → spotify, etc).

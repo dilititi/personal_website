@@ -120,6 +120,8 @@ export function clearPersistedValue({
 // persisted snapshot (so mounting/StrictMode replay does not bump lastSaved).
 // Options:
 //   init       – lazy initial value (called once)
+//   loadOnMount – optional browser-only restore. Until it runs, the hook keeps
+//                 `init` as the hydration-safe value and does not persist it.
 //   isDefault  – when true for a value, the key is REMOVED instead of written
 //   serialize  – value → string (default JSON.stringify)
 //   quotaHint  – appended to the "storage full" message
@@ -129,20 +131,25 @@ export function clearPersistedValue({
 export function useLocalStorageState(key, lastSavedKey, options = {}) {
   const {
     init,
+    loadOnMount,
     isDefault = () => false,
     serialize = item => JSON.stringify(item),
     quotaHint = 'Remove large data before saving more.',
     onApply,
   } = options
 
+  const defersRestore = typeof loadOnMount === 'function'
   const [value, setValue] = useState(init)
   const [storageError, setStorageError] = useState('')
-  const [lastSaved, setLastSaved] = useState(() => readTimestamp(lastSavedKey))
+  const [lastSaved, setLastSaved] = useState(() =>
+    defersRestore ? null : readTimestamp(lastSavedKey),
+  )
   const [isDirty, setIsDirty] = useState(false)
+  const [restoreComplete, setRestoreComplete] = useState(!defersRestore)
 
   // Keep the latest callbacks without making them effect dependencies.
-  const cbRef = useRef({ isDefault, serialize, quotaHint, onApply })
-  cbRef.current = { isDefault, serialize, quotaHint, onApply }
+  const cbRef = useRef({ isDefault, serialize, quotaHint, onApply, loadOnMount })
+  cbRef.current = { isDefault, serialize, quotaHint, onApply, loadOnMount }
   const persistedSnapshotRef = useRef(null)
   if (persistedSnapshotRef.current === null) {
     persistedSnapshotRef.current = persistenceSnapshot(value, { isDefault, serialize })
@@ -154,8 +161,32 @@ export function useLocalStorageState(key, lastSavedKey, options = {}) {
   }, [])
 
   useEffect(() => {
+    if (restoreComplete) return
+
+    const { isDefault, serialize, loadOnMount } = cbRef.current
+    let restoredValue
+    try {
+      restoredValue = loadOnMount()
+      persistedSnapshotRef.current = persistenceSnapshot(restoredValue, {
+        isDefault,
+        serialize,
+      })
+    } catch (error) {
+      setStorageError(`Storage restore failed: ${error?.message || String(error)}`)
+      setRestoreComplete(true)
+      return
+    }
+
+    setValue(restoredValue)
+    setLastSaved(readTimestamp(lastSavedKey))
+    setIsDirty(false)
+    setRestoreComplete(true)
+  }, [lastSavedKey, restoreComplete])
+
+  useEffect(() => {
     const { isDefault, serialize, quotaHint, onApply } = cbRef.current
     if (onApply) onApply(value)
+    if (!restoreComplete) return
 
     let snapshot
     try {
@@ -189,7 +220,7 @@ export function useLocalStorageState(key, lastSavedKey, options = {}) {
     persistedSnapshotRef.current = result.snapshot
     setLastSaved(result.lastSaved)
     setIsDirty(false)
-  }, [value, key, lastSavedKey])
+  }, [value, key, lastSavedKey, restoreComplete])
 
   const reset = useCallback(
     nextValue => {

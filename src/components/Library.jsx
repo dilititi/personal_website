@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react'
-import { useLang } from '../lang'
-import { useData } from '../data-context'
-import { Stars } from '../hooks'
-import { useNP } from '../np-context'
+import { useLang } from '../lang.jsx'
+import { useData } from '../data-context.jsx'
+import { Stars } from '../hooks.jsx'
+import { useNP } from '../np-context.jsx'
 
 const LEGACY_LOG_STORAGE_KEY = 'chen.readingLog.userEntries'
+// Compatibility shim for pre-unified storage. Remove after 2026-12-31.
 
 function makeId(prefix) {
   return prefix + '-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8)
@@ -283,16 +284,21 @@ function ReadingLog() {
   const [editing, setEditing] = useState(null) // id of entry being edited, or null
 
   useEffect(() => {
-    if (userEntries.length > 0) return
     try {
       const raw = localStorage.getItem(LEGACY_LOG_STORAGE_KEY)
-      const parsed = raw ? JSON.parse(raw) : []
-      if (Array.isArray(parsed) && parsed.length) {
+      if (!raw) return
+      const parsed = JSON.parse(raw)
+      if (!Array.isArray(parsed)) return
+
+      if (userEntries.length === 0 && parsed.length) {
         setSection(
           'USER_READING_LOG',
           parsed.map(e => (e.id ? e : { ...e, id: makeId('r') })),
         )
+        return
       }
+
+      localStorage.removeItem(LEGACY_LOG_STORAGE_KEY)
     } catch {}
   }, [setSection, userEntries.length])
 

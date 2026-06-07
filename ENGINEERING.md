@@ -40,7 +40,9 @@
 运行时数据 registry 由 `lib/section-registry.js#createSectionRegistry(data.js exports)` 自动派生；编辑器可导出章节的唯一权威是 `schema.js#EXPORTABLE_SECTIONS`。
 
 - ❌ 不得再引入第二份硬编码章节枚举。
-- `DataProvider` 不得手写 `baseData/resolvedData` 键映射；新增大写数据 export 会自动进入运行时 registry。
+- `DataProvider` 不得手写 `baseData/resolvedData` 键映射。
+- **`data.js` 中「全大写 + 非函数」的 export 就是运行时数据段。** 不得用大写名称导出版本号、元信息或常量（例如 `VERSION`）；这类辅助 export 必须使用小写名称，或在同一次改动里有意修改 registry 契约。
+- `tests/sectionRegistry.test.js` 固定当前大写数据 export 清单，并覆盖 `SITE` / `WORKS` / `READING_LOG` / `MODULES` 的解析 parity。新增或删除数据段时必须有意更新该测试。
 - 编辑器、校验和代码导出需要章节列表时，从 `EXPORTABLE_SECTIONS.map(s => s.key)` 派生。
 
 ### INV-4 · 双语契约
@@ -63,6 +65,7 @@
 
 - 新增键必须登记到 `CLAUDE.md`。
 - 现有键（勿与之冲突）：`chen.content.overrides`、`chen.content.lastSaved`、`chen.style.overrides`、`chen.style.lastSaved`、`chen.lang`、`chen.np.source`、`chen.ce.{mode,sideWidth,autosave}`、`chen.se.{mode,sideWidth}`、`chen.content.preImport`；遗留待清理：`chen.readingLog.userEntries`、`chen.photos.userEntries`。
+- 两个遗留读取垫片只用于迁入统一内容存储，代码已标记在 **2026-12-31 后移除**；不得再向旧 key 写入新数据。
 
 ### INV-7 · Provider 链与数据读取
 
@@ -90,18 +93,30 @@ Provider 顺序固定：`LangProvider → DataProvider → StyleProvider → Now
 - 已接入并影响渲染：`design/color/typography/space/motion/texture/light/depth` + `color.temperature` + `typography.personality`。
 - **描述性元数据（情绪板），不驱动渲染**：`culture`、`mood`、`anchors`。要让它们生效需先做设计决策并更新本条 + `CLAUDE.md`。
 
+### INV-11 · SEO 文案与发现资源
+
+SEO 文案的唯一来源是 `src/lib/seo.js#buildSeo(SITE, lang)`，规范根 URL 的唯一来源是 `data.js#SITE.url`。
+
+- `index.html` 只保留无品牌的最小兜底；❌ 不得在其中手抄 `SITE` 标题、简介或分享卡片文案。
+- 构建期 head、运行时 head、canonical、Open Graph、Twitter Card、robots 与 sitemap 必须从同一份 `SITE` 数据派生。
+- `SITE.url` 为空时必须警告并优雅省略绝对 URL，不得输出 `undefined`、假域名或相对 canonical。
+- 运行时更新 head 必须复用已有节点，切换语言不得重复 append 标签。
+- 构建必须生成 `/`、`/en/`、`/zh/`；语言路径的首帧语言、canonical、hreflang 与 hydrate 输入必须一致。
+- SSR 期不得读取 DOM、时间动态值或浏览器存储；内容/风格/播放器状态统一在 hydration 后恢复。
+- `src/prerender.jsx` 与 React server renderer 仅供构建使用，最终 `dist/assets` 不得残留 browser-reachable prerender/server chunk。
+
 ---
 
 ## 2. 模块边界与依赖方向
 
-| 层     | 目录/文件                                                     | 职责                                               | 允许依赖                    |
-| ------ | ------------------------------------------------------------- | -------------------------------------------------- | --------------------------- |
-| 数据层 | `data.js`, `data-context.jsx`                                 | 内容事实源 + override 合并                         | 不依赖 `components/*`       |
-| 风格层 | `style.js`, `style-engine.js`, `style-context.jsx`            | 风格配置 → CSS 变量                                | 不依赖 `components/*`       |
-| 区块   | `components/*.jsx`（About/Works…）                            | 渲染各章节                                         | 经 hooks 读数据；不互相耦合 |
-| 编辑器 | `components/editor/*`, `ContentEditor`, `StyleEditor`         | 站内 CMS                                           | 可依赖数据/风格层           |
-| 工具   | `hooks.jsx`, `utils.js`, `lang.jsx`, `np-context.jsx`         | 通用能力                                           | 纯/低耦合                   |
-| 共享库 | `lib/persist.js`, `lib/modules.js`, `lib/section-registry.js` | 持久化 / 深合并 / 模块规范化 / 运行时数据 registry | 仅 `persist.js` 依赖 React  |
+| 层     | 目录/文件                                                                   | 职责                                                          | 允许依赖                    |
+| ------ | --------------------------------------------------------------------------- | ------------------------------------------------------------- | --------------------------- |
+| 数据层 | `data.js`, `data-context.jsx`                                               | 内容事实源 + override 合并                                    | 不依赖 `components/*`       |
+| 风格层 | `style.js`, `style-engine.js`, `style-context.jsx`                          | 风格配置 → CSS 变量                                           | 不依赖 `components/*`       |
+| 区块   | `components/*.jsx`（About/Works…）                                          | 渲染各章节                                                    | 经 hooks 读数据；不互相耦合 |
+| 编辑器 | `components/editor/*`, `ContentEditor`, `StyleEditor`                       | 站内 CMS                                                      | 可依赖数据/风格层           |
+| 工具   | `hooks.jsx`, `utils.js`, `lang.jsx`, `np-context.jsx`, `prerender.jsx`      | 通用能力 + 构建期首帧渲染                                     | 纯/低耦合                   |
+| 共享库 | `lib/persist.js`, `lib/modules.js`, `lib/section-registry.js`, `lib/seo.js` | 持久化 / 深合并 / 模块规范化 / 运行时数据 registry / SEO 派生 | 仅 `persist.js` 依赖 React  |
 
 **方向规则**：数据层/风格层是底座，**不得**反向依赖 `components/editor/*`。编辑器可以依赖底座。区块之间不直接互相 import。
 
@@ -126,6 +141,14 @@ L(en, zh) -> { en: string, zh: string }
 // culture, mood, anchors                                          —— 描述性，不驱动渲染
 ```
 
+共享持久化 API（`lib/persist.js`）：
+
+- `useLocalStorageState()` 返回 `[value, setValue, { storageError, lastSaved, isDirty, reset }]`。
+- `isDirty` 表示内存值尚未成功写入持久化快照；编辑器必须把保存中/保存失败状态反馈给用户。
+- 初次挂载与 StrictMode effect 重放不会写盘或推进 `lastSaved`；只有数据写入成功后才更新持久化快照和时间戳。
+- `reset(nextValue)` 同时清理数据 key 与时间戳 key，并恢复调用方提供的默认值；失败时保留 `isDirty`/错误反馈。
+- `writePersistedValue()` 的数据写入与时间戳写入分开处理：数据成功但时间戳失败时不得谎报数据丢失。
+
 新增字段类型 → 必须在 `editor/fields/*` 提供渲染、在 `validation.js#validateFieldValue` 提供校验、在 `export.js#jsLiteral` 能正确序列化。
 
 ---
@@ -139,6 +162,7 @@ L(en, zh) -> { en: string, zh: string }
 - **副作用清理**：`addEventListener`、`IntersectionObserver`、`URL.createObjectURL`、`setInterval` 等都要在卸载时清理（参考 `hooks.jsx`、`np-context.jsx`）。
 - **依赖克制**：默认只用 React + Vite；新增依赖需在变更说明给理由，优先零依赖实现。
 - **i18n 文案**：面向访客双语；内部编辑器工具可中文优先（与现有风格一致）。
+- **ESM 相对导入**：`src/` 与 `tests/` 中的相对 import 必须显式带 `.js` / `.jsx` / `.css` 扩展名，避免 Vite、Vitest 与原生 Node 解析规则漂移。
 
 ---
 
@@ -184,7 +208,7 @@ L(en, zh) -> { en: string, zh: string }
 一次改动「完成」当且仅当：
 
 - [ ] `npm run build` 通过（环境不可用时：逐文件复读改动区，标注「未 build 验证」）。
-- [ ] 有测试后 `npm test`、`npm run lint` 绿。
+- [ ] `npm run lint`、`npm test`、`npm run build`、`npm run format:check` 全绿；涉及浏览器行为时跑 `npm run test:ui`，涉及 SSR/hydration 时追加 `npm run test:ui:preview`。
 - [ ] 未违反 §1 任一不变量。
 - [ ] 任何跨文件契约（schema↔data、CSS 变量、section 列表、cross-ref）两侧都已同步。
 - [ ] 新增面向访客文案是双语；做了防御式渲染。
@@ -204,6 +228,8 @@ L(en, zh) -> { en: string, zh: string }
 - ❌ 在组件里直接 `import` `data.js` 的内容数据（经 hooks）。
 - ❌ 随手加第三方依赖（尤其 UI 库）。
 - ❌ 把 `culture/mood/anchors` 当作渲染输入而不先做设计决策。
+- ❌ 在 `index.html`、组件或构建插件中另写一份 SEO 标题/简介（统一经 `buildSeo`）。
+- ❌ 在客户端入口直接引入 `react-dom/server*`，或让 prerender/server renderer chunk 残留在生产浏览器资源中。
 
 ---
 

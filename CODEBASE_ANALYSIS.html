@@ -55,8 +55,8 @@
   <h1>miles.morales — a bilingual portfolio template with an in-browser CMS</h1>
   <p class="sub">Themes, evolution, contradictions, and a prioritized fix plan — derived from a full read of the source.</p>
   <div class="meta">
-    <span>Date: <b>2026-06-06</b></span>
-    <span>Scope: <b>43 source files</b> (deps excluded)</span>
+    <span>Updated: <b>2026-06-07</b></span>
+    <span>Scope: <b>46 source files</b> (deps excluded)</span>
     <span>Stack: <b>React 19 · Vite 8</b></span>
     <span>Lenses: <b>themes · evolution · contradictions · actions</b></span>
   </div>
@@ -73,9 +73,9 @@
 <h3>One data spine; config-driven everything</h3>
 <p>All copy lives in <code>data.js</code> as <code>L(en, zh)</code> pairs; sections render from a <code>MODULES</code> config sorted by <code>order</code> (<code>App.jsx</code>, <code>NavShell.jsx</code>). The site is data first, components second.</p>
 
-<h3>Two parallel &ldquo;localStorage override + deep-merge&rdquo; engines</h3>
+<h3>One shared persistence engine, two domain providers</h3>
 <ul class="ex">
-  <li>Content (<code>data-context.jsx</code>) and style (<code>style-context.jsx</code>) duplicate the same recursive deep-merge (<code>mergeSection</code> &equiv; <code>mergeStyle</code>) and the same load/save/<code>lastSaved</code>/<code>mountedRef</code> dance — down to the identical &ldquo;Browser storage is full&rdquo; message.</li>
+  <li>Content (<code>data-context.jsx</code>) and style (<code>style-context.jsx</code>) now share <code>lib/persist.js</code>: one <code>deepMerge</code>, safe JSON/timestamp reads, persistence snapshots, <code>lastSaved</code>, <code>isDirty</code>, reset semantics, and quota/error handling. The providers retain separate domain lifecycles while reusing the same storage mechanics.</li>
 </ul>
 
 <h3>Pervasive defensive + bilingual rendering</h3>
@@ -95,27 +95,27 @@
   <li><b>Persistence:</b> per-feature keys &rarr; one unified store. Live migration shims read (and delete) <code>chen.readingLog.userEntries</code> (<code>Library.jsx</code>) and <code>chen.photos.userEntries</code> (<code>Photography.jsx</code>) into today&rsquo;s single <code>chen.content.overrides</code>.</li>
   <li><b>Content model:</b> hardcoded &rarr; seed + user split. <code>READING_LOG</code> holds 24 curated entries; <code>USER_READING_LOG = []</code> is the end-user&rsquo;s; Library shows them as &ldquo;curated&rdquo; vs &ldquo;personal.&rdquo;</li>
   <li><b>Styling:</b> a fixed dark &ldquo;ember&rdquo; palette &rarr; a configurable engine (8 presets, ~60 derived vars). The old CSS var names are frozen fossils whose values inverted — <code>--ink-void</code> is now light cream <code>#ebe2c8</code>, <code>--cream</code> is near-black text — and are used 544&times; so they can&rsquo;t be renamed.</li>
-  <li><b>Even the docs lag the code:</b> <code>CLAUDE.md</code> says &ldquo;only <code>default</code> layout is stable,&rdquo; but <code>compact</code>/<code>feature</code> are fully implemented in <code>sections.css</code>.</li>
+  <li><b>Documentation is now treated as an engineering surface:</b> <code>CLAUDE.md</code>, <code>ENGINEERING.md</code>, and <code>PLAN.md</code> record the implemented layouts, section registry, shared persistence API, import-extension convention, and migration sunset date.</li>
 </ul>
 
 <h2>4 · Contradictions &amp; tensions</h2>
 <ul class="ex">
-  <li><b>Docs disagree on the core workflow:</b> <code>README.md</code> (edit code) vs <code>CONTENT_GUIDE.md</code> (never edit code) — same task, opposite instructions.</li>
+  <li><b>The former workflow contradiction is resolved:</b> <code>README.md</code> and <code>CONTENT_GUIDE.md</code> now both lead with the in-site editor and explain promotion of exported code into Git.</li>
   <li><b>Two serializers, divergent output:</b> per-section &ldquo;Copy&rdquo; emitted idiomatic <code>L('en','zh')</code> via <code>export.js</code>; &ldquo;Copy All&rdquo; and the download used <code>data-context.exportResolvedData</code>, plain <code>JSON.stringify</code>. The same editor pasted two different code styles into <code>data.js</code>. <i>(Fixed — see &sect;5.1.)</i></li>
-  <li><b>Sibling providers built differently:</b> <code>StyleProvider</code> memoizes its value; <code>DataProvider</code> rebuilds <code>resolvedData</code> and <code>value</code> every render (<code>baseData</code> is memoized, <code>resolvedData</code> right below it is not). The two editors even default to opposite modes (content = modal, style = side).</li>
+  <li><b>Sibling provider drift was removed:</b> both providers use <code>useLocalStorageState</code>; <code>DataProvider</code> now memoizes <code>resolvedData</code> and its context value to match <code>StyleProvider</code>. Public hook names remain stable.</li>
   <li><b>Editable knobs wired to nothing:</b> <code>color.temperature</code>, <code>typography.personality</code>, <code>culture</code>, style-<code>mood</code>, and <code>anchors</code> were persisted and had editor UI — including a full anchor-builder — but <code>deriveStyleVars</code> never read them. (<code>design.alignment</code> and <code>motion.mode</code> <i>are</i> live.) <i>(Addressed — see &sect;5.2.)</i></li>
-  <li><b>A polished editor whose persistence barely exists in prod:</b> image/audio/PDF uploads POST to <code>/api/upload</code>, a <b>dev-only</b> Vite middleware (<code>vite.config.js</code>); in production those buttons silently no-op, and edits stay in <code>localStorage</code> until manually pasted into <code>data.js</code>.</li>
-  <li><b>Hand-maintained cross-file contracts:</b> &ldquo;medium must match <code>Works.jsx</code>&rsquo;s WORK_MEDIA&rdquo; (<code>schema.js</code>), &ldquo;series must match <code>PHOTO_SERIES</code>&rdquo;, plus two section lists (<code>SECTION_KEYS</code> vs <code>EXPORTABLE_SECTIONS</code>) — documented in prose/labels, not enforced. Softened by graceful fallbacks.</li>
+  <li><b>Production remains intentionally static:</b> image/audio/PDF uploads POST to the dev-only <code>/api/upload</code> middleware; production now disables those buttons with an explanation and keeps manual public-path entry. Content edits remain local drafts until exported into committed code.</li>
+  <li><b>Some cross-file contracts remain, but section duplication is gone:</b> runtime sections derive from uppercase non-function <code>data.js</code> exports through <code>section-registry.js</code>; editor exports derive from <code>EXPORTABLE_SECTIONS</code>. An exact registry-contract test makes accidental uppercase metadata exports fail loudly. Media/series references still rely on validation and graceful fallbacks.</li>
 </ul>
 
 <h2>5 · Action plan (all 8 items)</h2>
-<p>Items 1 and 2 are <b>already implemented</b> in this pass; 3&ndash;8 are scoped for follow-up, ordered by impact-to-effort.</p>
+<p>Items 1&ndash;7 are implemented. Item 8 has a dated compatibility window and a concrete removal target.</p>
 
 <h3>5.1 Unify the export path <span class="tag done">Done</span></h3>
 <div class="step">
   <p class="why">Root cause: a second, dumber serializer in the data layer. Now there is one.</p>
   <p class="files"><b>Changed:</b> <code>ContentEditor.jsx</code> — &ldquo;Copy All&rdquo; and the <code>data.js</code> download now build their payload from <code>EXPORTABLE_SECTIONS.map(s =&gt; exportLine(s.key, data[s.key]))</code>, matching the per-section Copy button. <code>data-context.jsx</code> — removed <code>exportResolvedData()</code> and its <code>JSON.stringify</code>-based <code>jsLiteral</code>. <code>export.js</code> is now the single serializer.</p>
-  <p>Result: every export button emits the same idiomatic <code>L('en','zh')</code> code. <i>Note: <code>SECTION_KEYS</code> is now unused (left exported) — fold into item 6.</i></p>
+  <p>Result: every export button emits the same idiomatic <code>L('en','zh')</code> code; the obsolete <code>SECTION_KEYS</code> export was removed as part of item 6.</p>
 </div>
 
 <h3>5.2 Resolve the dead style knobs <span class="tag done">Done</span></h3>
@@ -124,79 +124,49 @@
   <p class="files"><b>Changed:</b> <code>style-engine.js</code> — <code>color.temperature</code> now tints background/surface warm (amber) or cool (blue), subtly (&le;6% mix); added <code>PERSONALITY_PAIRINGS</code> so <code>typography.personality</code> selects a default display/body font pairing (explicit Display/Body still override &rarr; no preset regression). <code>style.js</code> + <code>StyleEditor.jsx</code> — <code>culture</code>/<code>mood</code>/<code>anchors</code> relabeled as a descriptive &ldquo;Mood board&rdquo; that saves with the style but does not drive CSS.</p>
 </div>
 
-<h3>5.3 Close the production upload gap <span class="tag plan">Planned</span></h3>
+<h3>5.3 Close the production upload gap <span class="tag done">Done</span></h3>
 <div class="step">
-  <span class="pri">High</span><span>impact</span>
-  <p class="why">The editor&rsquo;s image/audio/PDF buttons fail silently in production; users won&rsquo;t know why nothing saves.</p>
-  <ol>
-    <li>In the file fields (<code>editor/fields/FileField.jsx</code>), branch on <code>import.meta.env.PROD</code>.</li>
-    <li>In prod, disable the upload button and show a short hint (&ldquo;dev-only — run <code>npm run dev</code> to write to <code>public/</code>&rdquo;) or fall back to a manual path input.</li>
-    <li>Add one line to <code>CONTENT_GUIDE.md</code> stating uploads only persist under <code>vite dev</code>.</li>
-  </ol>
+  <p class="why"><code>FileField.jsx</code> now disables filesystem upload outside development, explains the limitation, and retains manual public-path entry. <code>CONTENT_GUIDE.md</code> documents the static-production boundary.</p>
 </div>
 
-<h3>5.4 Reconcile the documentation <span class="tag plan">Planned</span></h3>
+<h3>5.4 Reconcile the documentation <span class="tag done">Done</span></h3>
 <div class="step">
-  <span class="pri">High</span><span>impact, low effort</span>
-  <p class="why">The README actively misleads (wrong workflow, outdated file tree); CLAUDE.md understates the code.</p>
-  <ol>
-    <li>Rewrite/retire <code>README.md</code>: point to the in-site editor workflow and regenerate the project-structure block (it omits <code>data-context</code>, <code>style*</code>, <code>editor/</code>, <code>np-context</code>, the <code>styles/</code> split, etc.).</li>
-    <li>Fix <code>CLAUDE.md</code>: remove &ldquo;only <code>default</code> is stable&rdquo; (compact/feature are implemented); note the single export path from item 1.</li>
-  </ol>
+  <p class="why"><code>README.md</code>, <code>CLAUDE.md</code>, <code>ENGINEERING.md</code>, and <code>PLAN.md</code> now describe the editor-first workflow, current file boundaries, implemented layouts, persistence contract, and verification commands.</p>
 </div>
 
-<h3>5.5 De-duplicate the provider / persistence machinery <span class="tag plan">Planned</span></h3>
+<h3>5.5 De-duplicate the provider / persistence machinery <span class="tag done">Done</span></h3>
 <div class="step">
-  <span class="pri med">Med</span><span>impact</span>
-  <p class="why">Two near-identical engines drift apart over time (they already have).</p>
-  <ol>
-    <li>Extract one shared <code>deepMerge</code> and a <code>useLocalStorageState</code>-style helper (load/save/<code>lastSaved</code>/first-render skip) used by both contexts.</li>
-    <li>Memoize <code>DataProvider</code>&rsquo;s <code>resolvedData</code> and context <code>value</code> to match <code>StyleProvider</code>.</li>
-    <li>Drop the <code>resetAll</code>/<code>resetData</code> alias (keep one name).</li>
-  </ol>
+  <p class="why"><code>lib/persist.js</code> is the single merge/storage implementation and both providers consume it. <code>DataProvider</code> memoizes resolved data and context value. <code>resetData</code> remains only as a compatibility alias; new code uses <code>resetAll</code>.</p>
 </div>
 
-<h3>5.6 Single source of truth for sections <span class="tag plan">Planned</span></h3>
+<h3>5.6 Single source of truth for sections <span class="tag done">Done</span></h3>
 <div class="step">
-  <span class="pri med">Med</span><span>impact, low effort</span>
-  <p class="why">Two hardcoded section lists can silently diverge; item 1 already left one unused.</p>
-  <ol>
-    <li>Derive <code>SECTION_KEYS</code> from <code>EXPORTABLE_SECTIONS</code> (or remove it entirely now that <code>exportResolvedData</code> is gone).</li>
-    <li>Make <code>schema.js</code> the canonical list that the data layer imports.</li>
-  </ol>
+  <p class="why"><code>SECTION_KEYS</code> was removed. Runtime data derives from <code>createSectionRegistry(data.js exports)</code>; editor export/validation derives from <code>EXPORTABLE_SECTIONS</code>. Registry tests guard the uppercase-export convention and old merge parity.</p>
 </div>
 
-<h3>5.7 Add a minimal test net <span class="tag plan">Planned</span></h3>
+<h3>5.7 Add a minimal test net <span class="tag done">Done</span></h3>
 <div class="step">
-  <span class="pri med">Med</span><span>impact</span>
-  <p class="why">No test/lint/formatter exists, yet the riskiest, most-evolved code is exactly the merge/normalize/migration/export logic.</p>
-  <ol>
-    <li>Add Vitest.</li>
-    <li>Cover <code>mergeSection</code>/<code>mergeStyle</code>, <code>normalizeModuleConfig</code> (boolean &rarr; object), the legacy migration shims, and an <code>export.js</code> <code>jsLiteral</code> round-trip (serialize &rarr; eval &rarr; deep-equal).</li>
-  </ol>
+  <p class="why">Vitest 4 runs 49 tests across persistence, deep merge, module normalization, section registry/parity, export round-trip, validation, language initialization, SEO derivation/build output, and prerender contracts. ESLint, Prettier, production build, and the test suite run in GitHub Actions; CDP smoke covers both dev and prerendered production behavior.</p>
 </div>
 
-<h3>5.8 Sunset the legacy migration shims <span class="tag plan">Planned</span></h3>
+<h3>5.8 Sunset the legacy migration shims <span class="tag plan">Scheduled</span></h3>
 <div class="step">
-  <span class="pri low">Low</span><span>impact</span>
-  <p class="why">Cleanup once users have migrated off the old per-feature keys.</p>
-  <ol>
-    <li>Remove the reads of <code>chen.readingLog.userEntries</code> (<code>Library.jsx</code>) and <code>chen.photos.userEntries</code> (<code>Photography.jsx</code>), or keep them behind a dated comment with a removal target.</li>
-  </ol>
+  <p class="why">Both read-only compatibility shims are marked for removal after <b>2026-12-31</b>. Successful migration removes the old key; no new code writes to either legacy namespace.</p>
 </div>
 
 <h2>6 · Changes applied in this pass</h2>
-<p>Five source files were edited (items 1 &amp; 2). All changes are regression-safe for the existing presets and demo content.</p>
+<p>The original diagnosis has been reconciled with the current repository. The stability pass preserves public provider hooks while tightening the data, persistence, test, import, and migration contracts.</p>
 <ul class="ex">
-  <li><b>src/data-context.jsx</b> — removed <code>exportResolvedData()</code> + the JSON <code>jsLiteral</code> + the value-object entry.</li>
-  <li><b>src/components/ContentEditor.jsx</b> — &ldquo;Copy All&rdquo; and &ldquo;&darr; data.js&rdquo; now use <code>exportLine</code> (idiomatic output).</li>
-  <li><b>src/style-engine.js</b> — wired <code>temperature</code> (warm/cool tint) and <code>personality</code> (font pairing) into <code>deriveStyleVars</code>.</li>
-  <li><b>src/style.js</b> — <code>culture</code> dimension relabeled as descriptive mood-board context.</li>
-  <li><b>src/components/StyleEditor.jsx</b> — &ldquo;Reference&rdquo; &rarr; &ldquo;Mood board&rdquo;; hints now state these signals don&rsquo;t change CSS.</li>
+  <li><b>Persistence:</b> shared snapshots prevent StrictMode mount writes; failed writes preserve <code>isDirty</code>; editors expose saving and unsaved states.</li>
+  <li><b>Data registry:</b> runtime sections derive from uppercase non-function exports and are protected by an exact contract/parity test.</li>
+  <li><b>Toolchain:</b> Vite 8 + Vitest 4 install and run together; lint, 49 tests, build, format, dev smoke, and production hydration smoke are verified.</li>
+  <li><b>SEO/SSG:</b> Mobile Lighthouse SEO remains 100; the prerendered build scored Performance 61 versus 58 for an otherwise equivalent CSR control (FCP/LCP 5.6s/5.6s versus 7.0s/7.2s).</li>
+  <li><b>Modules:</b> relative ESM imports consistently include file extensions.</li>
+  <li><b>Migration:</b> legacy reading/photo keys are read-only, cleaned after migration, and have a dated removal target.</li>
 </ul>
 
 <footer class="doc">
-  Generated as HTML because the Node sandbox was unavailable at report time; Microsoft Word opens this file directly (File &rarr; Open) and can re-save it as <code>.docx</code>. A native <code>.docx</code> can be regenerated once the sandbox recovers. All claims are grounded in direct reads of the source at the cited <code>file</code> / <code>file:line</code> locations.
+  Updated against the repository on 2026-06-07. Claims are grounded in direct source inspection and the project&rsquo;s install, lint, test, build, format, and browser-smoke results.
 </footer>
 
 </div>

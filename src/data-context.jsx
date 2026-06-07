@@ -1,8 +1,8 @@
 import React, { createContext, useCallback, useContext, useMemo } from 'react'
-import * as defaults from './data'
-import { isPlainObject, readJSON, useLocalStorageState } from './lib/persist'
-import { normalizeModuleConfig, resolveModules } from './lib/modules'
-import { createSectionRegistry, resolveSectionRegistry } from './lib/section-registry'
+import * as defaults from './data.js'
+import { isPlainObject, readJSON, useLocalStorageState } from './lib/persist.js'
+import { normalizeModuleConfig, resolveModules } from './lib/modules.js'
+import { createSectionRegistry, resolveSectionRegistry } from './lib/section-registry.js'
 
 const STORAGE_KEY = 'chen.content.overrides'
 const LAST_SAVED_KEY = 'chen.content.lastSaved'
@@ -18,10 +18,11 @@ export function useData() {
   return ctx
 }
 
-export function DataProvider({ children }) {
+export function DataProvider({ children, prerendered = false }) {
   const [overrides, setOverrides, { storageError, lastSaved, isDirty, reset }] =
     useLocalStorageState(STORAGE_KEY, LAST_SAVED_KEY, {
-      init: () => readJSON(STORAGE_KEY, {}),
+      init: () => (prerendered ? {} : readJSON(STORAGE_KEY, {})),
+      loadOnMount: prerendered ? () => readJSON(STORAGE_KEY, {}) : undefined,
       isDefault: value => !value || isEmptyObject(value),
       quotaHint: 'Remove large base64 media or export paths instead.',
     })

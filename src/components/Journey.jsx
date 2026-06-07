@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react'
-import { useLang } from '../lang'
-import { useData } from '../data-context'
-import { emph } from '../hooks'
+import { useLang } from '../lang.jsx'
+import { useData } from '../data-context.jsx'
+import { emph } from '../hooks.jsx'
 
 export default function Journey({ layout = 'default' }) {
   const { lang, t } = useLang()

@@ -79,6 +79,10 @@ export const ABOUT = {
 
 `npm run build` 产出 `dist/`，是完整的静态站点，可部署到任意静态托管平台。
 
+构建会生成 `/`、`/en/`、`/zh/` 三份可索引 HTML，并在浏览器中 hydrate 为完整交互站点。部署平台需保留目录式静态路由（即 `en/index.html`、`zh/index.html`）；上线前可运行 `npm run test:ui:preview` 检查生产产物。
+
+部署前在内容编辑器的 SITE 中填写「站点 URL」，或直接设置 `src/data.js#SITE.url` 为最终公开域名（例如 `https://example.com`）。canonical、Open Graph URL、`robots.txt` 与 `sitemap.xml` 都从这里生成；留空时构建会警告并安全省略绝对 URL。
+
 **Cloudflare Pages（推荐）**：把仓库推到 GitHub → 在 Cloudflare Pages 连接仓库 → 构建命令 `npm run build`，输出目录 `dist`。之后每次推送自动重建。
 
 **阿里云 OSS（国内访问最快）**：创建 Bucket（地域选杭州）→ 开启静态网站托管、权限公共读 → 用 `ossutil cp -r dist/ oss://你的Bucket名称/ --update` 上传 `dist/`。

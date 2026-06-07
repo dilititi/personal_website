@@ -1,7 +1,7 @@
 import React from 'react'
-import { useLang } from '../lang'
-import { useData } from '../data-context'
-import { useActiveSection } from '../hooks'
+import { useLang } from '../lang.jsx'
+import { useData } from '../data-context.jsx'
+import { useActiveSection } from '../hooks.jsx'
 
 function LangToggle() {
   const { lang, setLang } = useLang()

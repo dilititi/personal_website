@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react'
-import { useLang } from '../lang'
-import { useData } from '../data-context'
-import { resizeImage } from '../utils'
+import { useLang } from '../lang.jsx'
+import { useData } from '../data-context.jsx'
+import { resizeImage } from '../utils.js'
 
 const LEGACY_PHOTO_STORAGE_KEY = 'chen.photos.userEntries'
+// Compatibility shim for pre-unified storage. Remove after 2026-12-31.
 
 export default function Photography({ layout = 'default' }) {
   const { lang, t } = useLang()

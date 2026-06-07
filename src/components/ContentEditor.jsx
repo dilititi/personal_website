@@ -1,26 +1,26 @@
 import React, { useEffect, useRef, useState } from 'react'
-import { useLang } from '../lang'
-import { useData } from '../data-context'
-import { pick } from '../data'
-import { useStyle } from '../style-context'
+import { useLang } from '../lang.jsx'
+import { useData } from '../data-context.jsx'
+import { pick } from '../data.js'
+import { useStyle } from '../style-context.jsx'
 import {
   ABOUT_SCHEMA,
   EXPORTABLE_SECTIONS,
   MODULES_SCHEMA,
   SECTIONS,
   SITE_SCHEMA,
-} from './editor/schema'
+} from './editor/schema.js'
 import {
   exportAllWarning,
   exportLine,
   exportWarning,
   findMissingPublicPaths,
   pathWarning,
-} from './editor/export'
-import { JsonEditor, ObjectArrayField, ObjectField } from './editor/fields'
-import { FIELD_TEMPLATES } from './editor/contentPresets'
-import ImportPanel from './editor/ImportPanel'
-import PreviewFrame from './editor/PreviewFrame'
+} from './editor/export.js'
+import { JsonEditor, ObjectArrayField, ObjectField } from './editor/fields/index.jsx'
+import { FIELD_TEMPLATES } from './editor/contentPresets.js'
+import ImportPanel from './editor/ImportPanel.jsx'
+import PreviewFrame from './editor/PreviewFrame.jsx'
 
 function SectionEditor({ section, value, onChange, onTemplateApply }) {
   const data = useData()
@@ -672,19 +672,27 @@ export default function ContentEditor({ open, onClose }) {
           </div>
         </header>
 
-        <div className="ce-banner" role="note">
+        <div className="ce-banner" role="status" aria-live="polite">
           <div className="ce-banner-text">
             {data.storageError ||
               (lang === 'zh'
                 ? '当前修改只保存在本浏览器。发布前请点击「📋 全部」导出代码并提交到 Git。'
                 : 'Edits live only in this browser. Click "📋 All" to export and commit to Git before publishing.')}
           </div>
-          {data.lastSaved && (
+          {data.storageError ? (
+            <div className="ce-banner-meta">
+              {lang === 'zh' ? '本地草稿尚未保存' : 'Local draft is not saved'}
+            </div>
+          ) : data.isDirty ? (
+            <div className="ce-banner-meta">
+              {lang === 'zh' ? '正在保存本地草稿…' : 'Saving local draft…'}
+            </div>
+          ) : data.lastSaved ? (
             <div className="ce-banner-meta">
               {lang === 'zh' ? '上次本地保存：' : 'Last local save: '}
               {formatLocalTs(data.lastSaved)}
             </div>
-          )}
+          ) : null}
         </div>
 
         {pathAudit && (

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react'
-import { useLang } from '../lang'
-import { useData } from '../data-context'
+import { useLang } from '../lang.jsx'
+import { useData } from '../data-context.jsx'
 
 const WORK_MEDIA_LABELS = {
   short: { en: 'Shorts', zh: '短片' },

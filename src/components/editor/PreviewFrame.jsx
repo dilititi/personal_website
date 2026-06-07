@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react'
-import { deriveStyleVars } from '../../style-engine'
+import { deriveStyleVars } from '../../style-engine.js'
 
 function previewSrc() {
   if (typeof window === 'undefined') return '/'

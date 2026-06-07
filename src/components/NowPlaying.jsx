@@ -1,7 +1,7 @@
 import React, { useRef, useEffect, useState } from 'react'
-import { useLang } from '../lang'
-import { useData } from '../data-context'
-import { useNP } from '../np-context'
+import { useLang } from '../lang.jsx'
+import { useData } from '../data-context.jsx'
+import { useNP } from '../np-context.jsx'
 
 const SOURCES = [
   { id: 'spotify', label: 'Spotify' },
@@ -10,7 +10,16 @@ const SOURCES = [
 ]
 const POS_KEY = 'chen.np.pos'
 
-export default function NowPlaying({ layout = 'default' }) {
+function readPosition() {
+  try {
+    const saved = localStorage.getItem(POS_KEY)
+    return saved ? JSON.parse(saved) : null
+  } catch {
+    return null
+  }
+}
+
+export default function NowPlaying({ layout = 'default', prerendered = false }) {
   const { lang, t } = useLang()
   const { NOW_PLAYING } = useData()
   const np = useNP()
@@ -34,21 +43,22 @@ export default function NowPlaying({ layout = 'default' }) {
   } = np
 
   // ── Drag-to-move position ─────────────────────────────
-  const [pos, setPos] = useState(() => {
-    try {
-      const saved = localStorage.getItem(POS_KEY)
-      return saved ? JSON.parse(saved) : null
-    } catch {
-      return null
-    }
-  })
+  const [pos, setPos] = useState(() => (prerendered ? null : readPosition()))
+  const [positionRestoreComplete, setPositionRestoreComplete] = useState(!prerendered)
 
   useEffect(() => {
+    if (positionRestoreComplete) return
+    setPos(readPosition())
+    setPositionRestoreComplete(true)
+  }, [positionRestoreComplete])
+
+  useEffect(() => {
+    if (!positionRestoreComplete) return
     if (pos)
       try {
         localStorage.setItem(POS_KEY, JSON.stringify(pos))
       } catch {}
-  }, [pos])
+  }, [pos, positionRestoreComplete])
 
   // Clamp to viewport on resize (so it never ends up off-screen).
   // Note: no `pos` in deps — we use the functional setter form so the latest pos
