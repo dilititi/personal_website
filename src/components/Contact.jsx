@@ -64,7 +64,9 @@ export default function Contact({ layout = 'default' }) {
         </div>
 
         <div className="contact-status-box">
-          <h6>{lang === 'zh' ? '当前状态 · LIVE' : 'STATUS · LIVE'}</h6>
+          <div className="contact-status-label">
+            {lang === 'zh' ? '当前状态 · LIVE' : 'STATUS · LIVE'}
+          </div>
           <table>
             <tbody>
               {[

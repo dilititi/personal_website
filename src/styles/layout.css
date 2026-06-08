@@ -97,7 +97,7 @@
 }
 
 .lang-toggle button.active {
-  background: var(--ember);
+  background: var(--cream);
   color: var(--ink-void);
 }
 

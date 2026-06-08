@@ -113,7 +113,6 @@ body[data-motion='lively'] .nav-mark .dot {
   );
 }
 
-.section-meta,
 .section-num {
   opacity: calc(0.72 + var(--style-design-contrast) * 0.28);
 }

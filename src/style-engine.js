@@ -97,7 +97,7 @@ export function contrastRatio(foreground, background) {
   return (lighter + 0.05) / (darker + 0.05)
 }
 
-function ensureContrast(foreground, background, minimum = 4.5) {
+function ensureContrast(foreground, background, minimum = 4.7) {
   const normalized = normalizeHex(foreground)
   if (contrastRatio(normalized, background) >= minimum) return normalized
 

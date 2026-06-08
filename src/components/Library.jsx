@@ -113,7 +113,9 @@ function Bookshelf() {
             )}
             <div className="spine"></div>
             <div className="label" style={{ color: b.text }}>
-              <h5 style={{ color: b.text }}>{t(b.title)}</h5>
+              <div className="book-cover-title" style={{ color: b.text }}>
+                {t(b.title)}
+              </div>
               <span className="author" style={{ color: b.text, opacity: 0.7 }}>
                 {b.author}
               </span>
@@ -128,7 +130,9 @@ function Bookshelf() {
           {hovered === i && (
             <div className="book-block" data-col={i % 5}>
               <div className="bb-cover" style={{ background: b.color, color: b.text }}>
-                <h5 style={{ color: b.text }}>{t(b.title)}</h5>
+                <div className="bb-cover-title" style={{ color: b.text }}>
+                  {t(b.title)}
+                </div>
                 <span className="bb-cover-auth" style={{ color: b.text, opacity: 0.7 }}>
                   {b.author}
                 </span>

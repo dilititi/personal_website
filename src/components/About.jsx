@@ -64,7 +64,7 @@ export default function About({ layout = 'default', onOpenCV }) {
           <div className="about-stats">
             {ABOUT.stats.map((s, i) => (
               <div className="stat" key={i}>
-                <h6>{t(s.label)}</h6>
+                <div className="stat-label">{t(s.label)}</div>
                 <p>{emph(t(s.value))}</p>
               </div>
             ))}
@@ -96,12 +96,12 @@ export default function About({ layout = 'default', onOpenCV }) {
 
           {blocks.map(b => (
             <div className="cv-block" key={b.key}>
-              <h4>{b.title}</h4>
+              <h3>{b.title}</h3>
               {cv[b.key].map((e, i) => (
                 <div className="cv-entry" key={i}>
                   <span className="year">{e.year}</span>
                   <div className="body">
-                    <h5>{emph(t(e.title))}</h5>
+                    <h4>{emph(t(e.title))}</h4>
                     <p>{emph(t(e.role))}</p>
                   </div>
                   <span className="place">{t(e.place)}</span>
