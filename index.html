@@ -7,6 +7,58 @@
     <meta name="description" content="Bilingual personal portfolio." />
     <meta name="theme-color" content="#ebe2c8" />
     <!-- seo-head -->
+    <script>
+      ;(() => {
+        if (window.location.hash) return
+
+        if ('scrollRestoration' in window.history) {
+          window.history.scrollRestoration = 'manual'
+        }
+
+        const userEvents = ['wheel', 'touchstart', 'pointerdown', 'keydown']
+        let active = true
+        let frame = 0
+
+        const reset = () => {
+          if (!active) return
+          cancelAnimationFrame(frame)
+          frame = requestAnimationFrame(() => {
+            if (active && (window.scrollX !== 0 || window.scrollY !== 0)) {
+              window.scrollTo({ top: 0, left: 0, behavior: 'auto' })
+            }
+          })
+        }
+
+        const release = () => {
+          if (!active) return
+          active = false
+          cancelAnimationFrame(frame)
+          window.removeEventListener('scroll', reset)
+          window.removeEventListener('pageshow', reset)
+          window.removeEventListener('load', reset)
+          userEvents.forEach(event => window.removeEventListener(event, release))
+          delete document.documentElement.dataset.initialScroll
+        }
+
+        document.documentElement.dataset.initialScroll = 'locked'
+        window.addEventListener('scroll', reset, { passive: true })
+        window.addEventListener('pageshow', reset)
+        window.addEventListener('load', reset)
+        userEvents.forEach(event =>
+          window.addEventListener(event, release, { once: true, passive: true }),
+        )
+
+        window.__CHEN_INITIAL_SCROLL__ = {
+          isActive: () => active,
+          reset,
+          release,
+        }
+
+        window.scrollTo({ top: 0, left: 0, behavior: 'auto' })
+        reset()
+        window.setTimeout(release, 15000)
+      })()
+    </script>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link

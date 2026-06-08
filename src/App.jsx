@@ -35,6 +35,14 @@ function AppInner({ prerendered = false }) {
     if (prerendered) setHydrationComplete(true)
   }, [prerendered])
 
+  useEffect(() => {
+    if (!hydrationComplete || typeof window === 'undefined') return
+    const frame = window.requestAnimationFrame(() => {
+      window.dispatchEvent(new Event('chen:app-ready'))
+    })
+    return () => window.cancelAnimationFrame(frame)
+  }, [hydrationComplete])
+
   const onJump = useCallback(id => {
     const el = document.getElementById(id)
     if (el) {

@@ -4,28 +4,37 @@ import App from './App.jsx'
 import { languageFromUrl } from './lib/seo.js'
 import './styles.css'
 
-function lockInitialScrollPosition() {
-  if (window.location.hash) return () => {}
+const INITIAL_SCROLL_MIN_MS = 2500
+const INITIAL_SCROLL_SETTLE_MS = 2000
 
-  let cancelled = false
-  let frame = 0
-  const deadline = performance.now() + 1200
-  const userEvents = ['wheel', 'touchstart', 'pointerdown', 'keydown']
-  const cancel = () => {
-    cancelled = true
-    cancelAnimationFrame(frame)
-    userEvents.forEach(event => window.removeEventListener(event, cancel))
-  }
-  const tick = () => {
-    if (cancelled) return
-    window.scrollTo({ top: 0, left: 0, behavior: 'auto' })
-    if (performance.now() < deadline) frame = requestAnimationFrame(tick)
-    else cancel()
-  }
+function waitForEvent(target, event) {
+  if (event === 'load' && document.readyState === 'complete') return Promise.resolve()
+  return new Promise(resolve => target.addEventListener(event, resolve, { once: true }))
+}
 
-  userEvents.forEach(event => window.addEventListener(event, cancel, { once: true, passive: true }))
-  tick()
-  return cancel
+function settleInitialScrollPosition() {
+  const guard = window.__CHEN_INITIAL_SCROLL__
+  if (window.location.hash || !guard) return
+
+  const appReady = waitForEvent(window, 'chen:app-ready')
+  const pageLoaded = waitForEvent(window, 'load')
+  const fontsReady = document.fonts?.ready?.catch(() => {}) || Promise.resolve()
+  const minimumWindow = new Promise(resolve => window.setTimeout(resolve, INITIAL_SCROLL_MIN_MS))
+
+  Promise.all([appReady, pageLoaded, fontsReady]).then(async () => {
+    await Promise.all([
+      minimumWindow,
+      new Promise(resolve => window.setTimeout(resolve, INITIAL_SCROLL_SETTLE_MS)),
+    ])
+    if (!guard.isActive()) return
+    guard.reset()
+    window.requestAnimationFrame(() => {
+      window.requestAnimationFrame(() => {
+        guard.reset()
+        guard.release()
+      })
+    })
+  })
 }
 
 function appTree({ prerendered, initialLang }) {
@@ -37,11 +46,7 @@ function appTree({ prerendered, initialLang }) {
 }
 
 if (typeof document !== 'undefined') {
-  if ('scrollRestoration' in window.history) {
-    window.history.scrollRestoration = 'manual'
-  }
-
-  lockInitialScrollPosition()
+  settleInitialScrollPosition()
 
   const root = document.getElementById('root')
   const prerendered = root.hasChildNodes()

@@ -390,7 +390,10 @@ async function run() {
       `document.readyState === 'complete' && !!document.querySelector('.landing-masthead')`,
       'application shell after scroll restoration reload',
     )
-    await new Promise(resolve => setTimeout(resolve, 500))
+    await new Promise(resolve => setTimeout(resolve, 1600))
+    await evaluate(`window.scrollTo(0, Math.max(900, document.body.scrollHeight * 0.35))`)
+    await waitForExpression(`window.scrollY < 10`, 'late browser scroll restoration reset', 3000)
+    await new Promise(resolve => setTimeout(resolve, 1200))
     const restoredScrollY = await evaluate(`window.scrollY`)
     assert(
       restoredScrollY < 10,
