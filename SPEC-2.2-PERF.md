@@ -1,6 +1,6 @@
 # SPEC · 2.2 性能 + 2.3 无障碍
 
-> 实施状态：图片 B3 + a11y 已完成；字体 A1 与移动端 Lighthouse 复测进入下一 PR。
+> 实施状态：图片 B3 + a11y + 字体 A1 已完成；待移动端 Lighthouse 复测决定是否进入 A2/B1。
 
 > 面向并行实现流的实施规格。格式遵循 `ENGINEERING.md`：诊断 · 工作分解 · 改哪些文件 · 决策（含影响分析）· 不变量 · DoD。
 > 2.2 与 2.3 **合并执行**（互不冲突，可并行）。
@@ -26,7 +26,7 @@
 2. **图片**：主内容图是长边 1800 的 JPG，直发移动端小视口；**无 `srcset`/尺寸/现代格式**，`loading="lazy"` 仅见于 `NowPlaying`/`PreviewFrame`（`Works`/`Photography`/`Journey`/`books`/portrait 都没有）。影响 LCP、传输量、CLS（无尺寸）。
 3. **JS / hydration（次要）**：主包 ~317 kB + 移动端 hydration TBT。预渲染已救了首屏文本的 FCP/LCP，所以这是第三优先。
 
-> 基线审查时仅具备 `prefers-reduced-motion` 的基础处理。当前图片 B3、模态焦点管理、`:focus-visible`、对比度护栏与 reduced-motion 补全已实现；剩余字体 fallback metrics。
+> 基线审查时仅具备 `prefers-reduced-motion` 的基础处理。当前图片 B3、模态焦点管理、`:focus-visible`、对比度护栏、reduced-motion 与字体 A1 已实现。
 
 ## 2. 工作分解 · 2.2 性能
 
@@ -133,18 +133,22 @@
 - **构建守卫**：`check:dist` 绿；产物含 `.avif`/`.webp`（若 B1）；字体子集文件存在（若 A2）。
 - **Lighthouse（移动）**：Perf ≥ 90、a11y ≥ 95、BP ≥ 96、SEO = 100、CLS < 0.1（贴分数）。
 - **CDP smoke**：加一条键盘可达——模态 `打开 → Esc → 焦点归位`；`prefers-reduced-motion` 媒体查询命中时动画弱化。
-- **不回归**：现有 62 测试 + production preview smoke。
+- **不回归**：现有 64 测试 + production preview smoke。
 
 ## 8. Definition of Done
 
 - [x] 图片 B3 + a11y PR 五段门禁全绿（`lint` / `test` / `build` / `check:dist` / `format:check`）+ production CDP smoke。
+- [x] 字体 A1 PR 五段门禁全绿 + production CDP smoke。
 - [ ] 移动端 Lighthouse：**Perf ≥ 90、a11y ≥ 95、BP ≥ 96、SEO = 100、CLS < 0.1**（附分数）。
 - [x] 所有 `<img>` 有显式尺寸/`aspect-ratio` + `alt`；首个内容图 `fetchpriority="high"` 不 lazy、其余 `loading="lazy"`。
-- [ ] 字体仅加载首屏所需字重；关键字重 `preload`；fallback metrics 降 CLS；按决策 A 落地。
+- [x] 字体按实际使用精简字重；Google Fonts 样式表 preload + `noscript` 回退；fallback metrics 降 CLS；按决策 A1 落地。
 - [x] 模态 `role="dialog"`+`aria-modal`+焦点陷阱+归位；`:focus-visible` 可见焦点环。
 - [x] `prefers-reduced-motion` 覆盖全部动效并与 `motion.mode` 协同。
-- [ ] 新依赖（若有）在变更说明写明理由；未违反 §6 任一 INV；不破 hydration。
-- [ ] 文档同步（`CLAUDE.md`/`PLAN.md`/`ENGINEERING.md`/`CODEBASE_ANALYSIS.html`）；写 ENGINEERING §8 变更说明。
+- [x] 未新增依赖；未违反 §6 任一 INV；production smoke 未发现 hydration 回退。
+
+> A1 说明：Google Fonts 返回的实际 WOFF2 URL 会按浏览器 UA/字符集变化，因此本阶段 preload 稳定的字体样式表，不硬编码易失效的字体文件 URL；未新增依赖。
+
+- [x] 文档同步（`PLAN.md` / `SPEC-2.2-PERF.md` / `CODEBASE_ANALYSIS.html`）；INV-8 与通用门禁已在 PR1 写入 `ENGINEERING.md`。
 
 ## 9. 顺序 / 边界
 

@@ -1,7 +1,8 @@
 const FONT_STACKS = {
-  serif: '"Lora", "Noto Serif SC", "Source Han Serif SC", Georgia, serif',
-  sans: '"Manrope", "Noto Sans SC", "PingFang SC", -apple-system, sans-serif',
-  mono: '"IBM Plex Mono", "SF Mono", monospace',
+  serif:
+    '"Lora", "Lora Fallback", "Noto Serif SC", "Noto Serif SC Fallback", "Source Han Serif SC", Georgia, serif',
+  sans: '"Manrope", "Manrope Fallback", "Noto Sans SC", "Noto Sans SC Fallback", "PingFang SC", -apple-system, sans-serif',
+  mono: '"IBM Plex Mono", "IBM Plex Mono Fallback", "SF Mono", monospace',
 }
 
 // typography.personality maps to a default display/body font pairing.
@@ -237,8 +238,9 @@ export function deriveStyleVars(style) {
     '--font-serif': displayFont,
     '--font-sans': bodyFont,
     '--font-mono': FONT_STACKS.mono,
-    '--font-zh-serif': '"Noto Serif SC", "Source Han Serif SC", serif',
-    '--font-zh-sans': '"Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif',
+    '--font-zh-serif': '"Noto Serif SC", "Noto Serif SC Fallback", "Source Han Serif SC", serif',
+    '--font-zh-sans':
+      '"Noto Sans SC", "Noto Sans SC Fallback", "PingFang SC", "Microsoft YaHei", sans-serif',
     '--ease-out': easing.out,
     '--ease-in-out': easing.inOut,
     '--style-motion-duration': `${Math.round(duration)}ms`,
