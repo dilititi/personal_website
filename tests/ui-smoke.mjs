@@ -232,6 +232,11 @@ async function run() {
       assert(clicked, `Could not click ${selector}${text ? ` containing "${text}"` : ''}`)
     }
 
+    const pressKey = async key => {
+      await cdp.send('Input.dispatchKeyEvent', { type: 'keyDown', key, code: key })
+      await cdp.send('Input.dispatchKeyEvent', { type: 'keyUp', key, code: key })
+    }
+
     const setValue = async (selector, value, index = 0) => {
       const changed = await evaluate(`(() => {
         const node = document.querySelectorAll(${JSON.stringify(selector)})[${index}]
@@ -395,6 +400,78 @@ async function run() {
       })()`),
       'The landing masthead name must be visible in the first viewport after load.',
     )
+
+    assert(
+      await evaluate(`(() => {
+        const trigger = document.querySelector('.work-card')
+        if (!trigger) return false
+        trigger.scrollIntoView({ block: 'center' })
+        trigger.focus()
+        trigger.click()
+        return true
+      })()`),
+      'A work card must be available for the dialog accessibility smoke test.',
+    )
+    await waitForExpression(
+      `!!document.querySelector('[role="dialog"][aria-modal="true"]')`,
+      'accessible work dialog',
+    )
+    await waitForExpression(
+      `(() => {
+        const dialog = document.querySelector('[role="dialog"][aria-modal="true"]')
+        return dialog?.contains(document.activeElement)
+      })()`,
+      'dialog focus entry',
+    )
+    await pressKey('Escape')
+    await waitForExpression(`!document.querySelector('.work-modal.open')`, 'work dialog close')
+    assert(
+      await evaluate(`document.activeElement?.classList.contains('work-card')`),
+      'Closing a dialog with Escape must restore focus to its trigger.',
+    )
+
+    await cdp.send('Emulation.setEmulatedMedia', {
+      media: '',
+      features: [{ name: 'prefers-reduced-motion', value: 'reduce' }],
+    })
+    await waitForExpression(
+      `matchMedia('(prefers-reduced-motion: reduce)').matches`,
+      'reduced motion emulation',
+    )
+    await waitForExpression(
+      `(() => {
+        const spotlight = document.querySelector('.cursor-spotlight')
+        const reveal = document.querySelector('[data-reveal]')
+        if (!spotlight || !reveal) return false
+        return getComputedStyle(spotlight).display === 'none'
+          && getComputedStyle(reveal).opacity === '1'
+          && getComputedStyle(reveal).transform === 'none'
+      })()`,
+      'reduced motion styles',
+    )
+    const reducedMotionState = await evaluate(`(() => {
+        const spotlight = document.querySelector('.cursor-spotlight')
+        const reveal = document.querySelector('[data-reveal]')
+        if (!spotlight || !reveal) return null
+        const spotlightStyle = getComputedStyle(spotlight)
+        const revealStyle = getComputedStyle(reveal)
+        return {
+          spotlightDisplay: spotlightStyle.display,
+          revealOpacity: revealStyle.opacity,
+          revealTransform: revealStyle.transform,
+        }
+      })()`)
+    assert.deepEqual(
+      reducedMotionState,
+      {
+        spotlightDisplay: 'none',
+        revealOpacity: '1',
+        revealTransform: 'none',
+      },
+      'System reduced-motion preference must disable spotlight and reveal transforms.',
+    )
+    await cdp.send('Emulation.setEmulatedMedia', { media: '', features: [] })
+
     assert.equal(
       await evaluate(
         `localStorage.getItem(${JSON.stringify(CONTENT_SAVED_KEY)}) || localStorage.getItem(${JSON.stringify(STYLE_SAVED_KEY)})`,
@@ -614,7 +691,7 @@ async function run() {
     }
 
     console.log(
-      `UI smoke tests passed${PREVIEW_MODE ? ' against prerendered production output' : ''}: runtime SEO localization, landing scroll reset, legacy migration, storage failure feedback, editors, refresh-safe timestamps, save/reset, templates, preset linkage, drag order, path audit, and exports.`,
+      `UI smoke tests passed${PREVIEW_MODE ? ' against prerendered production output' : ''}: runtime SEO localization, landing scroll reset, dialog focus restoration, reduced motion, legacy migration, storage failure feedback, editors, refresh-safe timestamps, save/reset, templates, preset linkage, drag order, path audit, and exports.`,
     )
   } finally {
     try {

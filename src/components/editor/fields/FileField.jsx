@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react'
-import { fileToDataUrl, resizeImage } from '../../../utils.js'
+import { createResponsiveImageVariants, fileToDataUrl, resizeImage } from '../../../utils.js'
+import { RESPONSIVE_IMAGE_WIDTHS, responsiveUploadFilename } from '../../../lib/images.js'
 import { FILE_IMAGE_TEMPLATES } from '../contentPresets.js'
 
 // Uploads POST to /api/upload, a dev-only Vite middleware (see vite.config.js).
@@ -79,32 +80,57 @@ export function FileField({
     }
     setBusy(true)
     const isImage = pendingFile.type.startsWith('image/')
-    setStatusMsg(isImage ? '压缩 + 上传中...' : '上传中...')
+    setStatusMsg(isImage ? '生成响应式图片 + 上传中...' : '上传中...')
     try {
-      // Auto-resize images (long edge 1800px, JPEG 0.85). Audio/PDF go through as-is.
-      const dataUrl = isImage
-        ? await resizeImage(pendingFile, 1800, 0.85)
-        : await fileToDataUrl(pendingFile)
-      // Force .jpg extension on resized JPEGs to match what canvas produced.
-      let finalFilename = filename
-      if (isImage && dataUrl.startsWith('data:image/jpeg') && !/\.(jpe?g)$/i.test(filename)) {
-        finalFilename = filename.replace(/\.[^.]+$/, '') + '.jpg'
+      const upload = async (uploadFilename, dataUrl) => {
+        const response = await fetch('/api/upload', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ subfolder, filename: uploadFilename, dataUrl }),
+        })
+        const result = await response.json()
+        if (!response.ok || !result.ok) {
+          throw new Error(result.error || response.statusText)
+        }
+        return result
       }
-      const r = await fetch('/api/upload', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ subfolder, filename: finalFilename, dataUrl }),
-      })
-      const json = await r.json()
-      if (!r.ok || !json.ok) {
-        setStatus('error')
-        setStatusMsg(`上传失败：${json.error || r.statusText}`)
-        setBusy(false)
-        return
+
+      const variants = isImage
+        ? await createResponsiveImageVariants(pendingFile, RESPONSIVE_IMAGE_WIDTHS, 0.85)
+        : []
+      let saved
+      let totalSize = 0
+
+      if (variants.length) {
+        const results = []
+        for (const variant of variants) {
+          const result = await upload(
+            responsiveUploadFilename(filename, variant.width, variant.extension),
+            variant.dataUrl,
+          )
+          results.push(result)
+          totalSize += result.size || 0
+        }
+        saved = results.at(-1)
+      } else {
+        const dataUrl = isImage
+          ? await resizeImage(pendingFile, 1800, 0.85)
+          : await fileToDataUrl(pendingFile)
+        let finalFilename = filename
+        if (isImage && dataUrl.startsWith('data:image/jpeg') && !/\.(jpe?g)$/i.test(filename)) {
+          finalFilename = filename.replace(/\.[^.]+$/, '') + '.jpg'
+        }
+        saved = await upload(finalFilename, dataUrl)
+        totalSize = saved.size || 0
       }
-      onChange(json.path)
+
+      onChange(saved.path)
       setStatus('ok')
-      setStatusMsg(`✓ 已保存到 public${json.path}（${(json.size / 1024).toFixed(1)} KB）`)
+      setStatusMsg(
+        variants.length
+          ? `✓ 已生成 ${variants.length} 个响应式尺寸并保存到 public/${subfolder}/（${(totalSize / 1024).toFixed(1)} KB）`
+          : `✓ 已保存到 public${saved.path}（${(totalSize / 1024).toFixed(1)} KB）`,
+      )
       // Clear staged file
       setPendingFile(null)
       if (previewUrl) {
@@ -196,7 +222,17 @@ export function FileField({
               />
             </span>
           </div>
-          {previewUrl && !isAudio && <img className="ce-file-preview" src={previewUrl} alt="" />}
+          {previewUrl && !isAudio && (
+            <img
+              className="ce-file-preview"
+              src={previewUrl}
+              alt=""
+              width="200"
+              height="200"
+              loading="lazy"
+              decoding="async"
+            />
+          )}
           <div className="ce-file-stage-actions">
             <button
               type="button"

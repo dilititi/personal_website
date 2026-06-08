@@ -80,6 +80,51 @@ function mixHex(a, b, amount) {
   })
 }
 
+function relativeLuminance(hex) {
+  const { r, g, b } = hexToRgb(hex)
+  const channels = [r, g, b].map(value => {
+    const channel = value / 255
+    return channel <= 0.04045 ? channel / 12.92 : ((channel + 0.055) / 1.055) ** 2.4
+  })
+  return channels[0] * 0.2126 + channels[1] * 0.7152 + channels[2] * 0.0722
+}
+
+export function contrastRatio(foreground, background) {
+  const a = relativeLuminance(foreground)
+  const b = relativeLuminance(background)
+  const lighter = Math.max(a, b)
+  const darker = Math.min(a, b)
+  return (lighter + 0.05) / (darker + 0.05)
+}
+
+function ensureContrast(foreground, background, minimum = 4.5) {
+  const normalized = normalizeHex(foreground)
+  if (contrastRatio(normalized, background) >= minimum) return normalized
+
+  const target =
+    contrastRatio('#000000', background) >= contrastRatio('#ffffff', background)
+      ? '#000000'
+      : '#ffffff'
+  let low = 0
+  let high = 1
+  for (let i = 0; i < 12; i += 1) {
+    const amount = (low + high) / 2
+    if (contrastRatio(mixHex(normalized, target, amount), background) >= minimum) {
+      high = amount
+    } else {
+      low = amount
+    }
+  }
+  return mixHex(normalized, target, high)
+}
+
+function ensureContrastOnSurfaces(foreground, surfaces) {
+  return surfaces.reduce(
+    (candidate, surface) => ensureContrast(candidate, surface),
+    normalizeHex(foreground),
+  )
+}
+
 function rgba(hex, alpha) {
   const { r, g, b } = hexToRgb(hex)
   return `rgba(${r}, ${g}, ${b}, ${clamp(alpha).toFixed(2)})`
@@ -101,8 +146,8 @@ export function deriveStyleVars(style) {
   const tempAmount = Math.abs(temperature) * 0.06
   const background = mixHex(normalizeHex(color.background, '#ebe2c8'), tempTint, tempAmount)
   const surface = mixHex(normalizeHex(color.surface, '#e0d6ba'), tempTint, tempAmount)
-  const text = normalizeHex(color.text, '#1a1814')
-  const muted = normalizeHex(color.muted, '#5e574b')
+  const text = ensureContrastOnSurfaces(color.text || '#1a1814', [background, surface])
+  const muted = ensureContrastOnSurfaces(color.muted || '#5e574b', [background, surface])
   const primary = normalizeHex(color.primary, '#3a7a82')
   const secondary = normalizeHex(color.secondary, '#b8924a')
   const contrast = clamp(color.contrast ?? 0.72)
@@ -170,6 +215,9 @@ export function deriveStyleVars(style) {
   const glassBlur = Math.round(glass * 18 + blur * 0.45)
   const glassAlpha = 0.02 + glass * 0.2
 
+  const softText = ensureContrastOnSurfaces(mixHex(text, background, 0.18), [background, surface])
+  const faintText = ensureContrastOnSurfaces(mixHex(muted, background, 0.38), [background, surface])
+
   return {
     '--ink-void': background,
     '--ink-deep': surface,
@@ -177,9 +225,9 @@ export function deriveStyleVars(style) {
     '--ink-line': mixHex(surface, text, 0.12 + effectiveContrast * 0.1),
     '--ink-haze': mixHex(surface, text, 0.22 + effectiveContrast * 0.14),
     '--cream': text,
-    '--cream-soft': mixHex(text, background, 0.18),
+    '--cream-soft': softText,
     '--cream-mute': muted,
-    '--cream-faint': mixHex(muted, background, 0.38),
+    '--cream-faint': faintText,
     '--ember': primary,
     '--ember-hot': mixHex(primary, text, 0.08),
     '--ember-glow': rgba(primary, 0.12 + saturation * 0.14),

@@ -323,11 +323,34 @@ body[data-style-alignment='loose'] .section-title em {
   margin-top: 8px;
 }
 
+:where(a, button, input, select, textarea, [tabindex]):focus-visible {
+  outline: 2px solid var(--ember) !important;
+  outline-offset: 3px;
+}
+
 @media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto !important;
+  }
+
   body[data-motion] * {
     animation-duration: 0.001s !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.001s !important;
     scroll-behavior: auto !important;
+  }
+
+  .cursor-spotlight {
+    display: none !important;
+  }
+
+  [data-reveal] {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+
+  .landing-grid,
+  .landing-signal {
+    transform: none !important;
   }
 }

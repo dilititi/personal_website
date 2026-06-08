@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react'
 import { useLang } from '../lang.jsx'
 import { useData } from '../data-context.jsx'
 import { emph } from '../hooks.jsx'
+import { responsiveImageAttributes } from '../lib/images.js'
 
 export default function Journey({ layout = 'default' }) {
   const { lang, t } = useLang()
@@ -24,7 +25,14 @@ export default function Journey({ layout = 'default' }) {
     const reel = reelRef.current
     if (!reel) return
     const el = reel.querySelector(`[data-frame-id="${active}"]`)
-    if (el) el.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' })
+    if (el) {
+      const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+      el.scrollIntoView({
+        behavior: reducedMotion ? 'auto' : 'smooth',
+        inline: 'center',
+        block: 'nearest',
+      })
+    }
   }, [active])
 
   const chapters = {
@@ -58,9 +66,19 @@ export default function Journey({ layout = 'default' }) {
               key={n.id}
               data-frame-id={n.id}
               className={`reel-frame ${active === n.id ? 'active' : ''} ${n.image ? 'has-image' : ''}`}
-              style={n.image ? { backgroundImage: `url(${n.image})` } : undefined}
               onClick={() => setActive(n.id)}
             >
+              {n.image && (
+                <img
+                  {...responsiveImageAttributes(n.image, '240px')}
+                  className="reel-frame-media"
+                  alt=""
+                  width="720"
+                  height="960"
+                  loading="lazy"
+                  decoding="async"
+                />
+              )}
               <div className="reel-frame-inner">
                 <div className="reel-frame-num">FRAME {String(i + 1).padStart(2, '0')}</div>
                 <div className="reel-frame-year">{n.year}</div>

@@ -16,6 +16,7 @@ npm run test:watch  # Vitest watch mode
 npm run test:ui     # headless Chrome/Edge CDP smoke test
 npm run test:ui:preview # same smoke against built/prerendered dist/
 npm run lint        # ESLint
+npm run check:dist  # reject React server renderer references in dist/
 npm run format:check # Prettier verification
 ```
 

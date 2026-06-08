@@ -2,9 +2,10 @@ import React from 'react'
 import { useLang } from '../lang.jsx'
 import { useData } from '../data-context.jsx'
 import { emph } from '../hooks.jsx'
+import { responsiveImageAttributes } from '../lib/images.js'
 
 export default function About({ layout = 'default', onOpenCV }) {
-  const { t } = useLang()
+  const { lang, t } = useLang()
   const { ABOUT, SITE, TEXTS, isModuleEnabled } = useData()
   const TA = TEXTS.about
   const cv = ABOUT.cv
@@ -37,8 +38,17 @@ export default function About({ layout = 'default', onOpenCV }) {
             <div className="portrait">
               {SITE.portrait && (
                 <img
-                  src={SITE.portrait}
-                  alt="portrait"
+                  {...responsiveImageAttributes(SITE.portrait, '(max-width: 720px) 82vw, 320px')}
+                  alt={
+                    lang === 'zh'
+                      ? `${t(SITE.nameFull)}的个人肖像`
+                      : `Portrait of ${t(SITE.nameFull)}`
+                  }
+                  width="800"
+                  height="1000"
+                  loading="eager"
+                  fetchPriority="high"
+                  decoding="async"
                   onError={e => {
                     e.currentTarget.style.display = 'none'
                   }}

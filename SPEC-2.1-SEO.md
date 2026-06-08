@@ -108,7 +108,7 @@
 
 ## 6. Definition of Done（2.1a）
 
-- [x] `npm run lint && npm test && npm run build && npm run format:check` 全绿；10 个文件 / 49 项测试通过。
+- [x] `npm run lint && npm test && npm run build && npm run check:dist && npm run format:check` 全绿；11 个文件 / 51 项测试通过。
 - [x] `dist/index.html` 的 `<head>` 含 SITE 派生的 title/description/`og:*`/`twitter:*`/theme-color/robots；`SITE.url` 非空时追加 canonical/`og:url`。
 - [x] `dist/robots.txt`、`dist/sitemap.xml` 存在，URL 由 `SITE.url` 派生；空 URL 时不产生假地址。
 - [x] 运行时切语言：`document.title` 与 `description`/`og:*` 同步更新，**无重复 meta 标签**。
@@ -144,7 +144,7 @@
 - **动机**：落实 Phase 2.1a，使 CSR 模板具备静态分享元数据、运行时双语 head 和搜索引擎发现资源。
 - **文件**：新增 `seo.js`、`useDocumentHead.js`、SEO 单测与 `public/robots.txt`；同步 `SITE.url`/schema；在 `vite.config.js` 注入 head 并生成 robots/sitemap；更新架构与使用文档。
 - **不变量**：新增 INV-11；满足 INV-2、INV-4、INV-7、INV-8、INV-9 与显式 ESM 扩展名约定。
-- **验证**：当前全量 49 项 Vitest、build、format、CDP smoke 全绿；产物字符串断言通过；移动端 Lighthouse SEO 100。
+- **验证**：当前全量 51 项 Vitest、build、`check:dist`、format、CDP smoke 全绿；产物字符串断言通过；移动端 Lighthouse SEO 100。
 - **边界**：仓库按模板策略保留 `SITE.url = ''`，因此真实 canonical/OG URL 与外部分享调试在部署配置后验证。
 
 ### 2.1b
@@ -153,4 +153,11 @@
 - **文件**：新增独立 `prerender.jsx` 与 prerender/lang 测试；改造浏览器入口、App/provider 首帧、语言/时钟/播放器恢复；Vite 输出三条静态路由并清理构建专用 chunk；CDP smoke 增加 production preview 模式。
 - **依赖理由**：`vite-prerender-plugin` 仅在 build 期调用项目自有 `prerender()`，不进入浏览器可达资源，产物仍可部署到任意静态托管。
 - **不变量**：满足 INV-4、INV-6、INV-8、INV-9、INV-11；Provider 公共 API 与 localStorage key 均未改变。
-- **验证**：49 项 Vitest、lint、build、dev CDP smoke、production CDP smoke 全绿；构建产物正文/路由/资源清单逐项检查通过；移动端 Lighthouse 相对 CSR 对照 Performance 58 → 61、SEO 100 → 100。
+- **验证**：51 项 Vitest、lint、build、`check:dist`、dev CDP smoke、production CDP smoke 全绿；构建产物正文/路由/资源清单逐项检查通过；移动端 Lighthouse 相对 CSR 对照 Performance 58 → 61、SEO 100 → 100。
+
+### 2.1b 构建护栏补充
+
+- **动机**：把 `check:dist` 从易被删除的 CI step 提升为 INV-8 的自动化执行手段，防止 React server renderer 再次泄漏进浏览器产物。
+- **文件**：`ENGINEERING.md` 固化不变量与 DoD；`CLAUDE.md`、`PLAN.md`、`CODEBASE_ANALYSIS.html` 与本规格同步命令、测试数量和 CI 顺序。
+- **不变量**：强化 INV-8；保留并行实现流的既定合并顺序 **b-1 → b-0 → b-2**。
+- **验证（2026-06-07）**：五段门禁、production preview CDP smoke 全绿；移动端 Lighthouse 为 Performance 57、Accessibility 90、Best Practices 96、SEO 100，FCP/LCP 8.1s、TBT 0ms、CLS 0。

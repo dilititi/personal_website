@@ -2993,10 +2993,16 @@ body.cursor-active .cursor-spotlight {
   border-color: var(--cream-mute);
 }
 .reel-frame.has-image {
-  background-size: cover;
-  background-position: center;
   background-color: var(--ink-soft);
   filter: none;
+}
+.reel-frame-media {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: 0;
 }
 .reel-frame.has-image .reel-frame-inner {
   background: linear-gradient(to bottom, rgba(14, 15, 19, 0.2), rgba(14, 15, 19, 0.85));
@@ -3028,6 +3034,8 @@ body.cursor-active .cursor-spotlight {
     0 20px 40px rgba(212, 74, 58, 0.15);
 }
 .reel-frame-inner {
+  position: relative;
+  z-index: 1;
   flex: 1;
   padding: 24px 20px;
   display: flex;
@@ -3082,6 +3090,7 @@ html[lang='zh'] .reel-frame-label {
   font-style: italic;
   font-size: 14px;
   color: var(--cream-faint);
+  z-index: 1;
 }
 
 .reel-audiostrip {
