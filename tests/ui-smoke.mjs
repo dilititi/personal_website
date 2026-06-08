@@ -373,7 +373,11 @@ async function run() {
         'English prerender must hydrate without recoverable errors.',
       )
     }
-    await new Promise(resolve => setTimeout(resolve, 300))
+    await waitForExpression(
+      `document.body.scrollHeight > window.innerHeight + 1000`,
+      'hydrated page scroll range',
+      10000,
+    )
     await evaluate(`window.scrollTo(0, document.body.scrollHeight * 0.45)`)
     await waitForExpression(`window.scrollY > 500`, 'scroll away from landing')
     await evaluate(`location.reload()`)
