@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict'
+import { resolve } from 'node:path'
 import { describe, it } from 'vitest'
 import {
   buildDiscoveryFiles,
@@ -45,7 +46,12 @@ describe('SEO build plugin helpers', () => {
   })
 
   it('removes prerender-only chunks while retaining browser-reachable lazy chunks', () => {
-    const prerenderPath = 'C:/repo/src/prerender.jsx'
+    // Build OS-absolute facadeModuleIds the way vite/rollup does, so the
+    // plugin's resolve(prerenderScript) match works on Windows AND POSIX. A
+    // hardcoded 'C:/...' literal is absolute on Windows but RELATIVE on Linux,
+    // where resolve() prepends the cwd and the entry match silently fails.
+    const srcDir = resolve('src')
+    const prerenderPath = resolve(srcDir, 'prerender.jsx')
     const bundle = {
       'prerender.js': {
         type: 'chunk',
@@ -55,19 +61,19 @@ describe('SEO build plugin helpers', () => {
       },
       'main.js': {
         type: 'chunk',
-        facadeModuleId: 'C:/repo/src/main.jsx',
+        facadeModuleId: resolve(srcDir, 'main.jsx'),
         imports: ['App.js'],
         dynamicImports: [],
       },
       'App.js': {
         type: 'chunk',
-        facadeModuleId: 'C:/repo/src/App.jsx',
+        facadeModuleId: resolve(srcDir, 'App.jsx'),
         imports: [],
         dynamicImports: ['Editor.js'],
       },
       'Editor.js': {
         type: 'chunk',
-        facadeModuleId: 'C:/repo/src/components/ContentEditor.jsx',
+        facadeModuleId: resolve(srcDir, 'components/ContentEditor.jsx'),
         imports: [],
         dynamicImports: [],
       },

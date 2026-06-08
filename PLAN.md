@@ -19,6 +19,10 @@
 | 首次载入滚动位置          | ✅ 已修复 | 无 hash 的载入 / 刷新禁用浏览器滚动恢复并回到 `landing-masthead`；浏览器 smoke 已覆盖                |
 | GitHub Actions            | ✅ 已完成 | `.github/workflows/ci.yml` 已执行 install → lint → test → build → check:dist → format                |
 
+> **2026-06-08 · Phase 2 收口于 `codex/perf-font-a1`**：该分支是 `codex/perf-images-a11y`（图片 B3 + 无障碍）的线性超集，再叠加字体 A1，因此合并进单一 PR，旧 PR 关闭。
+>
+> **CI 跨平台修复（本提交）**：`tests/seoPlugin.test.js` 原先硬编码 `'C:/repo/src/prerender.jsx'` 作为预渲染入口路径——它在 Windows 上是绝对路径（本地常绿），在 Linux 上却是**相对**路径，`resolve()` 会拼上 cwd，导致 `prerenderArtifactCleanupPlugin` 的入口匹配失败、不再删除 `prerender.js` / `server.edge.js`，于是只有 GitHub Actions（Linux）报红。已改为用 `path.resolve('src', …)` 生成随平台正确的绝对 `facadeModuleId`，与生产构建（`vite.config.js` 的 `resolve(process.cwd(), 'src/prerender.jsx')`）保持一致；**插件实现未改动**，仅修正测试夹具。
+
 ### 当前稳定边界
 
 - 保留现有 `persist.js`、`section-registry.js` 与两个 context 的职责边界，不为已解决的问题再次重写底层。
