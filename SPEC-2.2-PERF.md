@@ -1,6 +1,6 @@
 # SPEC · 2.2 性能 + 2.3 无障碍
 
-> 实施状态：图片 B3 + a11y + 字体 A1 已完成；待移动端 Lighthouse 复测决定是否进入 A2/B1。
+> 实施状态：✅ 完成。图片 B3 + a11y + 字体 A1 已落地并通过移动端 Lighthouse；Performance 98，因此不进入 A2/B1。
 
 > 面向并行实现流的实施规格。格式遵循 `ENGINEERING.md`：诊断 · 工作分解 · 改哪些文件 · 决策（含影响分析）· 不变量 · DoD。
 > 2.2 与 2.3 **合并执行**（互不冲突，可并行）。
@@ -8,15 +8,15 @@
 
 ## 0. 目标与现状
 
-移动端 Lighthouse 基线：**Performance 57 · Accessibility 90 · Best Practices 96 · SEO 100**。
+移动端 Lighthouse 初始基线：**Performance 57 · Accessibility 90 · Best Practices 96 · SEO 100**。2026-06-08 最终验收：**Performance 98 · Accessibility 100 · Best Practices 96 · SEO 100 · CLS 0.001**。
 
-| 指标                | 现在 | 目标      |
-| ------------------- | ---- | --------- |
-| Performance（移动） | 57   | **≥ 90**  |
-| Accessibility       | 90   | **≥ 95**  |
-| Best Practices      | 96   | 维持 ≥ 96 |
-| SEO                 | 100  | 维持 100  |
-| CLS                 | 未测 | **< 0.1** |
+| 指标                | 初始 | 最终      | 目标      |
+| ------------------- | ---- | --------- | --------- |
+| Performance（移动） | 57   | **98**    | **≥ 90**  |
+| Accessibility       | 90   | **100**   | **≥ 95**  |
+| Best Practices      | 96   | **96**    | 维持 ≥ 96 |
+| SEO                 | 100  | **100**   | 维持 100  |
+| CLS                 | 未测 | **0.001** | **< 0.1** |
 
 硬约束：`npm run check:dist` 保持绿（INV-8 纯静态）；不破 hydration（复用 `prerendered`/`loadOnMount`，SSR 首帧与 client 首帧的 `<img>`/属性必须一致）。
 
@@ -133,13 +133,13 @@
 - **构建守卫**：`check:dist` 绿；产物含 `.avif`/`.webp`（若 B1）；字体子集文件存在（若 A2）。
 - **Lighthouse（移动）**：Perf ≥ 90、a11y ≥ 95、BP ≥ 96、SEO = 100、CLS < 0.1（贴分数）。
 - **CDP smoke**：加一条键盘可达——模态 `打开 → Esc → 焦点归位`；`prefers-reduced-motion` 媒体查询命中时动画弱化。
-- **不回归**：现有 64 测试 + production preview smoke。
+- **不回归**：现有 68 测试 + production preview smoke。
 
 ## 8. Definition of Done
 
 - [x] 图片 B3 + a11y PR 五段门禁全绿（`lint` / `test` / `build` / `check:dist` / `format:check`）+ production CDP smoke。
 - [x] 字体 A1 PR 五段门禁全绿 + production CDP smoke。
-- [ ] 移动端 Lighthouse：**Perf ≥ 90、a11y ≥ 95、BP ≥ 96、SEO = 100、CLS < 0.1**（附分数）。
+- [x] 移动端 Lighthouse：**Perf 98、a11y 100、BP 96、SEO 100、CLS 0.001**；FCP 1.8s、LCP 1.9s、TBT 110ms。
 - [x] 所有 `<img>` 有显式尺寸/`aspect-ratio` + `alt`；首个内容图 `fetchpriority="high"` 不 lazy、其余 `loading="lazy"`。
 - [x] 字体按实际使用精简字重；Google Fonts 样式表 preload + `noscript` 回退；fallback metrics 降 CLS；按决策 A1 落地。
 - [x] 模态 `role="dialog"`+`aria-modal`+焦点陷阱+归位；`:focus-visible` 可见焦点环。
@@ -152,7 +152,7 @@
 
 ## 9. 顺序 / 边界
 
-- **第 1 步（零依赖、立即见效）**：图片尺寸/`lazy`/`fetchpriority`/`srcset` + 字体字重瘦身/`preload`/fallback metrics + a11y（模态焦点、focus-visible、alt、reduced-motion 补全）。→ **量一次 Lighthouse**。
-- **第 2 步（按测量结果）**：若 Perf 未到 90，再上**决策 A2（自动子集字体）**和/或 **B1（构建期图片管线）**冲刺。
+- **第 1 步（已完成）**：图片尺寸/`lazy`/`fetchpriority`/`srcset` + 字体字重瘦身/`preload`/fallback metrics + a11y（模态焦点、focus-visible、alt、reduced-motion 补全）。
+- **第 2 步（测量结论）**：Perf 98，未触发 **A2（自动子集字体）** / **B1（构建期图片管线）**；仅在未来真实指标回退时重启评估。
 - a11y 与 perf 并行。**不动**数据/风格层核心逻辑、不改 `useData`/`useStyle` API、不引运行时依赖。
 - 建议小步多 PR：①图片通用动作 ②字体通用动作 ③a11y ④（如需）A2/B1 依赖冲刺——每步各自过门禁。

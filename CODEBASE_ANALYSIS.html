@@ -146,7 +146,7 @@
 
 <h3>5.7 Add a minimal test net <span class="tag done">Done</span></h3>
 <div class="step">
-  <p class="why">Vitest 4 runs 64 tests across persistence, deep merge, module normalization, section registry/parity, export round-trip, validation, language initialization, SEO derivation/build output, prerender contracts, responsive images, font loading, style contrast, and the client-bundle audit. ESLint, Prettier, production build, the test suite, and <code>check:dist</code> run in GitHub Actions; CDP smoke covers both dev and prerendered production behavior.</p>
+  <p class="why">Vitest 4 runs 68 tests across persistence, deep merge, module normalization, section registry/parity, export round-trip, validation, language initialization, SEO derivation/build output, prerender contracts, responsive images, font loading, style contrast, accessibility contracts, and the client-bundle audit. ESLint, Prettier, production build, the test suite, and <code>check:dist</code> run in GitHub Actions; CDP smoke covers both dev and prerendered production behavior.</p>
 </div>
 
 <h3>5.8 Sunset the legacy migration shims <span class="tag plan">Scheduled</span></h3>
@@ -159,8 +159,8 @@
 <ul class="ex">
   <li><b>Persistence:</b> shared snapshots prevent StrictMode mount writes; failed writes preserve <code>isDirty</code>; editors expose saving and unsaved states.</li>
   <li><b>Data registry:</b> runtime sections derive from uppercase non-function exports and are protected by an exact contract/parity test.</li>
-  <li><b>Toolchain:</b> Vite 8 + Vitest 4 install and run together; lint, 64 tests, build, client-bundle audit, format, dev smoke, and production hydration smoke are verified.</li>
-  <li><b>SEO/SSG:</b> Mobile Lighthouse SEO remains 100; the prerendered build scored Performance 61 versus 58 for an otherwise equivalent CSR control (FCP/LCP 5.6s/5.6s versus 7.0s/7.2s).</li>
+  <li><b>Toolchain:</b> Vite 8 + Vitest 4 install and run together; lint, 68 tests, build, client-bundle audit, format, dev smoke, and production hydration smoke are verified.</li>
+  <li><b>Performance/SEO:</b> The 2026-06-08 mobile Lighthouse run scored Performance 98, Accessibility 100, Best Practices 96, and SEO 100, with FCP 1.8s, LCP 1.9s, TBT 110ms, and CLS 0.001.</li>
   <li><b>Modules:</b> relative ESM imports consistently include file extensions.</li>
   <li><b>Migration:</b> legacy reading/photo keys are read-only, cleaned after migration, and have a dated removal target.</li>
 </ul>
