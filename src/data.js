@@ -13,8 +13,8 @@ export function pick(v, lang) {
 }
 
 export const SITE = {
-  url: '', // 部署时填真实域名
-  portrait: '',
+  url: 'https://personal-website-x3u4.onrender.com', // 生产域名：canonical / og:url / sitemap 的唯一来源
+  portrait: '/picture/miles.jpg', // Landing 肖像 + og:image / twitter:image
   name: L('CHEN', '陈'),
   nameRight: L('A.', '安'),
   nameFull: L('Chen A.', '陈安'),

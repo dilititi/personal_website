@@ -18,6 +18,7 @@
 | 2.2 编辑器懒加载          | ✅ 已完成 | `ContentEditor` / `StyleEditor` 使用 `React.lazy`；构建产出两个编辑器独立 chunk                      |
 | 首次载入滚动位置          | ✅ 已修复 | 无 hash 的载入 / 刷新禁用浏览器滚动恢复并回到 `landing-masthead`；浏览器 smoke 已覆盖                |
 | GitHub Actions            | ✅ 已完成 | `.github/workflows/ci.yml` 已执行 install → lint → test → build → check:dist → format                |
+| 2.4 部署上线              | 🚧 进行中 | 见 `SPEC-2.4-DEPLOY.md`；填 `SITE.url` + 根域托管后 SEO/SSG 才真实生效                               |
 
 > **2026-06-08 · Phase 2 收口于 `codex/perf-font-a1`**：该分支是 `codex/perf-images-a11y`（图片 B3 + 无障碍）的线性超集，再叠加字体 A1，因此合并进单一 PR，旧 PR 关闭。
 >
@@ -131,7 +132,15 @@
 - ✅ 模态具备 `role="dialog"` + `aria-modal` + 焦点陷阱/关闭归位；`:focus-visible`、图片 `alt`、全部风格预设正文 token ≥ 4.5:1 已由代码与测试覆盖。
 - ✅ `prefers-reduced-motion` 现在覆盖 reveal、CursorSpotlight 与平滑滚动，production CDP smoke 验证系统 reduce 优先。
 
-**Phase 2 退出标准**：✅ 已满足。Lighthouse 全部达标；编辑器不再拖累访客首屏。
+### 2.4 部署上线（让 SEO 真正生效）〔进行中〕
+
+完整 runbook 与验收见 [`SPEC-2.4-DEPLOY.md`](./SPEC-2.4-DEPLOY.md)。
+
+- **为何单列**：2.1 的 SEO/SSG 代码已就绪，但 `SITE.url=''` 时 canonical / og:url / hreflang / sitemap / og:image 全为空——**SEO 的真实价值要等部署 + 填 `SITE.url` 后才成立**。
+- **关键动作**：选根域托管（Cloudflare Pages / Netlify / Vercel，或 GitHub Pages + 自定义域）→ 填 `SITE.url`（+ 一张 1200×630 的 `og-cover.jpg`）→ OG 调试器 + Search Console 验证。
+- **关键约束**：保持 `base='/'`；避免 GitHub Pages 项目站子路径（会打断 `data.js` 里的 `/picture` 等绝对媒体路径，见 spec §4）。
+
+**Phase 2 退出标准**：质量项 ✅ 已满足（Lighthouse 全达标、编辑器不拖累首屏）；**「被看见」以 2.4 部署上线为最终前提**。
 
 ---
 
@@ -203,8 +212,9 @@
 
 下一步建议顺序：
 
-1. 决定 Phase 3 持久化采用静态托管增强、轻后端还是第三方内容源。
-2. 保留当前 Lighthouse 98 / 100 / 96 / 100 / CLS 0.001 作为性能回归基线；低于门槛时再评估 A2/B1。
-3. 2026-12-31 后删除两个旧 localStorage 迁移垫片。
+1. **部署上线 + 填 `SITE.url`（进行中）**：见 `SPEC-2.4-DEPLOY.md`，让 Phase 2 的 SEO/SSG 真实生效、可被 OG 调试器与 Search Console 验证。
+2. 决定 Phase 3 持久化采用静态托管增强、轻后端还是第三方内容源（推荐路径 A：浏览器内 GitHub OAuth 提交）。
+3. 保留当前 Lighthouse 98 / 100 / 96 / 100 / CLS 0.001 作为性能回归基线；低于门槛时再评估 A2/B1。
+4. 2026-12-31 后删除两个旧 localStorage 迁移垫片。
 
 > 每一步的具体「改哪些文件、满足哪些不变量、Definition of Done」见 `ENGINEERING.md`。
