@@ -378,7 +378,12 @@ async function run() {
       'hydrated page scroll range',
       10000,
     )
-    await evaluate(`window.scrollTo(0, document.body.scrollHeight * 0.45)`)
+    await evaluate(`new Promise(resolve => {
+      window.dispatchEvent(new WheelEvent('wheel', { deltaY: 120 }))
+      const target = document.querySelector('#works') || document.querySelector('main section:nth-of-type(2)')
+      target?.scrollIntoView({ block: 'start', behavior: 'instant' })
+      requestAnimationFrame(() => resolve(window.scrollY))
+    })`)
     await waitForExpression(`window.scrollY > 500`, 'scroll away from landing')
     await evaluate(`location.reload()`)
     await waitForExpression(
