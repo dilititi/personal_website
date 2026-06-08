@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react'
 import { useLang } from '../lang.jsx'
 import { useData } from '../data-context.jsx'
-import { Stars } from '../hooks.jsx'
+import { Stars, useFocusTrap } from '../hooks.jsx'
 import { useNP } from '../np-context.jsx'
+import { responsiveImageAttributes } from '../lib/images.js'
 
 const LEGACY_LOG_STORAGE_KEY = 'chen.readingLog.userEntries'
 // Compatibility shim for pre-unified storage. Remove after 2026-12-31.
@@ -99,8 +100,12 @@ function Bookshelf() {
             {b.coverImg && (
               <img
                 className="book-cover-img"
-                src={b.coverImg}
-                alt=""
+                {...responsiveImageAttributes(b.coverImg, '(max-width: 720px) 44vw, 220px')}
+                alt={`${t(b.title)} — ${b.author}`}
+                width="400"
+                height="600"
+                loading="lazy"
+                decoding="async"
                 onError={e => {
                   e.currentTarget.style.display = 'none'
                 }}
@@ -108,7 +113,9 @@ function Bookshelf() {
             )}
             <div className="spine"></div>
             <div className="label" style={{ color: b.text }}>
-              <h5 style={{ color: b.text }}>{t(b.title)}</h5>
+              <div className="book-cover-title" style={{ color: b.text }}>
+                {t(b.title)}
+              </div>
               <span className="author" style={{ color: b.text, opacity: 0.7 }}>
                 {b.author}
               </span>
@@ -123,7 +130,9 @@ function Bookshelf() {
           {hovered === i && (
             <div className="book-block" data-col={i % 5}>
               <div className="bb-cover" style={{ background: b.color, color: b.text }}>
-                <h5 style={{ color: b.text }}>{t(b.title)}</h5>
+                <div className="bb-cover-title" style={{ color: b.text }}>
+                  {t(b.title)}
+                </div>
                 <span className="bb-cover-auth" style={{ color: b.text, opacity: 0.7 }}>
                   {b.author}
                 </span>
@@ -369,8 +378,12 @@ function ReadingLog() {
               <div className="rlog-article-img">
                 {e.cover ? (
                   <img
-                    src={e.cover}
-                    alt=""
+                    {...responsiveImageAttributes(e.cover, '(max-width: 720px) 100vw, 320px')}
+                    alt={`${t(e.title)} — ${e.author}`}
+                    width="800"
+                    height="1000"
+                    loading="lazy"
+                    decoding="async"
                     onError={ev => {
                       ev.currentTarget.style.display = 'none'
                     }}
@@ -490,19 +503,9 @@ function ReadingLogForm({ initial, onSubmit, onCancel }) {
   const [showCode, setShowCode] = useState(false)
 
   const coverFileRef = useRef(null)
+  const dialogRef = useRef(null)
 
-  // Lock body scroll while modal is open
-  useEffect(() => {
-    document.body.style.overflow = 'hidden'
-    const onKey = e => {
-      if (e.key === 'Escape') onCancel()
-    }
-    window.addEventListener('keydown', onKey)
-    return () => {
-      document.body.style.overflow = ''
-      window.removeEventListener('keydown', onKey)
-    }
-  }, [onCancel])
+  useFocusTrap({ active: true, containerRef: dialogRef, onClose: onCancel })
 
   const handleCoverFile = e => {
     const f = e.target.files?.[0]
@@ -532,11 +535,23 @@ function ReadingLogForm({ initial, onSubmit, onCancel }) {
 
   return (
     <div className="rlog-modal" onClick={onCancel}>
-      <div className="rlog-modal-doc" onClick={e => e.stopPropagation()}>
-        <button className="rlog-modal-close" onClick={onCancel}>
+      <div
+        ref={dialogRef}
+        className="rlog-modal-doc"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="reading-log-form-title"
+        tabIndex="-1"
+        onClick={e => e.stopPropagation()}
+      >
+        <button
+          className="rlog-modal-close"
+          onClick={onCancel}
+          aria-label={lang === 'zh' ? '关闭读书笔记表单' : 'Close reading entry form'}
+        >
           ✕
         </button>
-        <h2 className="rlog-modal-title">
+        <h2 className="rlog-modal-title" id="reading-log-form-title">
           {isEdit
             ? lang === 'zh'
               ? '编辑读书笔记'
@@ -639,6 +654,10 @@ function ReadingLogForm({ initial, onSubmit, onCancel }) {
                   src={cover}
                   alt=""
                   className="rlog-cover-preview"
+                  width="400"
+                  height="600"
+                  loading="lazy"
+                  decoding="async"
                   onError={e => {
                     e.currentTarget.style.display = 'none'
                   }}

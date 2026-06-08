@@ -77,15 +77,17 @@ function AppInner({ prerendered = false }) {
         onOpenEditor={() => setEditorOpen(true)}
         onOpenStyleEditor={() => setStyleEditorOpen(true)}
       />
-      <Landing onJump={onJump} prerendered={prerendered} />
-      {renderedSections.map(section => {
-        const config = getModuleConfig(section.key)
-        return (
-          <React.Fragment key={section.key}>
-            {section.render(config.layout || 'default')}
-          </React.Fragment>
-        )
-      })}
+      <main id="main-content">
+        <Landing onJump={onJump} prerendered={prerendered} />
+        {renderedSections.map(section => {
+          const config = getModuleConfig(section.key)
+          return (
+            <React.Fragment key={section.key}>
+              {section.render(config.layout || 'default')}
+            </React.Fragment>
+          )
+        })}
+      </main>
       <CVModal open={cvOpen} onClose={() => setCvOpen(false)} />
       {editorOpen && (
         <Suspense fallback={null}>

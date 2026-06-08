@@ -175,17 +175,19 @@ html[lang='zh'] .mh-word {
   color: var(--cream);
 }
 .pill-works {
-  --pill-bg: #c44a2a;
+  --pill-bg: #96351f;
   color: #fafaf2;
   border-radius: 0 0 28px 28px;
 }
 .pill-library {
   --pill-bg: #b8924a;
-  color: #fafaf2;
+  color: #11100d;
 }
-.pill-works em,
+.pill-works em {
+  color: rgba(255, 255, 255, 0.9);
+}
 .pill-library em {
-  color: rgba(255, 255, 255, 0.85);
+  color: rgba(17, 16, 13, 0.82);
 }
 
 /* Responsive */
@@ -432,7 +434,7 @@ html[lang='zh'] .polaroid-cap {
   align-items: center;
   padding: 18px 32px;
   pointer-events: none;
-  mix-blend-mode: difference;
+  mix-blend-mode: normal;
 }
 .top-bar > * {
   pointer-events: auto;
@@ -508,11 +510,11 @@ html[lang='zh'] .polaroid-cap {
   font-family: var(--font-mono);
   font-size: 9px;
   letter-spacing: 0.18em;
-  color: var(--cream-faint);
+  color: var(--cream-mute);
   text-transform: uppercase;
 }
 .bs-ch.act .bs-num {
-  color: var(--ember);
+  color: var(--cream);
 }
 .bs-lb {
   font-family: var(--font-serif);
@@ -849,7 +851,7 @@ section {
   font-family: var(--font-mono);
   font-size: 11px;
   letter-spacing: 0.15em;
-  color: var(--cream-faint);
+  color: var(--cream-mute);
   text-transform: uppercase;
 }
 
@@ -1263,7 +1265,7 @@ footer.colophon[data-layout='feature'] .colophon-grid {
   background: var(--ink-void);
   padding: 16px;
 }
-.about-stats .stat h6 {
+.about-stats .stat .stat-label {
   font-family: var(--font-mono);
   font-size: 10px;
   letter-spacing: 0.2em;
@@ -1278,7 +1280,7 @@ footer.colophon[data-layout='feature'] .colophon-grid {
   color: var(--cream);
 }
 .about-stats .stat p em {
-  color: var(--ember);
+  color: var(--cream);
   font-style: italic;
 }
 
@@ -1320,7 +1322,7 @@ footer.colophon[data-layout='feature'] .colophon-grid {
 .cv-block {
   margin-top: 20px;
 }
-.cv-block h4 {
+.cv-block h3 {
   font-family: var(--font-mono);
   font-size: 11px;
   letter-spacing: 0.25em;
@@ -1348,14 +1350,14 @@ footer.colophon[data-layout='feature'] .colophon-grid {
   color: var(--cream-faint);
   letter-spacing: 0.1em;
 }
-.cv-entry .body h5 {
+.cv-entry .body h4 {
   font-family: var(--font-serif);
   font-size: 19px;
   font-weight: 500;
   color: var(--cream);
   margin-bottom: 4px;
 }
-.cv-entry .body h5 em {
+.cv-entry .body h4 em {
   font-style: italic;
   color: var(--cream-mute);
   font-weight: 400;
@@ -1658,7 +1660,7 @@ html[lang='zh'] .work-cover-badge {
   gap: 10px;
   background: none;
   border: 1px solid var(--ink-line);
-  color: var(--cream-mute);
+  color: var(--cream);
   padding: 10px 16px;
   font-family: var(--font-sans);
   font-size: 13px;
@@ -1674,19 +1676,19 @@ html[lang='zh'] .medium-pill {
   font-style: normal;
   font-size: 10px;
   letter-spacing: 0.15em;
-  color: var(--cream-faint);
+  color: var(--cream-mute);
 }
 .medium-pill:hover:not(:disabled) {
   border-color: var(--cream-mute);
   color: var(--cream);
 }
 .medium-pill.active {
-  background: var(--ember);
-  border-color: var(--ember);
-  color: var(--cream);
+  background: var(--cream);
+  border-color: var(--cream);
+  color: var(--ink-void);
 }
 .medium-pill.active em {
-  color: rgba(255, 255, 255, 0.7);
+  color: var(--ink-deep);
 }
 .medium-pill:disabled {
   opacity: 0.3;
@@ -1971,7 +1973,7 @@ html[lang='zh'] .medium-pill {
     0 8px 16px rgba(0, 0, 0, 0.3),
     inset 3px 0 0 rgba(0, 0, 0, 0.2);
 }
-.bb-cover h5 {
+.bb-cover-title {
   font-family: var(--font-serif);
   font-size: 12px;
   line-height: 1.15;
@@ -2081,7 +2083,7 @@ html[lang='zh'] .bb-note {
   flex-direction: column;
   justify-content: space-between;
 }
-.book-cover .label h5 {
+.book-cover .label .book-cover-title {
   font-family: var(--font-serif);
   font-size: 14px;
   line-height: 1.15;
@@ -2105,7 +2107,7 @@ html[lang='zh'] .bb-note {
   letter-spacing: 0.1em;
 }
 .book-meta .stars {
-  color: var(--ember);
+  color: var(--cream);
   letter-spacing: 0.1em;
 }
 .book-note {
@@ -2678,7 +2680,7 @@ html[lang='zh'] .rlog-form textarea {
   padding: 32px;
   background: linear-gradient(180deg, var(--ink-deep), var(--ink-void));
 }
-.contact-status-box h6 {
+.contact-status-box .contact-status-label {
   font-family: var(--font-mono);
   font-size: 10px;
   letter-spacing: 0.25em;
@@ -2725,7 +2727,7 @@ html[lang='zh'] .rlog-form textarea {
   grid-template-columns: 1.5fr 1fr 1fr 1fr;
   gap: 40px;
 }
-.colophon h6 {
+.colophon-heading {
   font-family: var(--font-mono);
   font-size: 10px;
   letter-spacing: 0.25em;
@@ -2742,6 +2744,7 @@ html[lang='zh'] .rlog-form textarea {
   line-height: 1.7;
   text-decoration: none;
   display: block;
+  min-height: 44px;
   transition: color 0.2s;
 }
 .colophon a:hover {
@@ -2993,10 +2996,16 @@ body.cursor-active .cursor-spotlight {
   border-color: var(--cream-mute);
 }
 .reel-frame.has-image {
-  background-size: cover;
-  background-position: center;
   background-color: var(--ink-soft);
   filter: none;
+}
+.reel-frame-media {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: 0;
 }
 .reel-frame.has-image .reel-frame-inner {
   background: linear-gradient(to bottom, rgba(14, 15, 19, 0.2), rgba(14, 15, 19, 0.85));
@@ -3028,6 +3037,8 @@ body.cursor-active .cursor-spotlight {
     0 20px 40px rgba(212, 74, 58, 0.15);
 }
 .reel-frame-inner {
+  position: relative;
+  z-index: 1;
   flex: 1;
   padding: 24px 20px;
   display: flex;
@@ -3082,6 +3093,7 @@ html[lang='zh'] .reel-frame-label {
   font-style: italic;
   font-size: 14px;
   color: var(--cream-faint);
+  z-index: 1;
 }
 
 .reel-audiostrip {
@@ -3499,7 +3511,9 @@ html[lang='zh'] .lightbox-caption h4 {
   border: none;
   color: var(--cream-mute);
   cursor: pointer;
-  padding: 0;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 8px;
   font-family: inherit;
   font-size: inherit;
   letter-spacing: inherit;
@@ -3571,7 +3585,9 @@ html[lang='zh'] .lightbox-caption h4 {
   transform: translate(-50%, -50%);
   background: none;
   border: none;
-  padding: 0;
+  width: 32px;
+  height: 32px;
+  padding: 4px;
   cursor: pointer;
   display: flex;
   flex-direction: column;
@@ -3595,6 +3611,10 @@ html[lang='zh'] .lightbox-caption h4 {
   color: var(--cream-mute);
   white-space: nowrap;
   transition: color 0.3s;
+  position: absolute;
+  top: calc(100% + 2px);
+  left: 50%;
+  transform: translateX(-50%);
 }
 html[lang='zh'] .atlas-pin .pin-label {
   letter-spacing: 0.1em;
@@ -3708,7 +3728,7 @@ html[lang='zh'] .atlas-card-note {
   border-top: 1px solid var(--ink-line);
 }
 
-.atlas-list h6 {
+.atlas-list-label {
   font-family: var(--font-mono);
   font-size: 10px;
   letter-spacing: 0.25em;
@@ -3742,7 +3762,7 @@ html[lang='zh'] .atlas-card-note {
   padding-left: 8px;
 }
 .atlas-list li.active .atlas-list-city {
-  color: var(--ember);
+  color: var(--cream);
 }
 .atlas-list-year {
   color: var(--cream-faint);
@@ -3885,6 +3905,7 @@ html[lang='zh'] .log-body h5 {
   background: transparent;
   border: none;
   padding: 10px 14px;
+  min-height: 44px;
   display: inline-flex;
   align-items: center;
   gap: 10px;

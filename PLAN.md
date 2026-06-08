@@ -10,14 +10,18 @@
 | ------------------------- | --------- | ---------------------------------------------------------------------------------------------------- |
 | 1.1 Section 单一事实源    | ✅ 已完成 | `SECTION_KEYS` 已删除；编辑器清单来自 `EXPORTABLE_SECTIONS`，运行时数据由 `section-registry.js` 派生 |
 | 1.2 Provider / 持久化去重 | ✅ 已完成 | `persist.js`、`modules.js` 已共享；StrictMode、失败写入、reset 语义有单测和 UI smoke                 |
-| 1.3 测试 + CI             | ✅ 已完成 | Vitest 覆盖 10 个文件 / 49 项测试；CDP smoke 覆盖开发态与生产预渲染态                                |
+| 1.3 测试 + CI             | ✅ 已完成 | Vitest 覆盖 15 个文件 / 68 项测试；CDP smoke 覆盖开发态与生产预渲染态                                |
 | 1.4 ESLint + Prettier     | ✅ 已完成 | `lint`、`format:check` 已进入 package scripts 与 CI                                                  |
 | 1.5 迁移垫片退场策略      | ✅ 已确定 | 旧 key 只读迁移，成功进入统一状态后清理；代码标记 2026-12-31 后删除                                  |
 | 2.1a SEO 元数据           | ✅ 已完成 | 静态/运行时 head、`SITE.url`、OG/Twitter、robots/sitemap 与 SEO 测试已落地                           |
 | 2.1b 预渲染 / SSG         | ✅ 已完成 | `/`、`/en/`、`/zh/` 静态正文、hydrate、hreflang 契约与 production CDP smoke 已落地                   |
 | 2.2 编辑器懒加载          | ✅ 已完成 | `ContentEditor` / `StyleEditor` 使用 `React.lazy`；构建产出两个编辑器独立 chunk                      |
 | 首次载入滚动位置          | ✅ 已修复 | 无 hash 的载入 / 刷新禁用浏览器滚动恢复并回到 `landing-masthead`；浏览器 smoke 已覆盖                |
-| GitHub Actions            | ✅ 已完成 | `.github/workflows/ci.yml` 已执行 install → lint → test → build → format                             |
+| GitHub Actions            | ✅ 已完成 | `.github/workflows/ci.yml` 已执行 install → lint → test → build → check:dist → format                |
+
+> **2026-06-08 · Phase 2 收口于 `codex/perf-font-a1`**：该分支是 `codex/perf-images-a11y`（图片 B3 + 无障碍）的线性超集，再叠加字体 A1，因此合并进单一 PR，旧 PR 关闭。
+>
+> **CI 跨平台修复（本提交）**：`tests/seoPlugin.test.js` 原先硬编码 `'C:/repo/src/prerender.jsx'` 作为预渲染入口路径——它在 Windows 上是绝对路径（本地常绿），在 Linux 上却是**相对**路径，`resolve()` 会拼上 cwd，导致 `prerenderArtifactCleanupPlugin` 的入口匹配失败、不再删除 `prerender.js` / `server.edge.js`，于是只有 GitHub Actions（Linux）报红。已改为用 `path.resolve('src', …)` 生成随平台正确的绝对 `facadeModuleId`，与生产构建（`vite.config.js` 的 `resolve(process.cwd(), 'src/prerender.jsx')`）保持一致；**插件实现未改动**，仅修正测试夹具。
 
 ### 当前稳定边界
 
@@ -27,7 +31,7 @@
 
 ## 0. 现状基线（一句话）
 
-一个 React 19 + Vite 8、纯静态、无后端的双语作品集模板：构建时预渲染 `/`、`/en/`、`/zh/` 的 Landing + About，浏览器再 hydrate 为完整 SPA；所有文案集中在 `src/data.js`，站内编辑结果存 `localStorage`，靠「导出代码 → 粘回源码 → git push」上线。当前已具备共享持久化层、49 项 Vitest、开发/生产浏览器 smoke、SEO/SSG、lint/format、CI 与编辑器按需加载；下一步重点是无障碍、图片和字体性能。详见 `CODEBASE_ANALYSIS.html`。
+一个 React 19 + Vite 8、纯静态、无后端的双语作品集模板：构建时预渲染 `/`、`/en/`、`/zh/` 的 Landing + About，浏览器再 hydrate 为完整 SPA；所有文案集中在 `src/data.js`，站内编辑结果存 `localStorage`，靠「导出代码 → 粘回源码 → git push」上线。当前已具备共享持久化层、68 项 Vitest、开发/生产浏览器 smoke、SEO/SSG、lint/format、CI、编辑器按需加载、图片 B3、字体 A1 与无障碍修复；2026-06-08 移动端 Lighthouse 达到 Performance 98 / Accessibility 100 / Best Practices 96 / SEO 100 / CLS 0.001，因此暂不进入 A2/B1。详见 `CODEBASE_ANALYSIS.html`。
 
 ## 1. 指导原则（取舍时回到这几条）
 
@@ -81,7 +85,7 @@
 ### 1.3 测试 + CI 〔#7 · ✅ 已完成〕
 
 - 实现：使用 **Vitest 4** 覆盖 `deepMerge`、持久化读写、`normalizeModuleConfig`（布尔 → 对象向后兼容）、section registry、`export.js#jsLiteral` 往返与 `validation.js` 关键分支；CDP smoke 独立验证浏览器主流程。
-- 验收结果：10 个测试文件、49 项测试通过。GitHub Actions 顺序为 `install → lint → test → build → format:check`。
+- 验收结果：15 个测试文件、68 项测试通过。GitHub Actions 顺序为 `install → lint → test → build → check:dist → format:check`。
 
 ### 1.4 引入 lint / format 〔✅ 已完成〕
 
@@ -94,7 +98,7 @@
 - 已完成：两个垫片都标记在 **2026-12-31 后移除**；阅读日志在确认已有统一状态后删除旧 key，摄影迁移后删除旧 key。
 - 后续：到期后删除常量与两个迁移 effect，并更新 `CLAUDE.md` / `ENGINEERING.md` 的旧 key 清单。
 
-**Phase 1 退出标准**：CI（lint + test + build + format）绿；不存在第二份 section 列表/序列化器/合并函数；`ENGINEERING.md` 的不变量全部成立。
+**Phase 1 退出标准**：CI（lint + test + build + check:dist + format）绿；不存在第二份 section 列表/序列化器/合并函数；`ENGINEERING.md` 的不变量全部成立。
 
 ---
 
@@ -112,21 +116,22 @@
 
 ### 2.2 性能
 
-- ✅ **编辑器已移出主包**：`ContentEditor` / `StyleEditor` 使用 `React.lazy` + 动态 import，仅在用户点开时加载。生产构建生成约 70 kB ContentEditor chunk、24 kB StyleEditor chunk，主 JS 由约 427 kB 降至约 317 kB（均为未压缩体积）。
-- 当前移动端 Lighthouse 基线：预渲染 Performance 61（CSR 同机对照 58）、SEO 100；FCP/LCP 从对照的 7.0s/7.2s 改善到 5.6s/5.6s，但离性能目标 90 仍有明显距离。
-- 图片：在 `resizeImage` 基础上加响应式 `srcset`/`sizes`、`loading="lazy"`、AVIF/WebP 输出；首屏图 `fetchpriority`。
-- 字体：`font-display: swap`、子集化中文字体（思源/Noto 体积大）、`preconnect`。
-- 剩余验收：Lighthouse 性能 ≥ 90（移动端）；继续优化图片与字体。
+完整实施与验收合同见 [`SPEC-2.2-PERF.md`](./SPEC-2.2-PERF.md)（2.2 性能 + 2.3 无障碍合并），本节只维护阶段状态与默认路线。
 
-### 2.3 无障碍（a11y）
+- ✅ **编辑器已移出主包**：`ContentEditor` / `StyleEditor` 走 `React.lazy`；约 70 kB / 24 kB 独立 chunk，主 JS 由约 427 kB 降至约 317 kB（未压缩）。
+- ✅ **图片 B3 已完成**：访客图片具备显式尺寸、懒加载/异步解码，portrait 作为首个内容图使用高优先级；编辑器上传可生成 `480/960/1440/1800` 响应式图片族，旧路径保持兼容。
+- ✅ **字体 A1 已完成**：删除重复字体 `@import`，按实际使用精简字重，以 preload + `noscript` 加载 Google Fonts 样式表，并用 `size-adjust` / ascent / descent / line-gap 度量匹配本地 fallback。
+- ✅ **移动端 Lighthouse 已达标（2026-06-08）**：Performance 98、Accessibility 100、Best Practices 96、SEO 100、CLS 0.001；FCP 1.8s、LCP 1.9s、TBT 110ms。
+- **路线结论**：图片 **B3** + a11y + 字体 **A1** 已达到目标，暂不引入 **A2（自动子集字体）/ B1（AVIF/WebP 管线）**；A2/B1 保留为未来真实内容量或线上指标回退时的升级选项，继续排除 A2′ / B2。
 
-- 模态焦点管理（`WorkModal`/`CVModal`/灯箱）：进入聚焦、`Esc` 关闭（已部分有）、焦点陷阱、关闭后焦点归位。
-- 键盘可达：所有可点元素可 Tab 到、有可见 focus ring。
-- 颜色对比：风格引擎已有 `contrast` 旋钮——可加一个开发期校验，对 `text`/`background` 组合做 WCAG AA 检查并在 StyleEditor 里提示。
-- `prefers-reduced-motion`：`motion.mode` 应尊重系统「减少动态」。
-- 验收：Lighthouse a11y ≥ 95；键盘可完成全站浏览。
+### 2.3 无障碍（a11y，并入 2.2 一起做）
 
-**Phase 2 退出标准**：三项 Lighthouse 达标；编辑器不再拖累访客首屏。
+实施与验收见 [`SPEC-2.2-PERF.md`](./SPEC-2.2-PERF.md) §3 / §8；与性能并行。
+
+- ✅ 模态具备 `role="dialog"` + `aria-modal` + 焦点陷阱/关闭归位；`:focus-visible`、图片 `alt`、全部风格预设正文 token ≥ 4.5:1 已由代码与测试覆盖。
+- ✅ `prefers-reduced-motion` 现在覆盖 reveal、CursorSpotlight 与平滑滚动，production CDP smoke 验证系统 reduce 优先。
+
+**Phase 2 退出标准**：✅ 已满足。Lighthouse 全部达标；编辑器不再拖累访客首屏。
 
 ---
 
@@ -165,9 +170,9 @@
 ## 3. 优先级与排序（影响 × 成本）
 
 1. **已完成的地基**：1.1 单一事实源、1.2 provider 去重、1.3 Vitest + CI、1.4 lint/format、2.2 编辑器懒加载。
-2. **接着**（高影响/中成本）：2.3 a11y、图片与字体性能、Lighthouse 性能基线。
-3. **重投入**（高影响/高成本，需决策）：Phase 3 持久化（先定路径 A/B/C）。
-4. **随时探索**：Phase 4 各项。
+2. **已完成的性能阶段**：图片 B3、字体 A1、a11y 与移动端 Lighthouse 验收。
+3. **接着**（高影响/高成本，需决策）：Phase 3 持久化（先定路径 A/B/C）。
+4. **随时探索**：Phase 4 各项；A2/B1 仅在真实指标回退时重启。
 
 ## 4. 风险与权衡
 
@@ -178,7 +183,7 @@
 
 ## 5. 成功指标
 
-- CI：`lint + test + build + format` 常绿；核心逻辑（合并/规范化/持久化/导出）有测试覆盖。
+- CI：`lint + test + build + check:dist + format` 常绿；核心逻辑（合并/规范化/持久化/导出）有测试覆盖。
 - 质量：Lighthouse 性能 ≥ 90（移动）、SEO ≥ 95、a11y ≥ 95。
 - 健康度：无第二份「事实源」；`ENGINEERING.md` 不变量零违反；新增 `localStorage` 键都登记在 `CLAUDE.md`。
 - 现实缺口：线上编辑可持久化（Phase 3 落地）。
@@ -198,9 +203,8 @@
 
 下一步建议顺序：
 
-1. 为懒加载 fallback 增加可访问的加载状态，并进行移动端 Lighthouse 基线测试。
-2. 补 2.3 模态焦点管理与键盘回归测试。
-3. 优化响应式图片、字体子集和首屏资源，建立 Lighthouse 性能基线。
-4. 2026-12-31 后删除两个旧 localStorage 迁移垫片。
+1. 决定 Phase 3 持久化采用静态托管增强、轻后端还是第三方内容源。
+2. 保留当前 Lighthouse 98 / 100 / 96 / 100 / CLS 0.001 作为性能回归基线；低于门槛时再评估 A2/B1。
+3. 2026-12-31 后删除两个旧 localStorage 迁移垫片。
 
 > 每一步的具体「改哪些文件、满足哪些不变量、Definition of Done」见 `ENGINEERING.md`。

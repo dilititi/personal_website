@@ -2,6 +2,8 @@ import React, { useState, useEffect, useRef } from 'react'
 import { useLang } from '../lang.jsx'
 import { useData } from '../data-context.jsx'
 import { resizeImage } from '../utils.js'
+import { useFocusTrap } from '../hooks.jsx'
+import { responsiveImageAttributes } from '../lib/images.js'
 
 const LEGACY_PHOTO_STORAGE_KEY = 'chen.photos.userEntries'
 // Compatibility shim for pre-unified storage. Remove after 2026-12-31.
@@ -13,6 +15,7 @@ export default function Photography({ layout = 'default' }) {
   const [openId, setOpenId] = useState(null)
   const [showForm, setShowForm] = useState(false)
   const [editing, setEditing] = useState(null) // id of editing photo, or null
+  const lightboxRef = useRef(null)
 
   useEffect(() => {
     try {
@@ -30,6 +33,11 @@ export default function Photography({ layout = 'default' }) {
   const allPhotos = PHOTOS
   const filtered = allPhotos.filter(p => series === 'all' || p.series === series)
   const open = allPhotos.find(p => p.id === openId)
+  useFocusTrap({
+    active: Boolean(open),
+    containerRef: lightboxRef,
+    onClose: () => setOpenId(null),
+  })
 
   // Keyboard navigation. Use refs so the listener installs once and always
   // reads the latest state — avoids re-registering every time filter changes.
@@ -41,7 +49,6 @@ export default function Photography({ layout = 'default' }) {
     const onKey = e => {
       const { open, openId, filtered } = navRef.current
       if (!open) return
-      if (e.key === 'Escape') setOpenId(null)
       if (e.key === 'ArrowRight') {
         const i = filtered.findIndex(p => p.id === openId)
         if (i < filtered.length - 1) setOpenId(filtered[i + 1].id)
@@ -129,9 +136,16 @@ export default function Photography({ layout = 'default' }) {
               <div className="contact-frame-img" style={{ background: p.color || '#1a1a1a' }}>
                 {p.image ? (
                   <img
-                    src={p.image}
+                    {...responsiveImageAttributes(
+                      p.image,
+                      '(max-width: 720px) 100vw, (max-width: 1100px) 50vw, 33vw',
+                    )}
                     alt={t(p.caption)}
                     className="contact-frame-photo"
+                    width="1200"
+                    height="800"
+                    loading="lazy"
+                    decoding="async"
                     onError={e => {
                       e.currentTarget.style.display = 'none'
                     }}
@@ -163,16 +177,32 @@ export default function Photography({ layout = 'default' }) {
 
       <div className={`lightbox ${open ? 'open' : ''}`} onClick={() => setOpenId(null)}>
         {open && (
-          <div className="lightbox-inner" onClick={e => e.stopPropagation()}>
-            <button className="lightbox-close" onClick={() => setOpenId(null)}>
+          <div
+            ref={lightboxRef}
+            className="lightbox-inner"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="photo-dialog-title"
+            tabIndex="-1"
+            onClick={e => e.stopPropagation()}
+          >
+            <button
+              className="lightbox-close"
+              onClick={() => setOpenId(null)}
+              aria-label={lang === 'zh' ? '关闭照片' : 'Close photo'}
+            >
               ✕
             </button>
             <div className="lightbox-img" style={{ background: open.color || '#1a1a1a' }}>
               {open.image ? (
                 <img
-                  src={open.image}
+                  {...responsiveImageAttributes(open.image, 'min(92vw, 1400px)')}
                   alt={t(open.caption)}
                   className="lightbox-photo"
+                  width="1600"
+                  height="1067"
+                  loading="lazy"
+                  decoding="async"
                   onError={e => {
                     e.currentTarget.style.display = 'none'
                   }}
@@ -183,7 +213,7 @@ export default function Photography({ layout = 'default' }) {
             </div>
             <div className="lightbox-meta">
               <div className="lightbox-caption">
-                <h4>{t(open.caption)}</h4>
+                <h4 id="photo-dialog-title">{t(open.caption)}</h4>
                 <p>{t(PHOTO_SERIES.find(s => s.id === open.series)?.label || '')}</p>
               </div>
               <div className="lightbox-exif">
@@ -229,18 +259,9 @@ function PhotoForm({ initial, onSubmit, onCancel }) {
   const [color, setColor] = useState(initial?.color || '#1a1a1a')
   const [resizing, setResizing] = useState(false)
   const fileRef = useRef(null)
+  const dialogRef = useRef(null)
 
-  useEffect(() => {
-    document.body.style.overflow = 'hidden'
-    const onKey = e => {
-      if (e.key === 'Escape') onCancel()
-    }
-    window.addEventListener('keydown', onKey)
-    return () => {
-      document.body.style.overflow = ''
-      window.removeEventListener('keydown', onKey)
-    }
-  }, [onCancel])
+  useFocusTrap({ active: true, containerRef: dialogRef, onClose: onCancel })
 
   // Resize image to keep localStorage usage reasonable (~1500px on long edge, 0.8 quality JPEG)
   const handleImageFile = async e => {
@@ -285,11 +306,23 @@ function PhotoForm({ initial, onSubmit, onCancel }) {
 
   return (
     <div className="rlog-modal" onClick={onCancel}>
-      <div className="rlog-modal-doc photo-form-doc" onClick={e => e.stopPropagation()}>
-        <button className="rlog-modal-close" onClick={onCancel}>
+      <div
+        ref={dialogRef}
+        className="rlog-modal-doc photo-form-doc"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="photo-form-title"
+        tabIndex="-1"
+        onClick={e => e.stopPropagation()}
+      >
+        <button
+          className="rlog-modal-close"
+          onClick={onCancel}
+          aria-label={lang === 'zh' ? '关闭照片表单' : 'Close photo form'}
+        >
           ✕
         </button>
-        <h2 className="rlog-modal-title">
+        <h2 className="rlog-modal-title" id="photo-form-title">
           {isEdit
             ? lang === 'zh'
               ? '编辑照片'
@@ -345,7 +378,14 @@ function PhotoForm({ initial, onSubmit, onCancel }) {
               </div>
               {image && (
                 <div className="photo-form-preview" style={{ background: color }}>
-                  <img src={image} alt="" />
+                  <img
+                    src={image}
+                    alt=""
+                    width="1200"
+                    height="800"
+                    loading="lazy"
+                    decoding="async"
+                  />
                 </div>
               )}
             </label>

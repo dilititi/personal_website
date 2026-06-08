@@ -41,6 +41,56 @@ export function resizeImage(file, maxLongEdge = 1800, quality = 0.85) {
   })
 }
 
+export function createResponsiveImageVariants(file, widths, quality = 0.85) {
+  return new Promise((resolve, reject) => {
+    if (!file.type.startsWith('image/')) {
+      resolve([])
+      return
+    }
+    const reader = new FileReader()
+    reader.onload = () => {
+      const img = new Image()
+      img.onload = () => {
+        try {
+          const targets = [...new Set(widths)]
+            .filter(width => Number.isInteger(width) && width > 0)
+            .sort((a, b) => a - b)
+          const largest = targets.at(-1)
+          if (!largest || img.width < largest) {
+            resolve([])
+            return
+          }
+
+          const useJpeg = file.size > 200 * 1024 || file.type !== 'image/png'
+          const variants = targets.map(width => {
+            const height = Math.round(img.height * (width / img.width))
+            const canvas = document.createElement('canvas')
+            canvas.width = width
+            canvas.height = height
+            const ctx = canvas.getContext('2d')
+            ctx.drawImage(img, 0, 0, width, height)
+            return {
+              width,
+              height,
+              extension: useJpeg ? 'jpg' : 'png',
+              dataUrl: useJpeg
+                ? canvas.toDataURL('image/jpeg', quality)
+                : canvas.toDataURL('image/png'),
+            }
+          })
+          resolve(variants)
+        } catch (error) {
+          reject(error)
+        }
+      }
+      img.onerror = () => reject(new Error('Image decode failed'))
+      img.src = String(reader.result)
+    }
+    reader.onerror = () => reject(new Error('File read failed'))
+    reader.readAsDataURL(file)
+  })
+}
+
 export function fileToDataUrl(file) {
   return new Promise((resolve, reject) => {
     const fr = new FileReader()

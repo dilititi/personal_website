@@ -2,9 +2,10 @@ import React from 'react'
 import { useLang } from '../lang.jsx'
 import { useData } from '../data-context.jsx'
 import { emph } from '../hooks.jsx'
+import { responsiveImageAttributes } from '../lib/images.js'
 
 export default function About({ layout = 'default', onOpenCV }) {
-  const { t } = useLang()
+  const { lang, t } = useLang()
   const { ABOUT, SITE, TEXTS, isModuleEnabled } = useData()
   const TA = TEXTS.about
   const cv = ABOUT.cv
@@ -37,8 +38,17 @@ export default function About({ layout = 'default', onOpenCV }) {
             <div className="portrait">
               {SITE.portrait && (
                 <img
-                  src={SITE.portrait}
-                  alt="portrait"
+                  {...responsiveImageAttributes(SITE.portrait, '(max-width: 720px) 82vw, 320px')}
+                  alt={
+                    lang === 'zh'
+                      ? `${t(SITE.nameFull)}的个人肖像`
+                      : `Portrait of ${t(SITE.nameFull)}`
+                  }
+                  width="800"
+                  height="1000"
+                  loading="eager"
+                  fetchPriority="high"
+                  decoding="async"
                   onError={e => {
                     e.currentTarget.style.display = 'none'
                   }}
@@ -54,7 +64,7 @@ export default function About({ layout = 'default', onOpenCV }) {
           <div className="about-stats">
             {ABOUT.stats.map((s, i) => (
               <div className="stat" key={i}>
-                <h6>{t(s.label)}</h6>
+                <div className="stat-label">{t(s.label)}</div>
                 <p>{emph(t(s.value))}</p>
               </div>
             ))}
@@ -86,12 +96,12 @@ export default function About({ layout = 'default', onOpenCV }) {
 
           {blocks.map(b => (
             <div className="cv-block" key={b.key}>
-              <h4>{b.title}</h4>
+              <h3>{b.title}</h3>
               {cv[b.key].map((e, i) => (
                 <div className="cv-entry" key={i}>
                   <span className="year">{e.year}</span>
                   <div className="body">
-                    <h5>{emph(t(e.title))}</h5>
+                    <h4>{emph(t(e.title))}</h4>
                     <p>{emph(t(e.role))}</p>
                   </div>
                   <span className="place">{t(e.place)}</span>

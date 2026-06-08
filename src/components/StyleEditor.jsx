@@ -51,9 +51,9 @@ const DESIGN_ALIGNMENT_OPTIONS = [
 ]
 
 const THUMB_FONTS = {
-  serif: '"Lora", Georgia, serif',
-  sans: '"Manrope", -apple-system, sans-serif',
-  mono: '"IBM Plex Mono", monospace',
+  serif: '"Lora", "Lora Fallback", Georgia, serif',
+  sans: '"Manrope", "Manrope Fallback", -apple-system, sans-serif',
+  mono: '"IBM Plex Mono", "IBM Plex Mono Fallback", monospace',
 }
 
 function pick(label, lang) {

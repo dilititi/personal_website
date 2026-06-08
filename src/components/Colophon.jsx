@@ -13,7 +13,7 @@ export default function Colophon({ layout = 'default' }) {
     <footer className="colophon" data-layout={layout}>
       <div className="colophon-grid">
         <div>
-          <h6>{lang === 'zh' ? '最后说一句' : 'One last thing'}</h6>
+          <h2 className="colophon-heading">{lang === 'zh' ? '最后说一句' : 'One last thing'}</h2>
           <p className="signoff">
             {sig1}
             <br />
@@ -21,7 +21,7 @@ export default function Colophon({ layout = 'default' }) {
           </p>
         </div>
         <div>
-          <h6>{lang === 'zh' ? '别处' : 'Elsewhere'}</h6>
+          <h2 className="colophon-heading">{lang === 'zh' ? '别处' : 'Elsewhere'}</h2>
           {SITE.social.map((s, i) => (
             <a key={i} href={s.url}>
               {t(s.label)} · {s.handle}
@@ -29,12 +29,12 @@ export default function Colophon({ layout = 'default' }) {
           ))}
         </div>
         <div>
-          <h6>{lang === 'zh' ? '版本说明' : 'Colophon'}</h6>
+          <h2 className="colophon-heading">{lang === 'zh' ? '版本说明' : 'Colophon'}</h2>
           <p>{t(TX.fontsLine)}</p>
           <p>{t(TX.handCodedLine)}</p>
         </div>
         <div>
-          <h6>{lang === 'zh' ? '最近一次修整' : 'Last tended'}</h6>
+          <h2 className="colophon-heading">{lang === 'zh' ? '最近一次修整' : 'Last tended'}</h2>
           <p>{t(SITE.nowDate)}</p>
           <p>v.2 · 2026 {lang === 'zh' ? '版' : 'edition'}</p>
         </div>

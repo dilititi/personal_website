@@ -1,25 +1,15 @@
-import React, { useEffect } from 'react'
+import React, { useRef } from 'react'
 import { useLang } from '../lang.jsx'
 import { useData } from '../data-context.jsx'
-import { emph } from '../hooks.jsx'
+import { emph, useFocusTrap } from '../hooks.jsx'
 
 export default function CVModal({ open, onClose }) {
   const { lang, t } = useLang()
   const { SITE, ABOUT, TEXTS } = useData()
   const TC = TEXTS.cvModal
+  const dialogRef = useRef(null)
 
-  useEffect(() => {
-    if (!open) return
-    const onKey = e => {
-      if (e.key === 'Escape') onClose()
-    }
-    document.body.style.overflow = 'hidden'
-    window.addEventListener('keydown', onKey)
-    return () => {
-      document.body.style.overflow = ''
-      window.removeEventListener('keydown', onKey)
-    }
-  }, [open, onClose])
+  useFocusTrap({ active: open, containerRef: dialogRef, onClose })
 
   const blocks = [
     { key: 'edu', title: t(TC.blockEdu) },
@@ -28,17 +18,31 @@ export default function CVModal({ open, onClose }) {
     { key: 'skills', title: t(TC.blockSkills) },
   ]
 
+  if (!open) return null
+
   return (
-    <div className={`cv-modal ${open ? 'open' : ''}`} onClick={onClose}>
-      <div className="cv-doc" onClick={e => e.stopPropagation()}>
-        <button className="cv-close" onClick={onClose}>
+    <div className="cv-modal open" onClick={onClose}>
+      <div
+        ref={dialogRef}
+        className="cv-doc"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="cv-dialog-title"
+        tabIndex="-1"
+        onClick={e => e.stopPropagation()}
+      >
+        <button
+          className="cv-close"
+          onClick={onClose}
+          aria-label={lang === 'zh' ? '关闭简历' : 'Close CV'}
+        >
           ✕
         </button>
 
         <header className="cv-doc-head">
           <div>
             <div className="cv-eyebrow">{t(TC.eyebrow)}</div>
-            <h1>{t(SITE.nameFull)}</h1>
+            <h1 id="cv-dialog-title">{t(SITE.nameFull)}</h1>
             <p className="cv-role">{t(SITE.role)}</p>
             <p className="cv-contact">
               {t(SITE.location)} · {SITE.timezone} · {SITE.email}

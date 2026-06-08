@@ -1,6 +1,8 @@
-import React, { useState, useEffect, useMemo } from 'react'
+import React, { useState, useEffect, useMemo, useRef } from 'react'
 import { useLang } from '../lang.jsx'
 import { useData } from '../data-context.jsx'
+import { useFocusTrap } from '../hooks.jsx'
+import { responsiveImageAttributes } from '../lib/images.js'
 
 const WORK_MEDIA_LABELS = {
   short: { en: 'Shorts', zh: '短片' },
@@ -25,6 +27,7 @@ export default function Works({ layout = 'default' }) {
   const [openId, setOpenId] = useState(null)
   const [medium, setMedium] = useState('all')
   const open = WORKS.find(w => w.id === openId)
+  const dialogRef = useRef(null)
   const mediaOptions = useMemo(() => {
     const ids = [...new Set(WORKS.map(w => w.medium).filter(Boolean))]
     return [
@@ -33,13 +36,11 @@ export default function Works({ layout = 'default' }) {
     ]
   }, [WORKS])
 
-  useEffect(() => {
-    const onKey = e => {
-      if (e.key === 'Escape') setOpenId(null)
-    }
-    window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
-  }, [])
+  useFocusTrap({
+    active: Boolean(open),
+    containerRef: dialogRef,
+    onClose: () => setOpenId(null),
+  })
 
   useEffect(() => {
     if (medium !== 'all' && !mediaOptions.some(m => m.id === medium)) {
@@ -94,9 +95,16 @@ export default function Works({ layout = 'default' }) {
             <div className={`work-cover ${w.cover}`}>
               {w.coverImg ? (
                 <img
-                  src={w.coverImg}
+                  {...responsiveImageAttributes(
+                    w.coverImg,
+                    '(max-width: 720px) 100vw, (max-width: 1100px) 50vw, 33vw',
+                  )}
                   alt={t(w.title)}
                   className="work-cover-img"
+                  width="1600"
+                  height="1000"
+                  loading="lazy"
+                  decoding="async"
                   onError={e => {
                     e.currentTarget.style.display = 'none'
                   }}
@@ -143,16 +151,32 @@ export default function Works({ layout = 'default' }) {
       {/* Work Modal */}
       <div className={`work-modal ${open ? 'open' : ''}`} onClick={() => setOpenId(null)}>
         {open && (
-          <div className="work-modal-inner" onClick={e => e.stopPropagation()}>
-            <button className="work-modal-close" onClick={() => setOpenId(null)}>
+          <div
+            ref={dialogRef}
+            className="work-modal-inner"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="work-dialog-title"
+            tabIndex="-1"
+            onClick={e => e.stopPropagation()}
+          >
+            <button
+              className="work-modal-close"
+              onClick={() => setOpenId(null)}
+              aria-label={lang === 'zh' ? '关闭作品详情' : 'Close work details'}
+            >
               ✕
             </button>
             <div className={`work-modal-hero ${open.cover}`}>
               {open.coverImg ? (
                 <img
-                  src={open.coverImg}
+                  {...responsiveImageAttributes(open.coverImg, 'min(92vw, 1200px)')}
                   alt={t(open.title)}
                   className="work-modal-hero-img"
+                  width="1600"
+                  height="900"
+                  loading="lazy"
+                  decoding="async"
                   onError={e => {
                     e.currentTarget.style.display = 'none'
                   }}
@@ -185,7 +209,7 @@ export default function Works({ layout = 'default' }) {
             </div>
             <div className="work-modal-body">
               <div>
-                <h1>
+                <h1 id="work-dialog-title">
                   {t(open.title)} <em>{t(open.subtitle)}</em>
                 </h1>
                 <p className="lead">{t(open.summary)}</p>

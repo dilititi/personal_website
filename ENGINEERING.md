@@ -79,6 +79,9 @@ Provider 顺序固定：`LangProvider → DataProvider → StyleProvider → Now
 
 - 任何需要服务端的能力必须：① 在静态构建里优雅降级，② 用 `import.meta.env.DEV`/`PROD` 或功能旗标判定。
 - 参照范式：`FileField` 在 `!import.meta.env.DEV` 时禁用上传并提示。
+- `npm run check:dist` 是本不变量的自动化护栏：它必须在 `npm run build` 后扫描完整 `dist`，并在发现 `server.browser`、`server.edge` 或 `react-dom/server` 时失败。
+- `.github/workflows/ci.yml` 必须在 build 后执行 `check:dist`；不得把该 step 当作普通清理项删除。若构建架构确需改变，必须先更新 INV-8、检查脚本与对应测试，再调整 CI。
+- 涉及预渲染 / SSR / hydration 的变更，绿色基线固定为：`npm run lint && npm test && npm run build && npm run check:dist && npm run format:check`，随后运行 production preview 的 CDP smoke，并记录一次移动端 Lighthouse 结果用于防回退。
 
 ### INV-9 · 持久化即草稿；data.js 是事实源
 
@@ -208,7 +211,7 @@ L(en, zh) -> { en: string, zh: string }
 一次改动「完成」当且仅当：
 
 - [ ] `npm run build` 通过（环境不可用时：逐文件复读改动区，标注「未 build 验证」）。
-- [ ] `npm run lint`、`npm test`、`npm run build`、`npm run format:check` 全绿；涉及浏览器行为时跑 `npm run test:ui`，涉及 SSR/hydration 时追加 `npm run test:ui:preview`。
+- [ ] `npm run lint`、`npm test`、`npm run build`、`npm run check:dist`、`npm run format:check` 全绿；涉及浏览器行为时跑 `npm run test:ui`，涉及 SSR/hydration 时追加 `npm run test:ui:preview` 与一次移动端 Lighthouse。
 - [ ] 未违反 §1 任一不变量。
 - [ ] 任何跨文件契约（schema↔data、CSS 变量、section 列表、cross-ref）两侧都已同步。
 - [ ] 新增面向访客文案是双语；做了防御式渲染。
