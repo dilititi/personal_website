@@ -18,7 +18,7 @@
 | 2.2 编辑器懒加载          | ✅ 已完成 | `ContentEditor` / `StyleEditor` 使用 `React.lazy`；构建产出两个编辑器独立 chunk                      |
 | 首次载入滚动位置          | ✅ 已修复 | 无 hash 的载入 / 刷新禁用浏览器滚动恢复并回到 `landing-masthead`；浏览器 smoke 已覆盖                |
 | GitHub Actions            | ✅ 已完成 | `.github/workflows/ci.yml` 已执行 install → lint → test → build → check:dist → format                |
-| 2.4 部署上线              | 🚧 进行中 | 见 `SPEC-2.4-DEPLOY.md`；填 `SITE.url` + 根域托管后 SEO/SSG 才真实生效                               |
+| 2.4 部署上线              | ✅ 已上线 | Render Static Site（onrender.com）；`SITE.url`/`portrait` 生效、SEO/SSG 已点亮；缓存头待固化         |
 
 > **2026-06-08 · Phase 2 收口于 `codex/perf-font-a1`**：该分支是 `codex/perf-images-a11y`（图片 B3 + 无障碍）的线性超集，再叠加字体 A1，因此合并进单一 PR，旧 PR 关闭。
 >
@@ -132,10 +132,13 @@
 - ✅ 模态具备 `role="dialog"` + `aria-modal` + 焦点陷阱/关闭归位；`:focus-visible`、图片 `alt`、全部风格预设正文 token ≥ 4.5:1 已由代码与测试覆盖。
 - ✅ `prefers-reduced-motion` 现在覆盖 reveal、CursorSpotlight 与平滑滚动，production CDP smoke 验证系统 reduce 优先。
 
-### 2.4 部署上线（让 SEO 真正生效）〔进行中〕
+### 2.4 部署上线（让 SEO 真正生效）〔已上线 2026-06-08〕
 
 完整 runbook 与验收见 [`SPEC-2.4-DEPLOY.md`](./SPEC-2.4-DEPLOY.md)。
 
+- ✅ **已上线**：<https://personal-website-x3u4.onrender.com>（Render **Static Site**，`base='/'` 根域）；`SITE.url` / `portrait`（`/picture/miles.jpg`）已填，canonical / og:url / hreflang / sitemap / og:image 随之生效。首部署出现的 assets MIME（`text/plain`）/ 404 是旧 `index.html` ↔ 资源哈希不一致，hard refresh 已解。
+- ⏳ **待固化**：在 Render Headers 设 `/assets/*` → `immutable`、`/*.html` → `no-cache`，否则每次重部署后**回访者**会命中旧 HTML 再次踩到该问题（见 spec §7 / §9）。
+- ⏳ **待验收**：`view-source` 核对三路由 head + `sitemap.xml`，跑 OG 调试器，向 Google Search Console 提交 sitemap（spec §7 DoD）。
 - **为何单列**：2.1 的 SEO/SSG 代码已就绪，但 `SITE.url=''` 时 canonical / og:url / hreflang / sitemap / og:image 全为空——**SEO 的真实价值要等部署 + 填 `SITE.url` 后才成立**。
 - **关键动作**：选根域托管（Cloudflare Pages / Netlify / Vercel，或 GitHub Pages + 自定义域）→ 填 `SITE.url`（+ 一张 1200×630 的 `og-cover.jpg`）→ OG 调试器 + Search Console 验证。
 - **关键约束**：保持 `base='/'`；避免 GitHub Pages 项目站子路径（会打断 `data.js` 里的 `/picture` 等绝对媒体路径，见 spec §4）。
@@ -145,6 +148,9 @@
 ---
 
 ## Phase 3 · 真正的持久化（优先：持久化 / 后端）
+
+> **已定方向（2026-06-08）：路径 A · 浏览器内 GitHub 写入。** 完整工程契约见 [`SPEC-3-PERSIST.md`](./SPEC-3-PERSIST.md)。
+> 子决策默认：**A1 细粒度 PAT**（纯静态可行、零后端）· **W1 `data.js` 哨兵区域重写**（保单一源、复用 `export.js`）· 默认**直接提交 `main`**（Render 自动重建），可选「分支 + PR」让 CI 把关。顺带填平 `FileField` 的 dev-only 上传缺口。
 
 **目标**：补上最大的现实缺口——**线上编辑不落盘**（编辑只在 `localStorage`，清缓存即丢；上传仅 dev 可用）。关键约束：**不破坏「静态、无后端、数据进 git」的核心气质**。
 
@@ -218,3 +224,15 @@
 4. 2026-12-31 后删除两个旧 localStorage 迁移垫片。
 
 > 每一步的具体「改哪些文件、满足哪些不变量、Definition of Done」见 `ENGINEERING.md`。
+
+## 7. 已知问题（待处理 / Known issues）
+
+### KI-1 · 打开瞬间的微移（低优先，已降级但未根除）
+
+- **现象**：首次打开时能观察到**一瞬间**的位置移动——主界面载入、内容编辑器、样式编辑器三处都有。一次性、发生在「刚打开」那一帧，不影响后续使用。
+- **诊断**：
+  - **编辑器**：底部「实时预览」iframe 在**加载完成那一刻被站内某元素抢了焦点**，浏览器为显示获焦元素把 iframe 滚进视野，从而拽动 `.ce-main`。已做的缓解（`PreviewFrame` 在 `onFocus` 同步把面板还原到用户位置、去掉预览 URL 的 `#hash`、iframe `tabIndex=-1`、`.ce-main` 加 `overflow-anchor:none`）把它压成「一瞬」，但没有从源头消除焦点抢夺。
+  - **主界面**：初始滚动守卫（`c412367`：`index.html` 内联脚本 + `main.jsx` settle）在字体/app 就绪后把滚动归零，首帧可见为一次轻微位移。
+- **影响**：低。一次性、仅在打开时、不影响可用性。
+- **下一步（重启时）**：在出现跳动后于控制台取 `document.activeElement` 定位**预览里到底是谁在 load 后 `focus()`**（疑似某个嵌入元素 / 站点自身的 load 后聚焦），在 `previewSurface=1` 模式下禁用该聚焦，从源头根除；同时复审主界面守卫的时序（是否可缩短/改为不可见的方式）。
+- **相关文件**：`src/components/editor/PreviewFrame.jsx`、`src/components/ContentEditor.jsx`、`src/styles/editors.css`、`index.html`、`src/main.jsx`、`src/App.jsx`。

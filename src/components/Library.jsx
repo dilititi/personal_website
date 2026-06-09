@@ -166,6 +166,22 @@ function Cinema() {
     <div className="cinema-grid">
       {FILMS.map((f, i) => (
         <div className="film" key={i}>
+          {f.coverImg && (
+            <div className="film-poster">
+              <img
+                {...responsiveImageAttributes(f.coverImg, '(max-width: 720px) 88vw, 300px')}
+                alt={`${f.title} — dir. ${f.director}`}
+                width="400"
+                height="600"
+                loading="lazy"
+                decoding="async"
+                onError={e => {
+                  const wrap = e.currentTarget.parentElement
+                  if (wrap) wrap.style.display = 'none'
+                }}
+              />
+            </div>
+          )}
           <div className="ticket-top">
             <span>NO · {String(i + 1).padStart(3, '0')}</span>
             <span className="year">{f.year}</span>

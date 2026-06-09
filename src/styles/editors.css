@@ -389,6 +389,7 @@
 /* Main content area */
 .ce-main {
   overflow-y: auto;
+  overflow-anchor: none;
   padding: 24px 32px;
   background: var(--ink-void);
 }

@@ -333,6 +333,7 @@ export default function ContentEditor({ open, onClose }) {
   const { setSection } = data
   const dataRef = useRef(data)
   dataRef.current = data
+  const ceMainRef = useRef(null)
   const { style } = useStyle()
   const [activeKey, setActiveKey] = useState('SITE')
   const [workingValue, setWorkingValue] = useState(null)
@@ -410,6 +411,13 @@ export default function ContentEditor({ open, onClose }) {
     setWorkingValue(deepClone(dataRef.current[activeKey]))
     setShowCode(false)
   }, [activeKey, open])
+
+  // Switching tabs reveals the new section's fields from the top of the panel.
+  // The live-preview iframe no longer yanks the panel down (it only loads while
+  // visible — see PreviewFrame), so a plain instant reset is enough here.
+  useEffect(() => {
+    if (ceMainRef.current) ceMainRef.current.scrollTop = 0
+  }, [activeKey])
 
   useEffect(() => {
     if (!autoSave || workingValue == null || activeKey.startsWith('_')) return
@@ -762,7 +770,7 @@ export default function ContentEditor({ open, onClose }) {
             })}
           </nav>
 
-          <main className="ce-main">
+          <main className="ce-main" ref={ceMainRef}>
             <div className="ce-main-head">
               <h3 className="ce-section-title">{section.label}</h3>
               {!isSpecial && isOverridden && <span className="ce-tag">本地编辑中</span>}
@@ -808,7 +816,7 @@ export default function ContentEditor({ open, onClose }) {
                 style={style}
                 lang={lang}
                 label={`${section.label} · ${lang === 'zh' ? '内容预览' : 'Content preview'}`}
-                reloadKey={`${activeKey}:${data.lastSaved || 0}`}
+                reloadKey={`${data.lastSaved || 0}`}
               />
             )}
           </main>

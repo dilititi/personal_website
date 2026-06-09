@@ -621,6 +621,7 @@ export const FILMS = [
     subtitle: '花樣年華',
     year: '2000',
     director: 'Wong Kar-wai · 王家卫',
+    coverImg: '/films/template-film-poster.svg',
     note: L(
       'The film I would watch every year for the rest of my life if asked to choose only one. The noodle scene is everything.',
       '如果只能选一部反复看，就是这部。面摊那一段就是全部。',
@@ -631,6 +632,7 @@ export const FILMS = [
     subtitle: 'Сталкер',
     year: '1979',
     director: 'Andrei Tarkovsky · 塔可夫斯基',
+    coverImg: '/films/template-organic-poster.svg',
     note: L(
       "Three men walk slowly toward a room. The pace re-set my entire idea of what 'long' could mean.",
       '三个男人慢慢走向一个房间。它彻底重置了我对「慢」的定义。',
@@ -641,6 +643,7 @@ export const FILMS = [
     subtitle: '東京物語',
     year: '1953',
     director: 'Yasujirō Ozu · 小津安二郎',
+    coverImg: '/films/template-digital-poster.svg',
     note: L(
       "Ozu's tatami shots are the source code of my style. Static, low, patient. I am still trying to earn the right to use them.",
       '小津的榻榻米机位是我风格的源代码——静止、低、耐心。我还在努力配得上它。',
@@ -651,6 +654,7 @@ export const FILMS = [
     subtitle: 'ドライブ・マイ・カー',
     year: '2021',
     director: 'Ryūsuke Hamaguchi · 滨口龙介',
+    coverImg: '/films/template-film-poster.svg',
     note: L(
       'Three hours that move like one. Proof that talking can be cinematic, if you mean it.',
       '三小时仿佛一小时。它证明：只要你是认真的，对话也能是电影。',
@@ -661,6 +665,7 @@ export const FILMS = [
     subtitle: '小城之春',
     year: '1948',
     director: 'Fei Mu · 费穆',
+    coverImg: '/films/template-organic-poster.svg',
     note: L(
       "The first Chinese film I watched twice. The voiceover is doing things in 1948 that Western cinema didn't manage until the 1960s.",
       '我看了两遍的第一部华语片。1948 年的画外音，做到了西方电影直到 1960 年代才做到的事。',
@@ -670,6 +675,7 @@ export const FILMS = [
     title: 'Tokyo-Ga',
     year: '1985',
     director: 'Wim Wenders · 文德斯',
+    coverImg: '/films/template-digital-poster.svg',
     note: L(
       'Wenders looking for Ozu in 1980s Tokyo and finding mostly pachinko parlours. A film about loss masquerading as a documentary.',
       '文德斯在 1980 年代的东京寻找小津，找到的多是弹珠房。一部假装成纪录片的「关于失去」的电影。',
@@ -679,6 +685,7 @@ export const FILMS = [
     title: 'Daughters of the Dust',
     year: '1991',
     director: 'Julie Dash',
+    coverImg: '/films/template-film-poster.svg',
     note: L(
       "Every frame is a painting. Beyoncé's Lemonade owes it everything. I owe it a lot too.",
       '每一格都是画。碧昂丝的《Lemonade》欠它一切。我欠它也多。',
@@ -689,6 +696,7 @@ export const FILMS = [
     subtitle: '一一',
     year: '2000',
     director: 'Edward Yang · 杨德昌',
+    coverImg: '/films/template-organic-poster.svg',
     note: L(
       "Three hours of a family in Taipei. The eight-year-old who photographs the backs of people's heads is me.",
       '三小时台北一家人的故事。那个总拍人后脑勺的八岁小孩——就是我。',

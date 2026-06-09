@@ -2138,6 +2138,24 @@ html[lang='zh'] .bb-note {
 .film:hover {
   background: var(--ink-deep);
 }
+.film-poster {
+  width: 100%;
+  aspect-ratio: 2 / 3;
+  overflow: hidden;
+  background: var(--ink-deep);
+  border: 1px solid var(--ink-line);
+}
+.film-poster img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  filter: var(--style-image-filter, none);
+  transition: transform 0.4s ease;
+}
+.film:hover .film-poster img {
+  transform: scale(1.03);
+}
 .film .ticket-top {
   display: flex;
   justify-content: space-between;
