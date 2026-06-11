@@ -17,13 +17,14 @@
 ## 1. 新增数据 / 契约（单一事实源）
 
 - **`SITE.url`** —— 站点规范根 URL（如 `https://chen.pages.dev`）。canonical / `og:url` / `og:image` 绝对化 / sitemap 都从它派生。
+- **`SITE.ogImage`** —— 独立的 1200×630 社交封面；未提供时为旧数据兼容而回退到 `SITE.portrait`。
   - 加到 `src/data.js` 的 `SITE`：**默认空串 `''`（占位）**，注释「部署时填真实域名」。**目标是真实部署域名**；为空时所有绝对 URL 必须优雅降级（canonical / `og:url` / sitemap 省略或留空，**绝不输出 `undefined` 或裸值**），并在 build 时打印一条 warning 提醒填域名。
   - 同步加到 `src/components/editor/schema.js` 的 `SITE_SCHEMA`：`{ key: 'url', type: 'str', label: '站点 URL（canonical / OG / sitemap，部署时填真实域名）' }` —— **满足 INV-2（schema↔data 两侧同步）**。
 - **`src/lib/seo.js`（新增，纯函数，SEO 文案的单一来源）**
   - `export function buildSeo(site, lang)` → `{ title, description, canonical, image, siteName, locale, localeAlternate }`。
     - `title`：`pick(site.name, lang)` + 站点副标题（取 `site.tagline` 截断，或 `site.role`）；给一个稳定模板，如 `${name} · ${shortTagline}`。
     - `description`：`pick(site.tagline, lang)`（纯文本，去掉 `*强调*` 星号）。
-    - `image`：`site.url` 非空时绝对化 `site.url + site.portrait`，否则返回相对 `site.portrait` 或空。
+    - `image`：优先 `site.ogImage`，其次 `site.portrait`；`site.url` 非空时绝对化，否则返回相对路径或空。
     - `canonical`：`site.url`（空则省略，不要输出 `undefined`）。
     - `locale`：`en→'en_US'`、`zh→'zh_CN'`；`localeAlternate` 为另一种。
   - `export const SEO_DEFAULT_LANG = 'en'`（静态注入用的默认语言）。
@@ -58,7 +59,7 @@
 
 - `tests/seo.test.js`：
   - `buildSeo(SITE,'en')` / `('zh')` 的 `title`/`description` 取值正确、为字符串、已去 `*星号*`。
-  - `image` 在 `SITE.url` 非空时为绝对 URL（`url + portrait`），为空时降级不抛错、不产生 `undefined`。
+  - `image` 在 `SITE.url` 非空时为绝对 URL（`url + ogImage/portrait`），为空时降级不抛错、不产生 `undefined`。
   - `locale`/`localeAlternate` 映射正确（en_US/zh_CN）。
   - `canonical` 在 `SITE.url` 为空时省略而非 `'undefined'`。
 - （可选）对 `seoHtmlPlugin` 的 `transformIndexHtml` 输出做字符串断言：含 `og:title`、`og:description`、`twitter:card`。
@@ -108,13 +109,13 @@
 
 ## 6. Definition of Done（2.1a）
 
-- [x] `npm run lint && npm test && npm run build && npm run check:dist && npm run format:check` 全绿；11 个文件 / 51 项测试通过。
+- [x] `npm run lint && npm test && npm run build && npm run check:dist && npm run format:check` 全绿；当前 20 个文件 / 94 项测试通过。
 - [x] `dist/index.html` 的 `<head>` 含 SITE 派生的 title/description/`og:*`/`twitter:*`/theme-color/robots；`SITE.url` 非空时追加 canonical/`og:url`。
 - [x] `dist/robots.txt`、`dist/sitemap.xml` 存在，URL 由 `SITE.url` 派生；空 URL 时不产生假地址。
 - [x] 运行时切语言：`document.title` 与 `description`/`og:*` 同步更新，**无重复 meta 标签**。
 - [x] 未引入任何**运行时**依赖；`SITE.url` 已进 `data.js` + `schema.js`；未违反 §3 任一 INV。
 - [x] 本地移动端 Lighthouse SEO = 100。
-- [ ] 真实 OG 调试器验证：等待部署者填写 `SITE.url`、portrait 并部署公开 URL 后执行。
+- [ ] 真实 OG 调试器验证：等待部署者填写 `SITE.url`、`ogImage` 并部署公开 URL 后执行。
 - [x] 已同步 `CLAUDE.md`、`PLAN.md`、`ENGINEERING.md`、`README.md` 与 `CONTENT_GUIDE.md`。
 - [x] 已按 ENGINEERING §8 写本文件下方变更记录。
 
@@ -144,8 +145,8 @@
 - **动机**：落实 Phase 2.1a，使 CSR 模板具备静态分享元数据、运行时双语 head 和搜索引擎发现资源。
 - **文件**：新增 `seo.js`、`useDocumentHead.js`、SEO 单测与 `public/robots.txt`；同步 `SITE.url`/schema；在 `vite.config.js` 注入 head 并生成 robots/sitemap；更新架构与使用文档。
 - **不变量**：新增 INV-11；满足 INV-2、INV-4、INV-7、INV-8、INV-9 与显式 ESM 扩展名约定。
-- **验证**：当前全量 51 项 Vitest、build、`check:dist`、format、CDP smoke 全绿；产物字符串断言通过；移动端 Lighthouse SEO 100。
-- **边界**：仓库按模板策略保留 `SITE.url = ''`，因此真实 canonical/OG URL 与外部分享调试在部署配置后验证。
+- **验证**：当时全量 51 项 Vitest、build、`check:dist`、format、CDP smoke 全绿；产物字符串断言通过；移动端 Lighthouse SEO 100。
+- **边界更新（2026-06-11）**：示例站已填写生产 `SITE.url`；独立 OG 图、缓存与外部平台验收由 `SPEC-2.4-DEPLOY.md` 继续跟踪。
 
 ### 2.1b
 
@@ -153,7 +154,7 @@
 - **文件**：新增独立 `prerender.jsx` 与 prerender/lang 测试；改造浏览器入口、App/provider 首帧、语言/时钟/播放器恢复；Vite 输出三条静态路由并清理构建专用 chunk；CDP smoke 增加 production preview 模式。
 - **依赖理由**：`vite-prerender-plugin` 仅在 build 期调用项目自有 `prerender()`，不进入浏览器可达资源，产物仍可部署到任意静态托管。
 - **不变量**：满足 INV-4、INV-6、INV-8、INV-9、INV-11；Provider 公共 API 与 localStorage key 均未改变。
-- **验证**：51 项 Vitest、lint、build、`check:dist`、dev CDP smoke、production CDP smoke 全绿；构建产物正文/路由/资源清单逐项检查通过；移动端 Lighthouse 相对 CSR 对照 Performance 58 → 61、SEO 100 → 100。
+- **验证**：当时 51 项 Vitest、lint、build、`check:dist`、dev CDP smoke、production CDP smoke 全绿；构建产物正文/路由/资源清单逐项检查通过；移动端 Lighthouse 相对 CSR 对照 Performance 58 → 61、SEO 100 → 100。
 
 ### 2.1b 构建护栏补充
 

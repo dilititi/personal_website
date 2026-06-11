@@ -1,24 +1,26 @@
 # PLAN · 网站改进规划
 
 > 本文是 `miles.morales`（双语个人作品集**模板** + 站内 CMS）的分阶段改进路线图。
-> 配套文档：`ENGINEERING.md`（工程契约 / 实现规则）、`CLAUDE.md`（架构说明）、`CODEBASE_ANALYSIS.html`（现状分析）。
+> 配套文档：`ENGINEERING.md`（工程契约 / 实现规则）、`CLAUDE.md`（架构说明）、`CODEBASE_ANALYSIS.html`（现状分析）、`PRODUCT-DIRECTION.md`（产品方向评估与优先级）。
 > 读者：项目所有者 + AI 编码 Agent。每一项工作的「怎么改」以 `ENGINEERING.md` 为准。
 
-## 当前进度（2026-06-07）
+## 当前进度（2026-06-11）
 
-| 项目                      | 状态      | 当前证据 / 下一步                                                                                    |
-| ------------------------- | --------- | ---------------------------------------------------------------------------------------------------- |
-| 1.1 Section 单一事实源    | ✅ 已完成 | `SECTION_KEYS` 已删除；编辑器清单来自 `EXPORTABLE_SECTIONS`，运行时数据由 `section-registry.js` 派生 |
-| 1.2 Provider / 持久化去重 | ✅ 已完成 | `persist.js`、`modules.js` 已共享；StrictMode、失败写入、reset 语义有单测和 UI smoke                 |
-| 1.3 测试 + CI             | ✅ 已完成 | Vitest 覆盖 15 个文件 / 68 项测试；CDP smoke 覆盖开发态与生产预渲染态                                |
-| 1.4 ESLint + Prettier     | ✅ 已完成 | `lint`、`format:check` 已进入 package scripts 与 CI                                                  |
-| 1.5 迁移垫片退场策略      | ✅ 已确定 | 旧 key 只读迁移，成功进入统一状态后清理；代码标记 2026-12-31 后删除                                  |
-| 2.1a SEO 元数据           | ✅ 已完成 | 静态/运行时 head、`SITE.url`、OG/Twitter、robots/sitemap 与 SEO 测试已落地                           |
-| 2.1b 预渲染 / SSG         | ✅ 已完成 | `/`、`/en/`、`/zh/` 静态正文、hydrate、hreflang 契约与 production CDP smoke 已落地                   |
-| 2.2 编辑器懒加载          | ✅ 已完成 | `ContentEditor` / `StyleEditor` 使用 `React.lazy`；构建产出两个编辑器独立 chunk                      |
-| 首次载入滚动位置          | ✅ 已修复 | 无 hash 的载入 / 刷新禁用浏览器滚动恢复并回到 `landing-masthead`；浏览器 smoke 已覆盖                |
-| GitHub Actions            | ✅ 已完成 | `.github/workflows/ci.yml` 已执行 install → lint → test → build → check:dist → format                |
-| 2.4 部署上线              | ✅ 已上线 | Render Static Site（onrender.com）；`SITE.url`/`portrait` 生效、SEO/SSG 已点亮；缓存头待固化         |
+| 项目                      | 状态      | 当前证据 / 下一步                                                                                               |
+| ------------------------- | --------- | --------------------------------------------------------------------------------------------------------------- |
+| 1.1 Section 单一事实源    | ✅ 已完成 | `SECTION_KEYS` 已删除；编辑器清单来自 `EXPORTABLE_SECTIONS`，运行时数据由 `section-registry.js` 派生            |
+| 1.2 Provider / 持久化去重 | ✅ 已完成 | `persist.js`、`modules.js` 已共享；StrictMode、失败写入、reset 语义有单测和 UI smoke                            |
+| 1.3 测试 + CI             | ✅ 已完成 | Vitest 覆盖 20 个文件 / 94 项测试；CDP smoke 覆盖开发态与生产预渲染态                                           |
+| 1.4 ESLint + Prettier     | ✅ 已完成 | `lint`、`format:check` 已进入 package scripts 与 CI                                                             |
+| 1.5 迁移垫片退场策略      | ✅ 已确定 | 旧 key 只读迁移，成功进入统一状态后清理；代码标记 2026-12-31 后删除                                             |
+| 2.1a SEO 元数据           | ✅ 已完成 | 静态/运行时 head、`SITE.url`、OG/Twitter、robots/sitemap 与 SEO 测试已落地                                      |
+| 2.1b 预渲染 / SSG         | ✅ 已完成 | `/`、`/en/`、`/zh/` 静态正文、hydrate、hreflang 契约与 production CDP smoke 已落地                              |
+| 2.2 编辑器懒加载          | ✅ 已完成 | `ContentEditor` / `StyleEditor` 使用 `React.lazy`；构建产出两个编辑器独立 chunk                                 |
+| 首次载入滚动位置          | ✅ 已修复 | 无 hash 的载入 / 刷新禁用浏览器滚动恢复并回到 `landing-masthead`；浏览器 smoke 已覆盖                           |
+| GitHub Actions            | ✅ 已完成 | `.github/workflows/ci.yml` 已执行 install → lint → test → build → check:dist → format                           |
+| 2.4 部署上线              | 🟡 收尾中 | Render 已上线；独立 OG 图、缓存配置与 deploy checker 已落地，待部署后外部平台/GSC 验收                          |
+| 3A.1 内容 / 风格发布      | 🟡 待外验 | GitHub Contents API、精确 export 替换、token 安全边界、贯通 mock 与编辑器发布 UI 已落地；待真实 PAT commit 验收 |
+| 3A.2 生产媒体上传         | 🟡 待外验 | `FileField` 可在生产提交响应式媒体到仓库 `public/`；mock 已覆盖创建/冲突重试，待真实图片提交                    |
 
 > **2026-06-08 · Phase 2 收口于 `codex/perf-font-a1`**：该分支是 `codex/perf-images-a11y`（图片 B3 + 无障碍）的线性超集，再叠加字体 A1，因此合并进单一 PR，旧 PR 关闭。
 >
@@ -32,11 +34,11 @@
 
 ## 0. 现状基线（一句话）
 
-一个 React 19 + Vite 8、纯静态、无后端的双语作品集模板：构建时预渲染 `/`、`/en/`、`/zh/` 的 Landing + About，浏览器再 hydrate 为完整 SPA；所有文案集中在 `src/data.js`，站内编辑结果存 `localStorage`，靠「导出代码 → 粘回源码 → git push」上线。当前已具备共享持久化层、68 项 Vitest、开发/生产浏览器 smoke、SEO/SSG、lint/format、CI、编辑器按需加载、图片 B3、字体 A1 与无障碍修复；2026-06-08 移动端 Lighthouse 达到 Performance 98 / Accessibility 100 / Best Practices 96 / SEO 100 / CLS 0.001，因此暂不进入 A2/B1。详见 `CODEBASE_ANALYSIS.html`。
+一个 React 19 + Vite 8、纯静态、无后端的双语作品集模板：构建时预渲染 `/`、`/en/`、`/zh/` 的 Landing + About，浏览器再 hydrate 为完整 SPA；所有文案集中在 `src/data.js`，站内编辑结果先存浏览器草稿，可手动导出，也可通过 GitHub Contents API 提升为源码 commit。当前已具备共享持久化层、Vitest、开发/生产浏览器 smoke、SEO/SSG、lint/format、CI、编辑器按需加载、生产媒体提交、图片 B3、字体 A1 与无障碍修复；2026-06-08 移动端 Lighthouse 达到 Performance 98 / Accessibility 100 / Best Practices 96 / SEO 100 / CLS 0.001。详见 `CODEBASE_ANALYSIS.html`。
 
 ## 1. 指导原则（取舍时回到这几条）
 
-1. **静态优先、后端可选。** 默认产物必须是纯静态；任何需要服务端的能力都要能在静态构建里优雅降级（参考 `FileField` 在生产环境禁用上传的写法）。
+1. **静态优先、后端可选。** 默认产物必须是纯静态；生产发布由浏览器直连 GitHub API，未配置 token 时优雅退化为手动导出与 public 路径输入。
 2. **单一事实源。** 同一信息只允许有一个权威定义；禁止再引入第二份「section 列表」「序列化器」「合并函数」。
 3. **契约即代码。** 现在靠注释/标签维护的跨文件约定（CSS 变量名、schema↔data、WORK_MEDIA、PHOTO_SERIES…）要逐步变成显式、可核验的约束。
 4. **双语对等。** 任何面向访客的新文案都必须 `L(en, zh)` 双语；内部工具可中文优先。
@@ -50,7 +52,7 @@
 | Phase 0 | 已完成（本轮）       | 统一导出、接入 temperature/personality、修复生产上传、对齐文档 | 消除两处分叉与误导     |
 | Phase 1 | 已完成当前稳定化目标 | 单一事实源、去重 provider、测试 + CI、迁移退场策略、lint       | 让后续改动「安全」     |
 | Phase 2 | 已启动（SEO 已完成） | 性能、SEO、无障碍                                              | 让站点「被看见、可用」 |
-| Phase 3 | 真正的持久化         | 在不破坏静态属性的前提下解决「线上编辑不落盘」                 | 补上最大的现实缺口     |
+| Phase 3 | 3A.1 / 3A.2 已实现   | 浏览器草稿可提交到 GitHub，生产媒体可写入仓库                  | 待真实账号链路验收     |
 | Phase 4 | 拓展产品             | 新章节/布局、主题分享、AI 填充增强、多语言                     | 模板的增长面           |
 
 排序原则：**先把地基（Phase 1）做扎实**，因为它降低后面每一步的回归风险；Phase 2/3 可并行启动，按你对「曝光」vs「持久化」的偏好取舍；Phase 4 是探索性、随时可插队的增长项。
@@ -61,7 +63,7 @@
 
 - **导出路径统一**：Copy / Copy All / 下载 `data.js` 现在都走 `export.js#exportLine`，输出一致的 `L('en','zh')`；删除 `data-context` 里基于 `JSON.stringify` 的分叉序列化器。
 - **接入失效旋钮**：`color.temperature`（冷暖染色）、`typography.personality`（默认字体配对）已接入 `deriveStyleVars`；`culture/mood/anchors` 在编辑器里重标为「情绪板（描述性，不驱动渲染）」。
-- **生产上传缺口**：`FileField` 在 `!import.meta.env.DEV` 时禁用上传并提示；`CONTENT_GUIDE.md` 补充说明。
+- **生产上传缺口（历史）**：Phase 0 先明确了 dev-only 边界；Phase 3A.2 已用浏览器 GitHub 提交填平该缺口。
 - **文档对齐**：重写 `README.md`（编辑器优先工作流 + 真实文件树），修正 `CLAUDE.md`（移除 `exportResolvedData`、`compact/feature` 布局已实现、风格旋钮现状）。
 
 > 验收：`npm run build` 通过 + 站内编辑器实测一遍即可视为 Phase 0 收尾。
@@ -80,13 +82,13 @@
 ### 1.2 去重 provider / 持久化机制 〔#5 · ✅ 已完成〕
 
 - 现状：`data-context` 与 `style-context` 各自重复实现深合并（`mergeSection` ≡ `mergeStyle`）和 `localStorage` 读写/`lastSaved`/首渲染跳过逻辑，且两者在「是否 memo」上不一致。
-- 做法：抽出共享 `deepMerge(base, override)` 与 `useLocalStorageState`（封装 load/save/lastSaved/持久化快照）；两个 context 复用；给 `DataProvider` 的 `resolvedData` 与 `value` 补 `useMemo`（对齐 `StyleProvider`）。`resetAll` 为主名，保留 `resetData` 兼容别名。
+- 做法：抽出共享 `deepMerge(base, override)` 与 `useLocalStorageState`（封装 load/save/lastSaved/持久化快照）；两个 context 复用；给 `DataProvider` 的 `resolvedData` 与 `value` 补 `useMemo`（对齐 `StyleProvider`）。全量重置 API 收敛为 `resetAll`。
 - 验收：两套机制由同一份工具支撑；`DataProvider` 不再每次渲染重算全部合并。
 
 ### 1.3 测试 + CI 〔#7 · ✅ 已完成〕
 
 - 实现：使用 **Vitest 4** 覆盖 `deepMerge`、持久化读写、`normalizeModuleConfig`（布尔 → 对象向后兼容）、section registry、`export.js#jsLiteral` 往返与 `validation.js` 关键分支；CDP smoke 独立验证浏览器主流程。
-- 验收结果：15 个测试文件、68 项测试通过。GitHub Actions 顺序为 `install → lint → test → build → check:dist → format:check`。
+- 验收结果：20 个测试文件、94 项测试通过。GitHub Actions 顺序为 `install → lint → test → build → check:dist → format:check`。
 
 ### 1.4 引入 lint / format 〔✅ 已完成〕
 
@@ -113,7 +115,7 @@
 
 - **2.1a · 元数据与发现资源 ✅**：构建期/运行时 head、`SITE.url`、Open Graph / Twitter Card、`robots.txt`、`sitemap.xml`；零运行时依赖。
 - **2.1b · 预渲染 / SSG ✅**：`vite-prerender-plugin` 输出 `/`、`/en/`、`/zh/` 的 Landing + About；路径决定首帧语言，浏览器 hydrate 后恢复内容/风格/播放器本地状态；构建后清除 prerender-only chunk。
-- **退出结果**：两步均满足规格 Definition of Done；真实 OG 调试器仍需部署者填写 `SITE.url` 后外部验证。
+- **退出结果**：两步均满足代码侧 Definition of Done；生产 `SITE.url` 已配置，独立 OG 图与缓存规则仍待新版部署和外部平台验收。
 
 ### 2.2 性能
 
@@ -136,11 +138,10 @@
 
 完整 runbook 与验收见 [`SPEC-2.4-DEPLOY.md`](./SPEC-2.4-DEPLOY.md)。
 
-- ✅ **已上线**：<https://personal-website-x3u4.onrender.com>（Render **Static Site**，`base='/'` 根域）；`SITE.url` / `portrait`（`/picture/miles.jpg`）已填，canonical / og:url / hreflang / sitemap / og:image 随之生效。首部署出现的 assets MIME（`text/plain`）/ 404 是旧 `index.html` ↔ 资源哈希不一致，hard refresh 已解。
-- ⏳ **待固化**：在 Render Headers 设 `/assets/*` → `immutable`、`/*.html` → `no-cache`，否则每次重部署后**回访者**会命中旧 HTML 再次踩到该问题（见 spec §7 / §9）。
-- ⏳ **待验收**：`view-source` 核对三路由 head + `sitemap.xml`，跑 OG 调试器，向 Google Search Console 提交 sitemap（spec §7 DoD）。
-- **为何单列**：2.1 的 SEO/SSG 代码已就绪，但 `SITE.url=''` 时 canonical / og:url / hreflang / sitemap / og:image 全为空——**SEO 的真实价值要等部署 + 填 `SITE.url` 后才成立**。
-- **关键动作**：选根域托管（Cloudflare Pages / Netlify / Vercel，或 GitHub Pages + 自定义域）→ 填 `SITE.url`（+ 一张 1200×630 的 `og-cover.jpg`）→ OG 调试器 + Search Console 验证。
+- ✅ **已上线**：<https://personal-website-x3u4.onrender.com>（Render **Static Site**，`base='/'` 根域）；三条预渲染路由、canonical、hreflang、robots 与 sitemap 已在线核对。
+- ✅ **仓库侧已完成**：`SITE.ogImage` 与 `portrait` 分离；原创 `public/og-cover.jpg` 为 1200×630；补齐社交图片尺寸/alt；`render.yaml` 固化缓存规则；`npm run check:deploy` 模拟四类 bot 并检查线上缓存。
+- ⏳ **待新版部署**：既有 Render 服务若非 Blueprint 管理，需在 Dashboard 同步 `render.yaml` 的 Headers，重新部署后让 `npm run check:deploy` 严格模式通过。
+- ⏳ **账号侧待验收**：Facebook / X / LinkedIn 重新抓取；Search Console URL-prefix 验证并提交 sitemap。验证 token 可填 `SITE.googleSiteVerification`。
 - **关键约束**：保持 `base='/'`；避免 GitHub Pages 项目站子路径（会打断 `data.js` 里的 `/picture` 等绝对媒体路径，见 spec §4）。
 
 **Phase 2 退出标准**：质量项 ✅ 已满足（Lighthouse 全达标、编辑器不拖累首屏）；**「被看见」以 2.4 部署上线为最终前提**。
@@ -149,30 +150,34 @@
 
 ## Phase 3 · 真正的持久化（优先：持久化 / 后端）
 
-> **已定方向（2026-06-08）：路径 A · 浏览器内 GitHub 写入。** 完整工程契约见 [`SPEC-3-PERSIST.md`](./SPEC-3-PERSIST.md)。
-> 子决策默认：**A1 细粒度 PAT**（纯静态可行、零后端）· **W1 `data.js` 哨兵区域重写**（保单一源、复用 `export.js`）· 默认**直接提交 `main`**（Render 自动重建），可选「分支 + PR」让 CI 把关。顺带填平 `FileField` 的 dev-only 上传缺口。
+> **实现方向：路径 A1 · 浏览器内 GitHub Contents API。** 完整契约与验收状态见 [`SPEC-3-PERSIST.md`](./SPEC-3-PERSIST.md)。
 
-**目标**：补上最大的现实缺口——**线上编辑不落盘**（编辑只在 `localStorage`，清缓存即丢；上传仅 dev 可用）。关键约束：**不破坏「静态、无后端、数据进 git」的核心气质**。
+### 3A.1 内容与风格发布 〔代码完成，待外部验收〕
 
-三条可选路径（按是否引入服务端排序）：
+- 内容编辑器和风格编辑器共用 `PublishPanel`：配置 owner / repository / branch，验证 fine-grained PAT 后直接提交。
+- `src/data.js` / `src/style.js` 由哨兵界定发布区域；发布器只替换发生变化的 export 声明，不重生成整个文件。
+- token 默认 sessionStorage，只有显式“记住”才 localStorage；存储不可用时退化为面板内存态。
+- 发布前校验 resolved data、public 资源、大体积 data URL 与 token 泄漏；409 冲突重取 SHA 后只重试一次。
+- 未配置 token 时，Copy、下载、localStorage 草稿与正常浏览保持原行为。
 
-- **A. 强化「promote-to-code」流（推荐，最贴合现有气质）**
-  - 浏览器内通过 **GitHub OAuth + GitHub API** 直接把导出的 `data.js`/`style.js` 提交成一个 commit / PR；`localStorage` 退化为草稿。
-  - 仍是静态站点，零长期后端；用户数据继续活在自己的 git 仓库里。
-  - 上传也可同法落到仓库 `public/`，顺带解决 Phase 0 标注的「上传仅 dev」。
-- **B. 可选轻后端（功能旗标）**
-  - 一个 serverless 函数 + KV/对象存储，仅当配置了环境变量时启用；未配置则完全静态、走路径 A/手动流。
-  - 适合想要「真正在线编辑保存」的部署者。
-- **C. 本地优先 / 自托管**
-  - IndexedDB 草稿 + 导入导出；或提供一个可选的极简自托管写盘服务（把 dev 的 `/api/upload` 思路产品化）。
+### 3A.2 生产媒体上传 〔代码完成，待外部验收〕
 
-**建议**：以 **A** 为主线（最契合模板定位），把 **B** 作为「高级部署者」的可选项；**C** 作为离线增强。无论哪条，都要保持「未配置 → 纯静态降级」。
+- dev 继续走 `/api/upload` 写本地 `public/`。
+- prod 使用同一 GitHub 配置提交到 `public/{subfolder}/`；响应式图片仍由浏览器生成。
+- 没有 token 时不报全站错误，保留手填 public 路径。
 
-**验收**：在线编辑能产生一次可追溯的持久化（commit 或写库）；未配置后端时行为与今天一致、无报错。
+### 3A.3 / 3A.4 〔可选，未实现〕
+
+- 分支 + PR + CI 模式：只有真实使用表明直接 main 风险不可接受时再做。
+- GitHub App / OAuth 登录式 UX：需要极小 token-exchange 服务，当前不引入。
+
+**退出标准**：本地质量门全绿后，用所有者 fine-grained PAT 完成一次文案 commit、一次生产图片提交，并确认 Render 自动部署后的线上结果。外部提交未完成前状态保持“待外验”，不虚报完成。
 
 ---
 
 ## Phase 4 · 拓展产品（探索性、可插队）
+
+> 「模板上手」已细化为可实施合同 [`SPEC-4-TEMPLATE.md`](./SPEC-4-TEMPLATE.md)（P0 解耦 + 空载实例化 / P1 目标预设 / P2 部署前审计），优先级与理由见 [`PRODUCT-DIRECTION.md`](./PRODUCT-DIRECTION.md)。这是「让别人 5 分钟用起来」的主线,建议在投入下面其它探索项之前先做。
 
 - **主题分享 / 市场**：`exportStyle()` 已能导出 `STYLE`；把它产品化为可分享/导入的主题文件，甚至一个画廊。
 - **AI 填充增强**：把分散的 prompt/preset 统一；支持分章节增量填充、图片建议、把「情绪板（mood/anchors）」真正喂给 AI 生成初始风格（`ReferencePanel` 已为此留好数据）。
@@ -186,8 +191,8 @@
 
 1. **已完成的地基**：1.1 单一事实源、1.2 provider 去重、1.3 Vitest + CI、1.4 lint/format、2.2 编辑器懒加载。
 2. **已完成的性能阶段**：图片 B3、字体 A1、a11y 与移动端 Lighthouse 验收。
-3. **接着**（高影响/高成本，需决策）：Phase 3 持久化（先定路径 A/B/C）。
-4. **随时探索**：Phase 4 各项；A2/B1 仅在真实指标回退时重启。
+3. **当前收口**：Phase 3A.1 / 3A.2 真实 GitHub commit、生产图片与 Render 部署验收。
+4. **之后**：模板上手 P0；Phase 4 其余探索项按真实需求排序，3A.3 PR 模式不预做。
 
 ## 4. 风险与权衡
 
@@ -215,13 +220,15 @@
 6. ✅ 修复普通载入自动落在 About / Journey 接缝的问题；无显式 hash 时始终从 Landing 顶部开始。
 7. ✅ section registry 契约测试、显式 ESM 扩展名、`isDirty` 保存状态与迁移垫片退场日期全部落地。
 8. ✅ Phase 2.1a/2.1b：双语 SEO head、发现资源、三条静态路由、首屏预渲染与无错误 hydration。
+9. ✅ Phase 3A.1/3A.2 代码：GitHub 发布、精确 export 替换、token/storage 安全边界和生产媒体提交已落地并有单测。
 
 下一步建议顺序：
 
-1. **部署上线 + 填 `SITE.url`（进行中）**：见 `SPEC-2.4-DEPLOY.md`，让 Phase 2 的 SEO/SSG 真实生效、可被 OG 调试器与 Search Console 验证。
-2. 决定 Phase 3 持久化采用静态托管增强、轻后端还是第三方内容源（推荐路径 A：浏览器内 GitHub OAuth 提交）。
-3. 保留当前 Lighthouse 98 / 100 / 96 / 100 / CLS 0.001 作为性能回归基线；低于门槛时再评估 A2/B1。
-4. 2026-12-31 后删除两个旧 localStorage 迁移垫片。
+1. **完成 Phase 2.4 外部验收**：部署独立 OG 图和缓存规则，跑 `check:deploy`，刷新三家社交平台卡片，完成 Search Console 验证与 sitemap 提交。
+2. **Phase 3 外部验收**：用最小权限 PAT 提交一处测试文案和一张测试图片，确认 GitHub diff、Render 重建与线上资源。
+3. **模板上手 P0**：按 `SPEC-4-TEMPLATE.md` 解耦示例身份并提供空载实例。
+4. 保留当前 Lighthouse 基线；指标低于门槛时再评估 A2/B1。
+5. 2026-12-31 后删除两个旧 localStorage 迁移垫片。
 
 > 每一步的具体「改哪些文件、满足哪些不变量、Definition of Done」见 `ENGINEERING.md`。
 

@@ -21,6 +21,8 @@ import { JsonEditor, ObjectArrayField, ObjectField } from './editor/fields/index
 import { FIELD_TEMPLATES } from './editor/contentPresets.js'
 import ImportPanel from './editor/ImportPanel.jsx'
 import PreviewFrame from './editor/PreviewFrame.jsx'
+import PublishPanel from './editor/PublishPanel.jsx'
+import { publishContent } from '../lib/publish.js'
 
 function SectionEditor({ section, value, onChange, onTemplateApply }) {
   const data = useData()
@@ -342,6 +344,7 @@ export default function ContentEditor({ open, onClose }) {
   const [templateUndo, setTemplateUndo] = useState(null)
   const [pathAudit, setPathAudit] = useState(null)
   const [checkingPaths, setCheckingPaths] = useState(false)
+  const [showPublish, setShowPublish] = useState(false)
   const [mode, setMode] = useState(() => {
     try {
       return localStorage.getItem('chen.ce.mode') === 'side' ? 'side' : 'modal'
@@ -463,6 +466,16 @@ export default function ContentEditor({ open, onClose }) {
   const sectionWarning =
     !isSpecial && workingValue != null ? exportWarning(activeKey, workingValue) : ''
   const showContentPreview = mode === 'modal' && !isSpecial
+  const hasPersistedPublishChanges = Object.keys(data.userOverrides || {}).some(
+    key =>
+      key in data.resolvedData &&
+      JSON.stringify(data.resolvedData[key]) !== JSON.stringify(data.baseData?.[key]),
+  )
+  const hasWorkingPublishChange =
+    !isSpecial &&
+    workingValue != null &&
+    JSON.stringify(workingValue) !== JSON.stringify(data[activeKey])
+  const hasPublishChanges = hasPersistedPublishChanges || hasWorkingPublishChange
 
   const handleSave = () => {
     data.setSection(activeKey, workingValue)
@@ -598,6 +611,31 @@ export default function ContentEditor({ open, onClose }) {
     )
   }
 
+  const handlePublish = async ({ github, config }) => {
+    const resolved = { ...data.resolvedData }
+    const changedKeys = new Set(
+      Object.keys(data.userOverrides || {}).filter(
+        key =>
+          key in resolved && JSON.stringify(resolved[key]) !== JSON.stringify(data.baseData?.[key]),
+      ),
+    )
+
+    if (!isSpecial && workingValue != null) {
+      resolved[activeKey] = workingValue
+      if (JSON.stringify(workingValue) !== JSON.stringify(data[activeKey])) {
+        changedKeys.add(activeKey)
+        data.setSection(activeKey, workingValue)
+      }
+    }
+
+    return publishContent({
+      github,
+      branch: config.branch,
+      data: resolved,
+      changedKeys: [...changedKeys],
+    })
+  }
+
   return (
     <div
       className={`ce-overlay mode-${mode}`}
@@ -674,6 +712,13 @@ export default function ContentEditor({ open, onClose }) {
             >
               ⬇ {lang === 'zh' ? '备份 JSON' : 'Backup JSON'}
             </button>
+            <button
+              className="ce-btn"
+              type="button"
+              onClick={() => setShowPublish(value => !value)}
+            >
+              {lang === 'zh' ? '发布' : 'Publish'}
+            </button>
             <button className="ce-close" onClick={onClose} aria-label="close">
               ✕
             </button>
@@ -684,8 +729,8 @@ export default function ContentEditor({ open, onClose }) {
           <div className="ce-banner-text">
             {data.storageError ||
               (lang === 'zh'
-                ? '当前修改只保存在本浏览器。发布前请点击「📋 全部」导出代码并提交到 Git。'
-                : 'Edits live only in this browser. Click "📋 All" to export and commit to Git before publishing.')}
+                ? '当前修改先保存为浏览器草稿；可导出代码，也可使用「发布」直接提交到 GitHub。'
+                : 'Edits are browser drafts first. Export the code or use Publish to commit directly to GitHub.')}
           </div>
           {data.storageError ? (
             <div className="ce-banner-meta">
@@ -702,6 +747,16 @@ export default function ContentEditor({ open, onClose }) {
             </div>
           ) : null}
         </div>
+
+        {showPublish && (
+          <PublishPanel
+            lang={lang}
+            kind="content"
+            onPublish={handlePublish}
+            onClose={() => setShowPublish(false)}
+            publishDisabled={!hasPublishChanges}
+          />
+        )}
 
         {pathAudit && (
           <div

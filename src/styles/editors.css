@@ -129,6 +129,93 @@
   color: var(--cream-mute);
 }
 
+.ce-publish-panel {
+  background: var(--ink-deep);
+  border-bottom: 1px solid var(--ink-line);
+  display: grid;
+  gap: 12px;
+  padding: 14px 24px;
+}
+
+.ce-publish-head,
+.ce-publish-actions,
+.ce-publish-status {
+  align-items: center;
+  display: flex;
+  gap: 10px;
+}
+
+.ce-publish-head {
+  justify-content: space-between;
+}
+
+.ce-publish-head > div {
+  display: grid;
+  gap: 4px;
+}
+
+.ce-publish-head strong {
+  color: var(--cream);
+  font: 600 13px/1.2 var(--font-sans);
+}
+
+.ce-publish-head span,
+.ce-publish-grid label > span,
+.ce-publish-risk,
+.ce-publish-note,
+.ce-publish-remember {
+  color: var(--cream-mute);
+  font: 10px/1.45 var(--font-mono);
+}
+
+.ce-publish-grid {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: minmax(220px, 2fr) repeat(3, minmax(120px, 1fr));
+}
+
+.ce-publish-grid label {
+  display: grid;
+  gap: 5px;
+}
+
+.ce-publish-remember {
+  align-items: center;
+  display: flex;
+  gap: 8px;
+}
+
+.ce-publish-risk,
+.ce-publish-note {
+  margin: 0;
+}
+
+.ce-publish-note {
+  color: var(--ochre);
+}
+
+.ce-publish-status {
+  border-left: 2px solid var(--moss);
+  color: var(--cream-soft);
+  font: 11px/1.45 var(--font-mono);
+  justify-content: space-between;
+  padding: 7px 10px;
+}
+
+.ce-publish-status.is-error {
+  border-left-color: var(--rust);
+  color: var(--rust);
+}
+
+.ce-publish-status a {
+  color: inherit;
+  flex: 0 0 auto;
+}
+
+.ce-publish-actions {
+  justify-content: flex-end;
+}
+
 .ce-path-audit {
   background: var(--ink-deep);
   border-bottom: 1px solid var(--ink-line);
@@ -1743,6 +1830,9 @@ html[lang='zh'] .ce-arr-card-title {
   .ce-path-audit li {
     grid-template-columns: 1fr;
   }
+  .ce-publish-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 @media (max-width: 640px) {
@@ -1761,6 +1851,16 @@ html[lang='zh'] .ce-arr-card-title {
   }
   .se-anchor-remove {
     justify-self: end;
+  }
+  .ce-publish-grid {
+    grid-template-columns: 1fr;
+  }
+  .ce-publish-actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+  .ce-publish-actions .ce-btn {
+    width: 100%;
   }
 }
 

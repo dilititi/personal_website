@@ -55,6 +55,7 @@ npm run dev
 | **SITE**    | `status` + `statusObject` | "在看什么"实时状态                                     |
 | **SITE**    | `now`                     | 一段较长的"现在在做什么"（4-5 句）                     |
 | **SITE**    | `portrait`                | 头像图片路径                                           |
+| **SITE**    | `ogImage`                 | 社交分享横图，建议 1200×630，使用原创或已授权素材      |
 | **SITE**    | `tzName`                  | IANA 时区名（如 `Asia/Shanghai` / `America/New_York`） |
 | **ABOUT**   | `paragraphs[]`            | 2-3 段叙述（接着 intro 往下讲）                        |
 | **ABOUT**   | `stats[]`                 | 侧边栏 4 个数据格                                      |
@@ -138,7 +139,11 @@ npm run dev
 
 **所有上传都通过 "📁 选择文件" 按钮自动完成**——你不需要手动操作 public/ 目录,除非你想批量放图。
 
-> ⚠️ **上传仅在本地 `npm run dev` 时可用。** "📁 选择文件" 依赖 dev server 的 `/api/upload` 接口；生产构建是纯静态的,没有这个接口,所以**线上编辑器里上传按钮会被禁用**。线上只能直接填 `public/` 路径——要新增图片/音频,请在本地 dev 上传好,再走「发布到公网」流程提交。
+- 本地 `npm run dev`：通过 `/api/upload` 写入本机 `public/`。
+- 生产站点：先在编辑器的「发布」面板验证 GitHub token，再把文件直接提交到仓库 `public/`。
+- 未配置 token：仍可手动填写 `/picture/example.jpg` 一类 public 路径，编辑器其它功能不受影响。
+
+生产上传和内容发布使用同一份 owner / repository / branch 配置。图片会先在浏览器生成响应式尺寸，再逐个写入仓库；提交后需等待静态托管重新部署才能从线上 URL 访问。
 
 ---
 
@@ -173,7 +178,20 @@ npm run dev
 
 ## 发布到公网
 
-填好内容后:
+填好内容后有两种发布方式。
+
+### 方式 A：编辑器直接发布到 GitHub
+
+1. 在 GitHub 创建 fine-grained PAT，只授权目标仓库的 **Contents: Read and write**。
+2. 在内容或风格编辑器顶部点「发布」，填写并验证 owner / repository / branch。
+3. token 默认只保存在当前标签页；只有显式勾选“记住”才写入 localStorage。
+4. 点「发布内容」或「发布风格」，确认后直接生成 commit。Render 等已连接仓库的托管服务会自动重建。
+
+内容发布前会校验数据结构、public 资源路径和内联 data URL。GitHub 返回 409 时会重新读取当前 SHA 并重试一次；继续失败会显示错误，不会静默覆盖远端内容。
+
+### 方式 B：手动导出后提交
+
+如果不想在浏览器保存任何 GitHub 凭据，继续使用原有流程:
 
 ```powershell
 npm run dev   # 本地预览一下
@@ -186,14 +204,17 @@ git push
 
 然后在 [Render](https://render.com) / [Vercel](https://vercel.com) / [Netlify](https://netlify.com) 创建 Static Site,连接你的 GitHub 仓库,build command `npm run build`,publish dir `dist`——几分钟内你的站点就上线了。
 
-上线前请在 SITE 中填写最终的「站点 URL」。构建期的 canonical、分享卡片 URL、`robots.txt` 和 `sitemap.xml` 都从这个字段生成；模板默认留空，因此未填写时会显示构建警告。
+上线前请在 SITE 中填写最终的「站点 URL」和独立的「社交分享图」。构建期的 canonical、分享卡片 URL、`robots.txt` 和 `sitemap.xml` 都从这里生成；`portrait` 只负责页面肖像。需要 Google Search Console 的 HTML tag 验证时，把 Google 给出的 `content` 值填入 `googleSiteVerification`。
 
 ---
 
 ## FAQ
 
-**Q: localStorage 里的编辑会传到 GitHub 吗?**
-A: 不会。localStorage 只在你这台电脑的这个浏览器有。要发布,必须用编辑器底部的 "📋 全部" 按钮复制代码,粘到 `data.js`,再 git push。站内新增的照片和个人读书日志已经并入统一数据段,也会包含在“📋 全部”里。
+**Q: localStorage 里的编辑会自动传到 GitHub 吗?**
+A: 不会。localStorage 仍只是这台电脑上的草稿。只有你主动打开「发布」面板、验证 token 并确认提交时才会写 GitHub；也可以继续用 "📋 全部" 手动提交。站内新增的照片和个人读书日志已经并入统一数据段,也会包含在导出和发布范围里。
+
+**Q: GitHub token 会进入源码或导出文件吗?**
+A: 不会。token 默认只在 sessionStorage，显式选择后才进入 localStorage；发布器还会拒绝把常见 GitHub token 字样写入源码。请始终使用仅限目标仓库、仅 Contents 读写的细粒度 PAT。
 
 **Q: 我能只填部分章节吗?**
 A: 当然。空着的字段会显示默认占位符(或为空)。配合 MODULES 关掉整个章节,效果更整洁。

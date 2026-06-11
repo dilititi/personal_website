@@ -12,9 +12,12 @@ export function pick(v, lang) {
   return typeof v === 'object' ? '' : String(v)
 }
 
+// <<< EDITOR:CONTENT START >>>
 export const SITE = {
   url: 'https://personal-website-x3u4.onrender.com', // 生产域名：canonical / og:url / sitemap 的唯一来源
-  portrait: '/picture/miles.jpg', // Landing 肖像 + og:image / twitter:image
+  portrait: '/picture/miles.jpg', // Landing / About 肖像
+  ogImage: '/og-cover.jpg', // 1200x630 社交分享封面；与 portrait 分离，避免大卡裁切
+  googleSiteVerification: '', // Search Console URL-prefix 验证 token；留空时不输出 meta
   name: L('CHEN', '陈'),
   nameRight: L('A.', '安'),
   nameFull: L('Chen A.', '陈安'),
@@ -1337,3 +1340,4 @@ export const TEXTS = {
     handCodedLine: L('Hand-coded. No tracking. No cookies.', '纯手写代码。无追踪。无 cookie。'),
   },
 }
+// <<< EDITOR:CONTENT END >>>

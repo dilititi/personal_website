@@ -93,7 +93,6 @@ export function DataProvider({ children, prerendered = false }) {
       setSection,
       resetSection,
       resetAll,
-      resetData: resetAll,
       replaceOverrides,
       isOverridden,
       exportOverrides,

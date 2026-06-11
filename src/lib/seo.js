@@ -37,8 +37,8 @@ function shortTitleText(value, maxLength = 64) {
   return `${text.slice(0, maxLength - 1).trimEnd()}…`
 }
 
-function absoluteImage(siteUrl, portrait) {
-  const image = String(portrait ?? '').trim()
+function absoluteImage(siteUrl, imagePath) {
+  const image = String(imagePath ?? '').trim()
   if (!image || !siteUrl) return image
   if (/^[a-z][a-z\d+.-]*:/i.test(image) || image.startsWith('//')) return image
 
@@ -60,11 +60,17 @@ export function buildSeo(site = {}, lang = SEO_DEFAULT_LANG) {
     .trim()
     .replace(/\/+$/, '')
 
+  const image = absoluteImage(canonical, site?.ogImage || site?.portrait)
+
   return {
     title: [siteName, titleDetail].filter(Boolean).join(' · '),
     description: tagline,
     canonical,
-    image: absoluteImage(canonical, site?.portrait),
+    image,
+    imageAlt: image ? [siteName, titleDetail].filter(Boolean).join(' — ') : '',
+    imageWidth: site?.ogImage ? '1200' : '',
+    imageHeight: site?.ogImage ? '630' : '',
+    googleSiteVerification: String(site?.googleSiteVerification ?? '').trim(),
     siteName,
     locale: LOCALES[activeLang],
     localeAlternate: LOCALES[alternateLang],

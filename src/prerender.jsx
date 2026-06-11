@@ -30,6 +30,12 @@ function seoHeadElements(site, lang, languageRoute) {
     { type: 'meta', props: { name: 'twitter:description', content: seo.description } },
   ]
 
+  if (seo.googleSiteVerification) {
+    elements.push({
+      type: 'meta',
+      props: { name: 'google-site-verification', content: seo.googleSiteVerification },
+    })
+  }
   if (seo.canonical) {
     elements.push(
       { type: 'link', props: { rel: 'canonical', href: seo.canonical } },
@@ -39,8 +45,16 @@ function seoHeadElements(site, lang, languageRoute) {
   if (seo.image) {
     elements.push(
       { type: 'meta', props: { property: 'og:image', content: seo.image } },
+      { type: 'meta', props: { property: 'og:image:alt', content: seo.imageAlt } },
       { type: 'meta', props: { name: 'twitter:image', content: seo.image } },
+      { type: 'meta', props: { name: 'twitter:image:alt', content: seo.imageAlt } },
     )
+    if (seo.imageWidth && seo.imageHeight) {
+      elements.push(
+        { type: 'meta', props: { property: 'og:image:width', content: seo.imageWidth } },
+        { type: 'meta', props: { property: 'og:image:height', content: seo.imageHeight } },
+      )
+    }
   }
   buildLanguageLinks(site).forEach(link => {
     elements.push({ type: 'link', props: { rel: 'alternate', ...link } })

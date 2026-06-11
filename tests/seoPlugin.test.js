@@ -12,6 +12,8 @@ const site = {
   name: { en: 'Example', zh: '示例' },
   tagline: { en: 'A *quiet* portfolio.', zh: '一个*安静*的作品集。' },
   portrait: '/picture/portrait.jpg',
+  ogImage: '/og-cover.jpg',
+  googleSiteVerification: 'google-token',
 }
 
 describe('SEO build plugin helpers', () => {
@@ -20,6 +22,10 @@ describe('SEO build plugin helpers', () => {
 
     assert.match(head.title, /Example/)
     assert.match(head.tags, /property="og:title"/)
+    assert.match(head.tags, /property="og:image:width" content="1200"/)
+    assert.match(head.tags, /property="og:image:height" content="630"/)
+    assert.match(head.tags, /name="twitter:image:alt"/)
+    assert.match(head.tags, /name="google-site-verification" content="google-token"/)
     assert.match(head.tags, /name="twitter:card"/)
     assert.match(head.tags, /rel="canonical" href="https:\/\/example\.com"/)
     assert.doesNotMatch(head.tags, /undefined/)
@@ -42,6 +48,7 @@ describe('SEO build plugin helpers', () => {
     assert.doesNotMatch(output.sitemap, /<loc>/)
     assert.doesNotMatch(head.tags, /rel="canonical"/)
     assert.doesNotMatch(head.tags, /property="og:url"/)
+    assert.match(head.tags, /name="google-site-verification" content="google-token"/)
     assert.doesNotMatch(`${output.robots}${output.sitemap}${head.tags}`, /undefined/)
   })
 

@@ -30,10 +30,12 @@ npm run dev      # 打开 http://localhost:5173/
 
 - 顶栏点 **✏️ 内容** 打开内容编辑器：分章节填写 SITE / ABOUT / WORKS… 改动**实时保存到浏览器 localStorage**，主站即时预览。
 - 顶部的 **🪄 自动填充** 可以让 AI 帮你生成整站数据 —— 复制提示词喂给任意大模型，把返回的 JSON 粘回来一键导入（详见 [CONTENT_GUIDE.md](./CONTENT_GUIDE.md)）。
+- 不想从示例改起？同一个 **🪄 自动填充** 面板里可以**直接套用一个内容预设**（organic / film / digital…，会同时套上对应风格）作为起点，或下载空白 starter JSON 从零填。
 - 顶栏点 **🎨 风格** 打开风格编辑器：8 个预设起步，再微调色彩、排版、空间、质感、光影、深度、动态。
 
-> ⚠️ localStorage 里的编辑**不会进 Git，也不会自动上线**。发布前必须点编辑器里的 **📋 全部**，把导出的代码粘进 `src/data.js`（风格则用「复制 STYLE」粘进 `src/style.js`），再提交。
-> 图片 / 音频**上传仅在本地 `npm run dev` 时可用**（依赖 dev server 的 `/api/upload`）；线上编辑器里上传按钮会被禁用，只能直接填 `public/` 路径。
+浏览器存储只是草稿层。要永久上线，可以继续用 **📋 全部 / 下载 data.js** 手动提交，也可以在内容或风格编辑器点 **发布**，用仅授权本仓库 Contents 读写的 fine-grained PAT 直接生成 GitHub commit。token 默认只保存在当前标签页的 sessionStorage。
+
+图片 / 音频在本地开发时写入本机 `public/`；生产站点配置 GitHub 发布凭据后会直接提交到仓库的 `public/`。没有凭据时仍可手动填写 public 路径。
 
 ### 方式 B · 直接改 `src/data.js`
 
@@ -72,8 +74,17 @@ export const ABOUT = {
         ├── NavShell  Landing  About  Journey  Works  Library
         ├── Photography  Travel  Contact  Colophon  NowPlaying  CVModal  Overlays
         ├── ContentEditor  StyleEditor
-        └── editor/           # schema · export · validation · contentPresets · ImportPanel · PreviewFrame · fields/
+        └── editor/           # schema · export · validation · PublishPanel · content presets · fields/
 ```
+
+## 从编辑器发布
+
+1. 在 GitHub 创建 fine-grained PAT，只授权目标仓库的 **Contents: Read and write**。
+2. 打开内容或风格编辑器，点 **发布**，核对 owner / repository / branch。
+3. 粘贴 token 并先点 **验证连接**。默认不勾选“记住”，关闭标签页后 token 即消失。
+4. 点 **发布内容**或**发布风格**并确认。提交成功后，Render 等已连接仓库的静态托管会自动重建。
+
+发布器只改 `src/data.js` / `src/style.js` 哨兵区域内被编辑的 export。未配置 token 时，原有 Copy、下载备份、手动提交和站点浏览都不受影响。
 
 ## 部署上线
 
@@ -81,9 +92,11 @@ export const ABOUT = {
 
 构建会生成 `/`、`/en/`、`/zh/` 三份可索引 HTML，并在浏览器中 hydrate 为完整交互站点。部署平台需保留目录式静态路由（即 `en/index.html`、`zh/index.html`）；上线前可运行 `npm run test:ui:preview` 检查生产产物。
 
-部署前在内容编辑器的 SITE 中填写「站点 URL」，或直接设置 `src/data.js#SITE.url` 为最终公开域名（例如 `https://example.com`）。canonical、Open Graph URL、`robots.txt` 与 `sitemap.xml` 都从这里生成；留空时构建会警告并安全省略绝对 URL。
+部署前在内容编辑器的 SITE 中填写「站点 URL」与「社交分享图」，或直接设置 `src/data.js#SITE.url` / `SITE.ogImage`。canonical、Open Graph、`robots.txt` 与 `sitemap.xml` 都从这里生成；`portrait` 只负责页面肖像，不再兼任横版社交卡片。
 
-**Cloudflare Pages（推荐）**：把仓库推到 GitHub → 在 Cloudflare Pages 连接仓库 → 构建命令 `npm run build`，输出目录 `dist`。之后每次推送自动重建。
+**Render / Cloudflare Pages / Netlify / Vercel（任一，推荐根域托管）**：把仓库推到 GitHub → 在平台连接仓库 → 选 **Static Site**、构建命令 `npm run build`、输出目录 `dist`。本仓库的 `render.yaml` 已登记 Render 构建与缓存规则；如果既有服务由 Dashboard 创建，请在 Headers 中同步这些规则。
+
+部署完成后运行 `npm run check:deploy`，它会检查三条语言路由、Google/Facebook/LinkedIn/X bot 可见的 OG 标签、社交图片、robots、sitemap 以及 HTML/哈希资源缓存头。Search Console 可在 SITE 中填写 Google 给出的 verification token，部署后验证 URL-prefix 资源并提交 `/sitemap.xml`。
 
 **阿里云 OSS（国内访问最快）**：创建 Bucket（地域选杭州）→ 开启静态网站托管、权限公共读 → 用 `ossutil cp -r dist/ oss://你的Bucket名称/ --update` 上传 `dist/`。
 

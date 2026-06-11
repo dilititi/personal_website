@@ -59,12 +59,13 @@
 - `PHOTOS[].series` 必须匹配某个 `PHOTO_SERIES[].id`。
 - `MUSIC[].spotifyId/neteaseId/audio` 与 `NOW_PLAYING` 的来源字段决定可播放性（见 `np-context.jsx#playTrack` 的来源推断）。
 
-### INV-6 · localStorage 命名空间
+### INV-6 · 浏览器存储命名空间
 
-所有键以 `chen.*` 命名，且**全部访问包 try/catch**（隐私模式/禁用存储要安全降级）。
+所有 localStorage / sessionStorage 键以 `chen.*` 命名，且**全部访问包 try/catch**（隐私模式/禁用存储要安全降级）。
 
 - 新增键必须登记到 `CLAUDE.md`。
-- 现有键（勿与之冲突）：`chen.content.overrides`、`chen.content.lastSaved`、`chen.style.overrides`、`chen.style.lastSaved`、`chen.lang`、`chen.np.source`、`chen.ce.{mode,sideWidth,autosave}`、`chen.se.{mode,sideWidth}`、`chen.content.preImport`；遗留待清理：`chen.readingLog.userEntries`、`chen.photos.userEntries`。
+- 现有键（勿与之冲突）：`chen.content.overrides`、`chen.content.lastSaved`、`chen.style.overrides`、`chen.style.lastSaved`、`chen.lang`、`chen.np.source`、`chen.ce.{mode,sideWidth,autosave}`、`chen.se.{mode,sideWidth}`、`chen.content.preImport`、`chen.github.config`、`chen.github.token`；遗留待清理：`chen.readingLog.userEntries`、`chen.photos.userEntries`。
+- `chen.github.token` 默认只写入 sessionStorage；只有用户显式选择“记住”时才写入 localStorage。存储不可用时必须退化为当前组件内存态，不得阻断本次发布。
 - 两个遗留读取垫片只用于迁入统一内容存储，代码已标记在 **2026-12-31 后移除**；不得再向旧 key 写入新数据。
 
 ### INV-7 · Provider 链与数据读取
@@ -78,16 +79,19 @@ Provider 顺序固定：`LangProvider → DataProvider → StyleProvider → Now
 生产构建必须保持**纯静态**。唯一的服务端代码是 `vite.config.js` 里**仅 dev** 的 `/api/upload`。
 
 - 任何需要服务端的能力必须：① 在静态构建里优雅降级，② 用 `import.meta.env.DEV`/`PROD` 或功能旗标判定。
-- 参照范式：`FileField` 在 `!import.meta.env.DEV` 时禁用上传并提示。
+- 生产发布与媒体上传只允许从浏览器直连 `api.github.com`；不得把 PAT 注入构建产物或新增常驻后端。没有 token 时，`FileField` 仍可手填 public 路径，Copy / 下载流程仍可用。
 - `npm run check:dist` 是本不变量的自动化护栏：它必须在 `npm run build` 后扫描完整 `dist`，并在发现 `server.browser`、`server.edge` 或 `react-dom/server` 时失败。
 - `.github/workflows/ci.yml` 必须在 build 后执行 `check:dist`；不得把该 step 当作普通清理项删除。若构建架构确需改变，必须先更新 INV-8、检查脚本与对应测试，再调整 CI。
 - 涉及预渲染 / SSR / hydration 的变更，绿色基线固定为：`npm run lint && npm test && npm run build && npm run check:dist && npm run format:check`，随后运行 production preview 的 CDP smoke，并记录一次移动端 Lighthouse 结果用于防回退。
 
 ### INV-9 · 持久化即草稿；data.js 是事实源
 
-站内编辑只存 `localStorage`，**不是权威**。权威是 `src/data.js` / `src/style.js`。
+站内编辑先存浏览器草稿，**不是权威**。权威是 `src/data.js` / `src/style.js`；“发布到 GitHub”只是把草稿提升为这两个事实源中的 commit。
 
 - 「导出代码」的唯一序列化器是 `export.js#exportLine`（输出 `L(en,zh)`）。❌ 不得再写第二个序列化器或合并函数。
+- 发布器只可修改 `// <<< EDITOR:* START >>>` 与对应 END 之间的目标 export 声明；哨兵外以及未选择的声明、注释、空白必须保持不变。
+- token 默认 sessionStorage、显式选择后才 localStorage；发布内容必须拒绝任何 GitHub token 字样和大体积 data URL。
+- GitHub Contents API 遇到 409 只自动重取 SHA 并重试一次；继续失败必须反馈给用户，不能覆盖远端新内容。
 
 ### INV-10 · 风格配置消费边界
 
@@ -102,24 +106,28 @@ SEO 文案的唯一来源是 `src/lib/seo.js#buildSeo(SITE, lang)`，规范根 U
 
 - `index.html` 只保留无品牌的最小兜底；❌ 不得在其中手抄 `SITE` 标题、简介或分享卡片文案。
 - 构建期 head、运行时 head、canonical、Open Graph、Twitter Card、robots 与 sitemap 必须从同一份 `SITE` 数据派生。
+- 页面肖像与社交封面职责分离：`SITE.portrait` 只用于页面，`SITE.ogImage` 优先用于 Open Graph/Twitter；旧数据可回退到 portrait。社交封面发布时应为 1200×630 的原创或已授权素材。
+- Search Console HTML tag 验证只允许经可选的 `SITE.googleSiteVerification` 输出；留空时不得生成空验证标签。
 - `SITE.url` 为空时必须警告并优雅省略绝对 URL，不得输出 `undefined`、假域名或相对 canonical。
 - 运行时更新 head 必须复用已有节点，切换语言不得重复 append 标签。
 - 构建必须生成 `/`、`/en/`、`/zh/`；语言路径的首帧语言、canonical、hreflang 与 hydrate 输入必须一致。
 - SSR 期不得读取 DOM、时间动态值或浏览器存储；内容/风格/播放器状态统一在 hydration 后恢复。
 - `src/prerender.jsx` 与 React server renderer 仅供构建使用，最终 `dist/assets` 不得残留 browser-reachable prerender/server chunk。
+- 上线后必须运行 `npm run check:deploy`：HTML 要 revalidate，`/assets/*` 要具备一年 `max-age` 与 `immutable`；bot/head/robots/sitemap 检查不得被构建期测试替代。
 
 ---
 
 ## 2. 模块边界与依赖方向
 
-| 层     | 目录/文件                                                                   | 职责                                                          | 允许依赖                    |
-| ------ | --------------------------------------------------------------------------- | ------------------------------------------------------------- | --------------------------- |
-| 数据层 | `data.js`, `data-context.jsx`                                               | 内容事实源 + override 合并                                    | 不依赖 `components/*`       |
-| 风格层 | `style.js`, `style-engine.js`, `style-context.jsx`                          | 风格配置 → CSS 变量                                           | 不依赖 `components/*`       |
-| 区块   | `components/*.jsx`（About/Works…）                                          | 渲染各章节                                                    | 经 hooks 读数据；不互相耦合 |
-| 编辑器 | `components/editor/*`, `ContentEditor`, `StyleEditor`                       | 站内 CMS                                                      | 可依赖数据/风格层           |
-| 工具   | `hooks.jsx`, `utils.js`, `lang.jsx`, `np-context.jsx`, `prerender.jsx`      | 通用能力 + 构建期首帧渲染                                     | 纯/低耦合                   |
-| 共享库 | `lib/persist.js`, `lib/modules.js`, `lib/section-registry.js`, `lib/seo.js` | 持久化 / 深合并 / 模块规范化 / 运行时数据 registry / SEO 派生 | 仅 `persist.js` 依赖 React  |
+| 层       | 目录/文件                                                                   | 职责                                                          | 允许依赖                                |
+| -------- | --------------------------------------------------------------------------- | ------------------------------------------------------------- | --------------------------------------- |
+| 数据层   | `data.js`, `data-context.jsx`                                               | 内容事实源 + override 合并                                    | 不依赖 `components/*`                   |
+| 风格层   | `style.js`, `style-engine.js`, `style-context.jsx`                          | 风格配置 → CSS 变量                                           | 不依赖 `components/*`                   |
+| 区块     | `components/*.jsx`（About/Works…）                                          | 渲染各章节                                                    | 经 hooks 读数据；不互相耦合             |
+| 编辑器   | `components/editor/*`, `ContentEditor`, `StyleEditor`                       | 站内 CMS                                                      | 可依赖数据/风格层                       |
+| 工具     | `hooks.jsx`, `utils.js`, `lang.jsx`, `np-context.jsx`, `prerender.jsx`      | 通用能力 + 构建期首帧渲染                                     | 纯/低耦合                               |
+| 共享库   | `lib/persist.js`, `lib/modules.js`, `lib/section-registry.js`, `lib/seo.js` | 持久化 / 深合并 / 模块规范化 / 运行时数据 registry / SEO 派生 | 仅 `persist.js` 依赖 React              |
+| 发布适配 | `lib/github.js`, `lib/publish.js`, `lib/publish-config.js`                  | GitHub Contents API、哨兵替换、发布配置与校验                 | `publish.js` 必须复用编辑器 `export.js` |
 
 **方向规则**：数据层/风格层是底座，**不得**反向依赖 `components/editor/*`。编辑器可以依赖底座。区块之间不直接互相 import。
 
@@ -137,7 +145,7 @@ L(en, zh) -> { en: string, zh: string }
 // 章节 item 的字段类型由 schema.js 声明：
 // 'str' | 'num' | 'bool' | 'bi' | 'bi-text' | 'bi-text-bare'
 // 'str-arr' | 'obj' | 'obj-arr' | 'select'
-// 'file-image' | 'file-audio' | 'file-pdf'（后三者 dev 期可上传，prod 退化为路径输入）
+// 'file-image' | 'file-audio' | 'file-pdf'（dev 写本地 public；prod 有 GitHub token 时提交仓库，否则退化为路径输入）
 
 // 风格配置（DEFAULT_STYLE）顶层键：
 // design, color, typography, space, motion, texture, light, depth  —— 驱动渲染

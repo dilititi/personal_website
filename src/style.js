@@ -1,3 +1,4 @@
+// <<< EDITOR:STYLE START >>>
 export const DEFAULT_STYLE = {
   version: 1,
   preset: 'editorial',
@@ -66,6 +67,7 @@ export const DEFAULT_STYLE = {
     },
   ],
 }
+// <<< EDITOR:STYLE END >>>
 
 export const STYLE_DIMENSIONS = [
   {

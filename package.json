@@ -12,6 +12,7 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "check:dist": "node scripts/assert-client-bundle.mjs",
+    "check:deploy": "node scripts/check-deploy.mjs",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:ui": "node --experimental-websocket tests/ui-smoke.mjs",

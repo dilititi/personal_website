@@ -35,13 +35,24 @@ export function renderSeoHead(site = SITE, lang = SEO_DEFAULT_LANG) {
     `<meta name="twitter:description" content="${escapeHtml(seo.description)}">`,
   ]
 
+  if (seo.googleSiteVerification) {
+    tags.push(
+      `<meta name="google-site-verification" content="${escapeHtml(seo.googleSiteVerification)}">`,
+    )
+  }
   if (seo.canonical) {
     tags.push(`<link rel="canonical" href="${escapeHtml(seo.canonical)}">`)
     tags.push(`<meta property="og:url" content="${escapeHtml(seo.canonical)}">`)
   }
   if (seo.image) {
     tags.push(`<meta property="og:image" content="${escapeHtml(seo.image)}">`)
+    tags.push(`<meta property="og:image:alt" content="${escapeHtml(seo.imageAlt)}">`)
+    if (seo.imageWidth && seo.imageHeight) {
+      tags.push(`<meta property="og:image:width" content="${escapeHtml(seo.imageWidth)}">`)
+      tags.push(`<meta property="og:image:height" content="${escapeHtml(seo.imageHeight)}">`)
+    }
     tags.push(`<meta name="twitter:image" content="${escapeHtml(seo.image)}">`)
+    tags.push(`<meta name="twitter:image:alt" content="${escapeHtml(seo.imageAlt)}">`)
   }
 
   return {

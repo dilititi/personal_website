@@ -45,6 +45,11 @@ export function useDocumentHead() {
     upsertMeta('meta[name="description"]', { name: 'description' }, seo.description)
     upsertMeta('meta[name="robots"]', { name: 'robots' }, 'index, follow')
     upsertMeta('meta[name="theme-color"]', { name: 'theme-color' }, SEO_THEME_COLOR)
+    upsertMeta(
+      'meta[name="google-site-verification"]',
+      { name: 'google-site-verification' },
+      seo.googleSiteVerification,
+    )
     upsertMeta('meta[property="og:type"]', { property: 'og:type' }, 'website')
     upsertMeta('meta[property="og:title"]', { property: 'og:title' }, seo.title)
     upsertMeta('meta[property="og:description"]', { property: 'og:description' }, seo.description)
@@ -57,10 +62,14 @@ export function useDocumentHead() {
     )
     upsertMeta('meta[property="og:url"]', { property: 'og:url' }, seo.canonical)
     upsertMeta('meta[property="og:image"]', { property: 'og:image' }, seo.image)
+    upsertMeta('meta[property="og:image:alt"]', { property: 'og:image:alt' }, seo.imageAlt)
+    upsertMeta('meta[property="og:image:width"]', { property: 'og:image:width' }, seo.imageWidth)
+    upsertMeta('meta[property="og:image:height"]', { property: 'og:image:height' }, seo.imageHeight)
     upsertMeta('meta[name="twitter:card"]', { name: 'twitter:card' }, 'summary_large_image')
     upsertMeta('meta[name="twitter:title"]', { name: 'twitter:title' }, seo.title)
     upsertMeta('meta[name="twitter:description"]', { name: 'twitter:description' }, seo.description)
     upsertMeta('meta[name="twitter:image"]', { name: 'twitter:image' }, seo.image)
+    upsertMeta('meta[name="twitter:image:alt"]', { name: 'twitter:image:alt' }, seo.imageAlt)
     upsertLink('link[rel="canonical"]', { rel: 'canonical' }, seo.canonical)
 
     const languageLinks = hasLanguageRoute ? buildLanguageLinks(SITE) : []

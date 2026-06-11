@@ -136,7 +136,7 @@
 
 <h3>5.5 De-duplicate the provider / persistence machinery <span class="tag done">Done</span></h3>
 <div class="step">
-  <p class="why"><code>lib/persist.js</code> is the single merge/storage implementation and both providers consume it. <code>DataProvider</code> memoizes resolved data and context value. <code>resetData</code> remains only as a compatibility alias; new code uses <code>resetAll</code>.</p>
+  <p class="why"><code>lib/persist.js</code> is the single merge/storage implementation and both providers consume it. <code>DataProvider</code> memoizes resolved data and context value. The full-reset API is consolidated as <code>resetAll</code>.</p>
 </div>
 
 <h3>5.6 Single source of truth for sections <span class="tag done">Done</span></h3>

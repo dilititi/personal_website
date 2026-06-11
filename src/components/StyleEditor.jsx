@@ -9,6 +9,8 @@ import {
 } from '../style.js'
 import { findMissingPublicPaths, pathWarning } from './editor/export.js'
 import PreviewFrame from './editor/PreviewFrame.jsx'
+import PublishPanel from './editor/PublishPanel.jsx'
+import { publishStyle } from '../lib/publish.js'
 
 const LIVE_DIMENSIONS = new Set([
   'design',
@@ -887,6 +889,7 @@ export default function StyleEditor({ open, onClose }) {
   } = useStyle()
   const [active, setActive] = useState('design')
   const [copied, setCopied] = useState('')
+  const [showPublish, setShowPublish] = useState(false)
   const [mode, setMode] = useState(() => {
     try {
       return localStorage.getItem('chen.se.mode') === 'modal' ? 'modal' : 'side'
@@ -1011,6 +1014,14 @@ export default function StyleEditor({ open, onClose }) {
     setCopied(lang === 'zh' ? '已应用预设，可继续微调' : 'Preset applied. You can keep tuning it.')
   }
 
+  const handlePublish = ({ github, config }) =>
+    publishStyle({
+      github,
+      branch: config.branch,
+      style,
+      styleExport: exportStyle(),
+    })
+
   const panel = {
     presets: <PresetPanel lang={lang} activePreset={style.preset} onApply={handleApplyPreset} />,
     reference: <ReferencePanel style={style} setStyle={setStyle} lang={lang} />,
@@ -1087,6 +1098,13 @@ export default function StyleEditor({ open, onClose }) {
             >
               ⬇ {lang === 'zh' ? '备份 JSON' : 'Backup JSON'}
             </button>
+            <button
+              className="ce-btn"
+              type="button"
+              onClick={() => setShowPublish(value => !value)}
+            >
+              {lang === 'zh' ? '发布' : 'Publish'}
+            </button>
             <button className="ce-close" type="button" onClick={onClose} aria-label="close">
               x
             </button>
@@ -1097,8 +1115,8 @@ export default function StyleEditor({ open, onClose }) {
           <div className="ce-banner-text">
             {storageError ||
               (lang === 'zh'
-                ? '当前修改只保存在本浏览器。发布前请点击「复制 STYLE」导出代码并提交到 Git。'
-                : 'Edits live only in this browser. Click "Copy STYLE" to export and commit to Git before publishing.')}
+                ? '当前修改先保存为浏览器草稿；可复制 STYLE，也可使用「发布」直接提交到 GitHub。'
+                : 'Edits are browser drafts first. Copy STYLE or use Publish to commit directly to GitHub.')}
           </div>
           {storageError ? (
             <div className="ce-banner-meta">
@@ -1115,6 +1133,16 @@ export default function StyleEditor({ open, onClose }) {
             </div>
           ) : null}
         </div>
+
+        {showPublish && (
+          <PublishPanel
+            lang={lang}
+            kind="style"
+            onPublish={handlePublish}
+            onClose={() => setShowPublish(false)}
+            publishDisabled={!isCustomized}
+          />
+        )}
 
         <div className="ce-body se-body">
           <nav className="ce-tabs" aria-label="style dimensions">

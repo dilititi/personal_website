@@ -1,13 +1,11 @@
 import React, { useEffect, useRef, useState } from 'react'
 import { createResponsiveImageVariants, fileToDataUrl, resizeImage } from '../../../utils.js'
 import { RESPONSIVE_IMAGE_WIDTHS, responsiveUploadFilename } from '../../../lib/images.js'
+import { createGitHubClient, dataUrlBase64 } from '../../../lib/github.js'
+import { readGitHubToken, readPublishConfig } from '../../../lib/publish-config.js'
 import { FILE_IMAGE_TEMPLATES } from '../contentPresets.js'
 
-// Uploads POST to /api/upload, a dev-only Vite middleware (see vite.config.js).
-// Production builds are static and have no such endpoint, so uploading is
-// disabled there and users fall back to entering a public/ path by hand.
-// import.meta.env.DEV is true only under `npm run dev`.
-const CAN_UPLOAD = import.meta.env.DEV
+const DEV_UPLOAD = import.meta.env.DEV
 
 export function FileField({
   value,
@@ -25,6 +23,7 @@ export function FileField({
   const [statusMsg, setStatusMsg] = useState('')
   const [pendingFile, setPendingFile] = useState(null)
   const fileRef = useRef(null)
+  const uploadedPathRef = useRef('')
   const imageTemplates =
     !isAudio && accept.includes('image') ? FILE_IMAGE_TEMPLATES[subfolder] || [] : []
 
@@ -33,6 +32,11 @@ export function FileField({
     if (!p) {
       setStatus('')
       setStatusMsg('')
+      return
+    }
+    if (uploadedPathRef.current === p) {
+      setStatus('ok')
+      setStatusMsg('已提交到 GitHub，等待静态站重新部署')
       return
     }
     try {
@@ -73,26 +77,52 @@ export function FileField({
 
   const saveToPublic = async () => {
     if (!pendingFile || !filename) return
-    if (!CAN_UPLOAD) {
-      setStatus('error')
-      setStatusMsg('生产环境不支持上传；请直接在上方填入 public 路径')
-      return
-    }
     setBusy(true)
     const isImage = pendingFile.type.startsWith('image/')
     setStatusMsg(isImage ? '生成响应式图片 + 上传中...' : '上传中...')
     try {
-      const upload = async (uploadFilename, dataUrl) => {
-        const response = await fetch('/api/upload', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ subfolder, filename: uploadFilename, dataUrl }),
-        })
-        const result = await response.json()
-        if (!response.ok || !result.ok) {
-          throw new Error(result.error || response.statusText)
+      let github = null
+      let publishConfig = null
+      if (!DEV_UPLOAD) {
+        const token = readGitHubToken()
+        if (!token) {
+          throw new Error('请先在编辑器的「发布」面板验证 GitHub token')
         }
-        return result
+        publishConfig = readPublishConfig()
+        github = createGitHubClient({
+          token,
+          owner: publishConfig.owner,
+          repo: publishConfig.repo,
+        })
+      }
+
+      const upload = async (uploadFilename, dataUrl) => {
+        if (DEV_UPLOAD) {
+          const response = await fetch('/api/upload', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ subfolder, filename: uploadFilename, dataUrl }),
+          })
+          const result = await response.json()
+          if (!response.ok || !result.ok) {
+            throw new Error(result.error || response.statusText)
+          }
+          return result
+        }
+
+        const encoded = dataUrlBase64(dataUrl)
+        const publicPath = `/${subfolder}/${uploadFilename}`
+        await github.upsertBase64File({
+          path: `public${publicPath}`,
+          base64Content: encoded.content,
+          branch: publishConfig.branch,
+          message: `asset: upload ${subfolder}/${uploadFilename} via editor`,
+        })
+        return {
+          ok: true,
+          path: publicPath,
+          size: Math.floor((encoded.content.length * 3) / 4),
+        }
       }
 
       const variants = isImage
@@ -124,12 +154,13 @@ export function FileField({
         totalSize = saved.size || 0
       }
 
+      if (!DEV_UPLOAD) uploadedPathRef.current = saved.path
       onChange(saved.path)
       setStatus('ok')
       setStatusMsg(
         variants.length
-          ? `✓ 已生成 ${variants.length} 个响应式尺寸并保存到 public/${subfolder}/（${(totalSize / 1024).toFixed(1)} KB）`
-          : `✓ 已保存到 public${saved.path}（${(totalSize / 1024).toFixed(1)} KB）`,
+          ? `✓ 已生成 ${variants.length} 个响应式尺寸并${DEV_UPLOAD ? '保存到本地' : '提交到 GitHub'} public/${subfolder}/（${(totalSize / 1024).toFixed(1)} KB）`
+          : `✓ 已${DEV_UPLOAD ? '保存到' : '提交到 GitHub：'} public${saved.path}（${(totalSize / 1024).toFixed(1)} KB）`,
       )
       // Clear staged file
       setPendingFile(null)
@@ -141,7 +172,7 @@ export function FileField({
       setFileSize(0)
     } catch (e) {
       setStatus('error')
-      setStatusMsg(`错误：${e.message}（确认 dev server 正在运行；生产构建里此功能无效）`)
+      setStatusMsg(`错误：${e.message}`)
     }
     setBusy(false)
   }
@@ -160,9 +191,10 @@ export function FileField({
           type="button"
           className="ce-icon-btn"
           onClick={() => fileRef.current?.click()}
-          disabled={!CAN_UPLOAD}
           title={
-            CAN_UPLOAD ? '选择文件' : '上传仅在 npm run dev 下可用；生产环境请直接填写 public 路径'
+            DEV_UPLOAD
+              ? '选择文件并写入本地 public/'
+              : '选择文件；提交时需要编辑器「发布」面板中的 GitHub token'
           }
         >
           📁
@@ -175,10 +207,10 @@ export function FileField({
           style={{ display: 'none' }}
         />
       </div>
-      {!CAN_UPLOAD && (
+      {!DEV_UPLOAD && (
         <div className="ce-file-status ce-file-status-missing">
-          ⚠ 生产环境无法上传（/api/upload 仅在 npm run dev 下存在）。请直接在上方填入 public
-          路径，或在本地 dev 上传后再发布。
+          生产上传使用编辑器「发布」面板中的 GitHub
+          配置；提交后需等待静态站重新部署。未配置时仍可直接填写 public 路径。
         </div>
       )}
       {status && (
@@ -253,7 +285,11 @@ export function FileField({
               onClick={saveToPublic}
               disabled={busy || !filename}
             >
-              {busy ? '保存中...' : `💾 写入 public/${subfolder}/`}
+              {busy
+                ? DEV_UPLOAD
+                  ? '保存中...'
+                  : '提交中...'
+                : `${DEV_UPLOAD ? '写入' : '提交'} public/${subfolder}/`}
             </button>
           </div>
         </div>

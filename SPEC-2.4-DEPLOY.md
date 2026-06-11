@@ -1,54 +1,54 @@
 # SPEC 2.4 · 部署与 SEO 上线（Deploy & Go-Live）
 
 > 配套文档：`PLAN.md` §2.1 / `SPEC-2.1-SEO.md`（SEO 规格）/ `ENGINEERING.md`（工程契约）。
-> 状态：**待执行**（建档 2026-06-08）。读者：项目所有者 + AI 编码 Agent。
-> 一句话目标：**把已经建好但休眠的 SEO/SSG 真正点亮**——部署到真实域名并填 `SITE.url`，让三条路由的元数据、发现资源与社交卡片在线生效、可被外部工具验证。
+> 状态：**已上线，收尾验收中**（2026-06-11 更新）。读者：项目所有者 + AI 编码 Agent。
+> 一句话目标：让 Render 上的三条预渲染路由、发现资源、社交卡片与搜索站点验证形成一条可重复检查的上线链路。
 
 ---
 
 ## 1. 背景与目标
 
-**现状（已核对源码）**：`src/data.js` 里 `SITE.url = ''`、`SITE.portrait = ''`。Phase 2 的 SEO/SSG 代码全部就绪，但因为 `SITE.url` 为空，以下产物目前都是空的：
+**现状（已核对源码与线上）**：
 
-- canonical（根 + `/en/`、`/zh/` 路由级）
-- `og:url`
-- hreflang 备用链接（`en` / `zh` / `x-default`）
-- `og:image` / `twitter:image`（绝对 URL）
-- `dist/sitemap.xml` 的 `<loc>`、`dist/robots.txt` 的 `Sitemap:` 行
+- 站点已部署到 <https://personal-website-x3u4.onrender.com>，`SITE.url` 已填写。
+- `/`、`/en/`、`/zh/` 均返回预渲染 HTML；canonical、`og:url`、hreflang、robots 与 sitemap 已在线生效。
+- `SITE.ogImage` 已与页面 `portrait` 拆分，社交封面使用原创的 `public/og-cover.jpg`（1200×630）。
+- `render.yaml` 已登记生产缓存规则；当前 Dashboard 管理的既有服务仍需同步规则并重新部署后，用 `npm run check:deploy` 验证。
+- Search Console 验证 token 已有 `SITE.googleSiteVerification` 接口，但获取 token、验证 URL-prefix 资源和提交 sitemap 必须由站点所有者账号完成。
 
-构建时还会打印一条 warning：`SITE.url is empty…`。
+**剩余目标**：让缓存头在线生效；部署独立 OG 图并刷新社交平台缓存；完成 Search Console 所有权验证和 sitemap 提交。
 
-**目标**：部署到真实域名 + 填 `SITE.url`（并补一张 OG 图）后，上述全部生效，并通过 OG 调试器 / Search Console 外部验证。
-
-**非目标**：不引入任何后端（在线编辑落盘是 Phase 3）；**不改 SEO 逻辑**——本期只是「填值 + 部署」，不是再写一遍 SEO。
+**非目标**：不引入任何后端（在线编辑落盘是 Phase 3）；不替换既有 SEO/SSG 架构。本期只补独立社交图、验证 token、缓存配置和部署后验收。
 
 ---
 
 ## 2. 关键事实（代码已就绪，勿重写）
 
-| 位置 | 行为 | 依赖 |
-| --- | --- | --- |
-| `src/lib/seo.js` `buildSeo` / `buildLanguageSeo` / `buildLanguageLinks` | 生成根/语言路由 canonical、`og:url`、hreflang 三连、绝对 `og:image`（`absoluteImage` 用 `SITE.url` 拼） | 全部 gated on `SITE.url`；空则不输出 |
-| `src/prerender.jsx` `seoHeadElements` | 为 `/`、`/en/`、`/zh/` 注入完整 head；**无论根或语言路由都会 emit `buildLanguageLinks`**（三条路由都带 hreflang） | `SITE` |
-| `vite.config.js` `buildDiscoveryFiles` + `seoHtmlPlugin.writeBundle` | 构建时写 `dist/robots.txt` + `dist/sitemap.xml`；`SITE.url` 空时留空并 `this.warn(...)` | `SITE.url` |
-| `vite.config.js`（无 `base`，默认 `'/'`） | 打包资源 URL 为根绝对路径（`/assets/...`）；`src/data.js` 里手写的 `/picture`、`/works`… 媒体路径也是根绝对字符串 | — |
+| 位置                                                                    | 行为                                                                                                              | 依赖                                                   |
+| ----------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------ |
+| `src/lib/seo.js` `buildSeo` / `buildLanguageSeo` / `buildLanguageLinks` | 生成根/语言路由 canonical、`og:url`、hreflang 三连、绝对 `og:image`；优先 `SITE.ogImage`，旧数据回退到 `portrait` | 绝对 URL gated on `SITE.url`                           |
+| `src/prerender.jsx` `seoHeadElements`                                   | 为 `/`、`/en/`、`/zh/` 注入完整 head；**无论根或语言路由都会 emit `buildLanguageLinks`**（三条路由都带 hreflang） | `SITE`                                                 |
+| `vite.config.js` `buildDiscoveryFiles` + `seoHtmlPlugin.writeBundle`    | 构建时写 `dist/robots.txt` + `dist/sitemap.xml`；`SITE.url` 空时留空并 `this.warn(...)`                           | `SITE.url`                                             |
+| `render.yaml`                                                           | 声明静态站构建和缓存头：哈希资源一年 immutable；HTML revalidate；robots/sitemap 短缓存                            | Render Blueprint，或把同样规则同步到既有服务 Dashboard |
+| `scripts/check-deploy.mjs`                                              | 模拟 Googlebot / Facebook / LinkedIn / X，并检查路由、head、OG 图、发现资源和缓存头                               | 已部署的新版本                                         |
+| `vite.config.js`（无 `base`，默认 `'/'`）                               | 打包资源 URL 为根绝对路径（`/assets/...`）；`src/data.js` 里手写的 `/picture`、`/works`… 媒体路径也是根绝对字符串 | —                                                      |
 
-> 含义：**点亮 SEO 不需要改任何 SEO 代码**，只需 (a) 填 `SITE.url`（+`portrait`）、(b) 部署到能在**根路径**提供服务的地址。
+> 含义：SEO 内容继续由 `SITE` 单一事实源派生；部署后的真实性由 `npm run check:deploy` 负责验证，不以“构建成功”代替线上证据。
 
 ---
 
 ## 3. 决策矩阵 · Host 选型
 
-| Host | 默认根域(`base='/'`)? | 自定义域 | 构建/部署 | PR 预览 | 备注 |
-| --- | --- | --- | --- | --- | --- |
-| **Cloudflare Pages**（推荐默认） | ✅ `*.pages.dev` | ✅ 免费、快 | 连接仓库自动构建 | ✅ | CDN 强、免费额度大、根域零改动 |
-| **Netlify** | ✅ `*.netlify.app` | ✅ | 连接仓库零配置（自动识别 Vite） | ✅ Deploy Preview | `_redirects`/`_headers` 方便 |
-| **Vercel** | ✅ `*.vercel.app` | ✅ | 连接仓库零配置 | ✅ Preview | 对 Vite 友好、DX 最简 |
-| **GitHub Pages** | ⚠️ 仅当用**自定义域**或 user-site；**项目站**默认 `…/personal_website/` 子路径 | ✅ (CNAME) | 复用现有 Actions | ❌ 无原生预览 | 全程留在 GitHub、零新账号；子路径有坑见 §4 |
+| Host                             | 默认根域(`base='/'`)?                                                          | 自定义域    | 构建/部署                       | PR 预览           | 备注                                       |
+| -------------------------------- | ------------------------------------------------------------------------------ | ----------- | ------------------------------- | ----------------- | ------------------------------------------ |
+| **Cloudflare Pages**（推荐默认） | ✅ `*.pages.dev`                                                               | ✅ 免费、快 | 连接仓库自动构建                | ✅                | CDN 强、免费额度大、根域零改动             |
+| **Netlify**                      | ✅ `*.netlify.app`                                                             | ✅          | 连接仓库零配置（自动识别 Vite） | ✅ Deploy Preview | `_redirects`/`_headers` 方便               |
+| **Vercel**                       | ✅ `*.vercel.app`                                                              | ✅          | 连接仓库零配置                  | ✅ Preview        | 对 Vite 友好、DX 最简                      |
+| **GitHub Pages**                 | ⚠️ 仅当用**自定义域**或 user-site；**项目站**默认 `…/personal_website/` 子路径 | ✅ (CNAME)  | 复用现有 Actions                | ❌ 无原生预览     | 全程留在 GitHub、零新账号；子路径有坑见 §4 |
 
 **推荐**：优先**根域托管**（Cloudflare Pages / Netlify / Vercel 任一，或 GitHub Pages **配自定义域**）。理由：保持 `base='/'`、对代码零侵入；自带自动构建、预览、免费 HTTPS 与自定义域。
 
-**仅当你想 100% 留在 GitHub**：用 GitHub Pages + 自定义域（避开 §4 的子路径坑），见 §6.B。
+**仅当你想 100% 留在 GitHub**：用 GitHub Pages + 自定义域（避开 §4 的子路径坑），见 §6.C。
 
 ---
 
@@ -74,31 +74,44 @@ https://dilititi.github.io/personal_website/
 
 ## 5. 改动文件
 
-| 文件 | 改动 | 必需? |
-| --- | --- | --- |
-| `src/data.js` | `SITE.url = 'https://你的域名'`（**无需**尾斜杠，代码会 strip）；`SITE.portrait = '/picture/og-cover.jpg'`（或专用 OG 图路径） | ✅ |
-| `public/og-cover.jpg`（新增） | 一张 **1200×630 横版** OG 图；`portrait` 指向它 | 强烈建议 |
-| `.github/workflows/deploy.yml`（新增） | 仅 **GitHub Pages** 路线需要（§6.B）；托管平台路线用仪表盘连接，**不需要**此文件 | 视 host |
-| `public/CNAME`（新增） | 仅 **GitHub Pages + 自定义域**：写入裸域名一行 | 视 host |
-| `vite.config.js` | 仅**子路径**部署时设 `base`（§4），默认**不动** | 否 |
-| `README.md` / `PLAN.md` | 记录线上地址 + 部署 runbook / 上线状态 | ✅ |
+| 文件                                   | 改动                                                                                                   | 必需?   |
+| -------------------------------------- | ------------------------------------------------------------------------------------------------------ | ------- |
+| `src/data.js`                          | `SITE.url` 为生产 origin；`portrait` 仅供页面；`ogImage` 为独立社交封面；可选 `googleSiteVerification` | ✅      |
+| `public/og-cover.jpg`                  | 一张 **1200×630 横版**、来源可追溯的原创/授权 OG 图，建议 <1MB                                         | ✅      |
+| `render.yaml`                          | Render 静态站与缓存头的仓库配置                                                                        | ✅      |
+| `scripts/check-deploy.mjs`             | 部署后自动验收                                                                                         | ✅      |
+| `.github/workflows/deploy.yml`（新增） | 仅 **GitHub Pages** 路线需要（§6.C）；托管平台路线用仪表盘连接，**不需要**此文件                       | 视 host |
+| `public/CNAME`（新增）                 | 仅 **GitHub Pages + 自定义域**：写入裸域名一行                                                         | 视 host |
+| `vite.config.js`                       | 仅**子路径**部署时设 `base`（§4），默认**不动**                                                        | 否      |
+| `README.md` / `PLAN.md`                | 记录线上地址 + 部署 runbook / 上线状态                                                                 | ✅      |
 
-**关于 OG 图**：`twitter:card` 是 `summary_large_image`，需要横版大图（≈1200×630，<1MB）。当前 `portrait` 为空；即便填一张竖版肖像，在大卡里也会被裁切难看。建议单独做一张横版封面放 `public/og-cover.jpg` 并让 `portrait` 指向它（`portrait` 同时被 Landing 与 OG 复用，如要区分可后续在 `SITE` 增 `ogImage` 字段，但本期复用即可）。
+**关于 OG 图**：`twitter:card` 使用 `summary_large_image`。`SITE.ogImage` 与 `portrait` 已分离，避免竖版头像在大卡中被裁切，也避免模板示例人物成为用户发布后的默认社交身份。
 
 ---
 
 ## 6. 实施步骤
 
-### 6.A 根域托管（推荐：Cloudflare Pages / Netlify / Vercel）
+### 6.A 当前 Render 服务收尾（本项目）
 
-1. 平台「连接 Git 仓库」选 `dilititi/personal_website`；构建命令 `npm run build`、输出目录 `dist`、Node 版本 22（与 CI 一致）。
-2. 先用平台子域（`*.pages.dev` / `*.netlify.app` / `*.vercel.app`）触发首次部署，拿到地址。
-3. 在 `src/data.js` 填 `SITE.url` 为该地址（或下一步的自定义域）、填 `SITE.portrait`；`git push` → 平台自动重建。
-4. （可选）绑定自定义域：平台后台加域名 → 按提示设 DNS（`CNAME` 指向平台，或 apex 用平台给的 A/ALIAS）→ 等签发 HTTPS。改 `SITE.url` 为自定义域后再 push 一次。
+1. 合并并部署本期改动，确认线上 `/og-cover.jpg` 返回 `image/jpeg`。
+2. 如果现有 Static Site 不是 Blueprint 管理，在 Render Dashboard → **Headers** 同步 `render.yaml` 中的规则：
+   - `/assets/*` → `Cache-Control: public, max-age=31536000, immutable`
+   - `/`、`/en/*`、`/zh/*`、`/*.html` → `Cache-Control: no-cache`
+   - `/robots.txt`、`/sitemap.xml` → `Cache-Control: public, max-age=300`
+3. 手动触发一次 Clear build cache & deploy，避免旧 HTML 与新哈希资源混用。
+4. 运行 `npm run check:deploy`。只有严格模式通过，才能把缓存项标为完成。
 
-> 这条路线**不需要**仓库里加任何部署文件；CI（`ci.yml`）继续只做质量门禁，部署由平台负责。
+> `render.yaml` 不会自动接管一个原本由 Dashboard 创建的既有服务。不要为了读取 Blueprint 新建第二个同名生产站；要么在 Dashboard 同步规则，要么明确迁移为 Blueprint 后再删除旧服务。
 
-### 6.B GitHub Pages（留在 GitHub，建议配自定义域）
+### 6.B 社交平台与 Search Console
+
+1. 先运行 `npm run check:deploy`，确认四种 bot User-Agent 都能取得完整 OG head。
+2. 在 Facebook Sharing Debugger 与 LinkedIn Post Inspector 输入生产 URL，执行重新抓取；在 X 发布草稿/卡片预览中确认大图。
+3. Google Search Console 新建 **URL-prefix** 资源：`https://personal-website-x3u4.onrender.com/`。
+4. 选择 HTML tag 验证，把 Google 给出的 `content` 值填入 `SITE.googleSiteVerification`，提交并部署。
+5. 回到 Search Console 点验证，然后提交 `https://personal-website-x3u4.onrender.com/sitemap.xml`。
+
+### 6.C GitHub Pages（替代托管路线）
 
 新增 `.github/workflows/deploy.yml`：
 
@@ -151,23 +164,26 @@ jobs:
 
 ## 7. 上线后验收（Definition of Done）
 
-- [ ] 线上站点经 **HTTPS** 可访问；`/`、`/en/`、`/zh/` 三条路由都返回**预渲染 HTML**（非空 `#root`）。
-- [ ] `view-source:` 三条路由都能看到：`<link rel="canonical">`、`og:url`、**三条** `rel="alternate" hreflang`（en/zh/x-default）、`og:image`（绝对 URL）、随语言变化的 `<title>` / `description`。
-- [ ] `https://域名/robots.txt` 含 `Sitemap: https://域名/sitemap.xml`。
-- [ ] `https://域名/sitemap.xml` 含 `/`、`/en/`、`/zh/` 三个绝对 `<loc>`。
-- [ ] 构建日志**不再**出现 `SITE.url is empty` warning。
-- [ ] OG 卡片在 **Facebook Sharing Debugger**、**Twitter/X Card Validator**、**LinkedIn Post Inspector** 中图文正常渲染（图能加载）。
+- [x] 线上站点经 **HTTPS** 可访问；`/`、`/en/`、`/zh/` 三条路由都返回**预渲染 HTML**（非空 `#root`）。
+- [x] 当前线上三条路由包含 canonical、`og:url`、三条 hreflang 和随语言变化的 title/description。
+- [x] `robots.txt` 含生产 sitemap URL。
+- [x] `sitemap.xml` 含 `/`、`/en/`、`/zh/` 三个绝对 `<loc>`。
+- [x] 构建日志不再出现 `SITE.url is empty` warning。
+- [x] 本地产物使用独立 `/og-cover.jpg`，包含 `og:image:width/height/alt` 与 `twitter:image:alt`。
+- [ ] 新版部署后 `npm run check:deploy` 严格模式通过，证明 HTML 与资源缓存头均已在线生效。
+- [ ] OG 卡片在 Facebook、X、LinkedIn 的真实抓取/预览工具中图文正常渲染。
 - [ ] 在 **Google Search Console** 验证域名所有权并提交 `sitemap.xml`。
-- [ ] 本地 `npm run build && npm run preview` 冒烟通过；`npm run check:dist` 仍通过（无 server 渲染器泄漏）。
+- [x] 本地 build、测试、production preview smoke、`check:dist` 通过。
 - [ ] CI 仍全绿（部署改动未引入回归）。
 
 ---
 
 ## 8. 验证工具（清单）
 
-- **OG / 卡片**：Facebook Sharing Debugger、X Card Validator、LinkedIn Post Inspector（首次需「Scrape Again」强刷缓存）。
+- **OG / 卡片**：[Facebook Sharing Debugger](https://developers.facebook.com/tools/debug/)、[LinkedIn Post Inspector](https://www.linkedin.com/post-inspector/)、X 发帖草稿/卡片预览（首次需重新抓取以刷新缓存）。
 - **结构/收录**：Google Rich Results Test、Google Search Console（提交 sitemap、查覆盖率）。
-- **手查**：`view-source` 三路由看 head；`curl -sI https://域名/` 看状态码与缓存头；`curl https://域名/sitemap.xml`。
+- **自动验收**：新版部署后运行 `npm run check:deploy`；若新版已部署但 Dashboard 缓存规则尚未同步，可临时用 `npm run check:deploy -- --skip-cache` 隔离缓存问题。
+- **手查**：`view-source` 三路由看 head；`curl -sI https://域名/` 看状态码与缓存头。
 - **回归**：`npm run build`（无 SITE.url warning）+ `npm run test:ui:preview`（生产预渲染冒烟）。
 
 ---

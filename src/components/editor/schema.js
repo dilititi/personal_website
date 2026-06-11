@@ -293,6 +293,17 @@ export const SITE_SCHEMA = [
     label: '头像 Portrait（选本地图 → 写入 public/picture/）',
   },
   {
+    key: 'ogImage',
+    type: 'file-image',
+    subfolder: 'picture',
+    label: '社交分享图 OG image（建议 1200×630；与头像分开）',
+  },
+  {
+    key: 'googleSiteVerification',
+    type: 'str',
+    label: 'Google Search Console 验证 token（只填 content 值）',
+  },
+  {
     key: 'cvPdf',
     type: 'file-pdf',
     subfolder: 'docs',

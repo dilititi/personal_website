@@ -498,6 +498,25 @@ async function run() {
       'content editor open',
     )
 
+    await click('.ce-header-actions button', 'Publish')
+    await waitForExpression(`!!document.querySelector('.ce-publish-panel')`, 'publish panel open')
+    assert(
+      await evaluate(`(() => {
+        const button = [...document.querySelectorAll('.ce-publish-actions button')]
+          .find(node => node.textContent.includes('Publish content'))
+        return button?.disabled === true
+          && document.querySelector('.ce-publish-note')?.textContent.includes('no content changes')
+      })()`),
+      'Content publishing must be disabled when the browser draft matches source defaults.',
+    )
+    await click('.ce-publish-actions button', 'Verify')
+    await waitForExpression(
+      `document.querySelector('.ce-publish-status')?.textContent.includes('Enter a GitHub token')`,
+      'publish panel missing-token feedback',
+    )
+    await click('.ce-header-actions button', 'Publish')
+    await waitForExpression(`!document.querySelector('.ce-publish-panel')`, 'publish panel close')
+
     await evaluate(`(() => {
       const original = Storage.prototype.setItem
       window.__uiSmokeOriginalSetItem = original
@@ -703,7 +722,7 @@ async function run() {
     }
 
     console.log(
-      `UI smoke tests passed${PREVIEW_MODE ? ' against prerendered production output' : ''}: runtime SEO localization, landing scroll reset, dialog focus restoration, reduced motion, legacy migration, storage failure feedback, editors, refresh-safe timestamps, save/reset, templates, preset linkage, drag order, path audit, and exports.`,
+      `UI smoke tests passed${PREVIEW_MODE ? ' against prerendered production output' : ''}: runtime SEO localization, landing scroll reset, dialog focus restoration, reduced motion, legacy migration, storage failure feedback, publish fallback, editors, refresh-safe timestamps, save/reset, templates, preset linkage, drag order, path audit, and exports.`,
     )
   } finally {
     try {

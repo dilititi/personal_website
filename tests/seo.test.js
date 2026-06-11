@@ -38,20 +38,30 @@ describe('SEO data', () => {
     assert.ok(!seo.description.includes('*'))
   })
 
-  it('absolutizes portrait URLs and degrades cleanly without a site URL', () => {
+  it('prefers an independent OG image, falls back to portrait, and degrades cleanly', () => {
     const absolute = buildSeo({
+      url: 'https://example.com/',
+      portrait: '/picture/me.jpg',
+      ogImage: '/og-cover.jpg',
+    })
+    const portraitFallback = buildSeo({
       url: 'https://example.com/',
       portrait: '/picture/me.jpg',
     })
     const relative = buildSeo({
       url: '',
-      portrait: '/picture/me.jpg',
+      ogImage: '/og-cover.jpg',
     })
     const empty = buildSeo({ url: '' })
 
-    assert.equal(absolute.image, 'https://example.com/picture/me.jpg')
+    assert.equal(absolute.image, 'https://example.com/og-cover.jpg')
+    assert.equal(absolute.imageWidth, '1200')
+    assert.equal(absolute.imageHeight, '630')
     assert.equal(absolute.canonical, 'https://example.com')
-    assert.equal(relative.image, '/picture/me.jpg')
+    assert.equal(portraitFallback.image, 'https://example.com/picture/me.jpg')
+    assert.equal(portraitFallback.imageWidth, '')
+    assert.equal(portraitFallback.imageHeight, '')
+    assert.equal(relative.image, '/og-cover.jpg')
     assert.equal(relative.canonical, '')
     assert.equal(empty.image, '')
     assert.equal(empty.canonical, '')
@@ -69,6 +79,14 @@ describe('SEO data', () => {
     assert.equal(zh.canonical, site.url)
     assert.equal(zh.locale, 'zh_CN')
     assert.equal(zh.localeAlternate, 'en_US')
+  })
+
+  it('passes through an optional Search Console verification token', () => {
+    assert.equal(
+      buildSeo({ googleSiteVerification: ' google-token ' }).googleSiteVerification,
+      'google-token',
+    )
+    assert.equal(buildSeo({}).googleSiteVerification, '')
   })
 
   it('derives language-route canonical and hreflang links from SITE.url', () => {
