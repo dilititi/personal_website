@@ -1,7 +1,9 @@
 import React from 'react'
 import { useLang } from '../lang.jsx'
 import { useData } from '../data-context.jsx'
+import { useStyle } from '../style-context.jsx'
 import { useClock, formatTime } from '../hooks.jsx'
+import { responsiveImageAttributes } from '../lib/images.js'
 
 // Pick a valid IANA timezone for the clock.
 // Priority: explicit SITE.tzName → SITE.timezone if it looks IANA → fallback.
@@ -11,11 +13,122 @@ function resolveTz(SITE) {
   return 'Asia/Shanghai'
 }
 
+function LandingPortrait({ SITE, t, className }) {
+  if (!SITE.portrait) return null
+  return (
+    <img
+      {...responsiveImageAttributes(SITE.portrait, '100vw')}
+      className={className}
+      alt={t(SITE.nameFull) ? `Portrait of ${t(SITE.nameFull)}` : ''}
+      width="1200"
+      height="1500"
+      loading="eager"
+      fetchPriority="high"
+      decoding="async"
+    />
+  )
+}
+
+function LandingActions({ TL, t, onJump, isModuleEnabled }) {
+  return (
+    <div className="landing-template-actions">
+      {isModuleEnabled('works') && (
+        <button type="button" onClick={() => onJump('works')}>
+          <span>{t(TL.pillWorksLbl)}</span>
+          <em>↘</em>
+        </button>
+      )}
+      {isModuleEnabled('about') && (
+        <button type="button" onClick={() => onJump('about')}>
+          <span>{t(TL.pillAboutLbl)}</span>
+          <em>01</em>
+        </button>
+      )}
+    </div>
+  )
+}
+
+function MinimalLanding({ SITE, TL, t, onJump, isModuleEnabled, now }) {
+  return (
+    <section id="home" className="landing landing-template landing-minimal">
+      <LandingPortrait SITE={SITE} t={t} className="landing-template-media" />
+      <div className="landing-template-shade" />
+      <div className="landing-template-content">
+        <div className="landing-template-meta">
+          <span>{t(TL.metaRole)}</span>
+          <span>{t(SITE.location)}</span>
+          <span>{now ? formatTime(now, resolveTz(SITE)) : '--:--'}</span>
+        </div>
+        <h1>{t(SITE.nameFull) || t(SITE.name)}</h1>
+        <p>{t(SITE.tagline) || t(SITE.role)}</p>
+        <LandingActions TL={TL} t={t} onJump={onJump} isModuleEnabled={isModuleEnabled} />
+      </div>
+      <span className="landing-next-cue" aria-hidden="true">
+        01
+      </span>
+    </section>
+  )
+}
+
+function JournalLanding({ SITE, TL, t, onJump, isModuleEnabled, now }) {
+  return (
+    <section id="home" className="landing landing-template landing-journal">
+      <LandingPortrait SITE={SITE} t={t} className="landing-template-media" />
+      <div className="landing-journal-lines" aria-hidden="true" />
+      <div className="landing-template-content">
+        <div className="landing-journal-date">
+          <span>{t(SITE.nowDate)}</span>
+          <span>{now ? formatTime(now, resolveTz(SITE)) : '--:--'}</span>
+        </div>
+        <p className="landing-journal-kicker">{t(TL.metaRole)}</p>
+        <h1>{t(SITE.nameFull) || t(SITE.name)}</h1>
+        <blockquote>{t(SITE.tagline) || t(SITE.now)}</blockquote>
+        <LandingActions TL={TL} t={t} onJump={onJump} isModuleEnabled={isModuleEnabled} />
+      </div>
+      <span className="landing-next-cue" aria-hidden="true">
+        entry 01
+      </span>
+    </section>
+  )
+}
+
+function GradientLanding({ SITE, TL, t, onJump, isModuleEnabled, now }) {
+  return (
+    <section id="home" className="landing landing-template landing-gradient">
+      <LandingPortrait SITE={SITE} t={t} className="landing-template-media" />
+      <div className="landing-gradient-wash" aria-hidden="true" />
+      <div className="landing-template-content">
+        <div className="landing-template-meta">
+          <span>{t(SITE.role)}</span>
+          <span>{t(SITE.location)}</span>
+          <span>{now ? formatTime(now, resolveTz(SITE)) : '--:--'}</span>
+        </div>
+        <h1>
+          <span>{t(SITE.name)}</span>
+          <i>{t(SITE.nameRight)}</i>
+        </h1>
+        <p>{t(SITE.tagline)}</p>
+        <LandingActions TL={TL} t={t} onJump={onJump} isModuleEnabled={isModuleEnabled} />
+      </div>
+      <span className="landing-next-cue" aria-hidden="true">
+        scroll
+      </span>
+    </section>
+  )
+}
+
 export default function Landing({ onJump, prerendered = false }) {
   const { t } = useLang()
   const { SITE, TEXTS, isModuleEnabled } = useData()
+  const { style } = useStyle()
   const TL = TEXTS.landing
   const now = useClock({ defer: prerendered })
+  const landingLayout = style?.layout?.landing || 'minimal'
+
+  const templateProps = { SITE, TL, t, onJump, isModuleEnabled, now }
+  if (landingLayout === 'journal') return <JournalLanding {...templateProps} />
+  if (landingLayout === 'gradient') return <GradientLanding {...templateProps} />
+  if (landingLayout === 'minimal') return <MinimalLanding {...templateProps} />
 
   // Frame 00 displayed values derive from SITE — single source of truth.
   const displayName = t(SITE.name) || ''

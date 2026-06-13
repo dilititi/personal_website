@@ -1,14 +1,15 @@
 import React, { useRef, useState } from 'react'
 import { useData } from '../../data-context.jsx'
 import { useStyle } from '../../style-context.jsx'
-import { AI_PROMPT, CONTENT_PRESETS, STARTER_TEMPLATE } from './contentPresets.js'
+import { AI_PROMPT, STARTER_TEMPLATE } from './contentPresets.js'
+import { GOAL_PRESETS, resolveGoalSelection } from './goals.js'
 import { validateImportData } from './validation.js'
 
 const PRE_IMPORT_KEY = 'chen.content.preImport'
 
 export default function ImportPanel() {
   const data = useData()
-  const { applyPreset } = useStyle()
+  const { style, setStyle, applyPreset } = useStyle()
   const [jsonText, setJsonText] = useState('')
   const [parseResult, setParseResult] = useState(null)
   const [promptCopied, setPromptCopied] = useState(false)
@@ -24,8 +25,8 @@ export default function ImportPanel() {
     try {
       const raw = localStorage.getItem(PRE_IMPORT_KEY)
       if (!raw) return null
-      const obj = JSON.parse(raw)
-      return { ts: obj._ts || null, keys: Object.keys(obj).filter(key => key !== '_ts') }
+      const snapshot = readSnapshot(raw)
+      return { ts: snapshot.ts, keys: Object.keys(snapshot.content) }
     } catch {
       return null
     }
@@ -69,10 +70,15 @@ export default function ImportPanel() {
 
   const saveSnapshot = () => {
     try {
-      const snap = { ...(data.userOverrides || data.overrides || {}), _ts: Date.now() }
+      const snap = {
+        _version: 2,
+        _ts: Date.now(),
+        content: deepClone(data.userOverrides || data.overrides || {}),
+        style: deepClone(style),
+      }
       localStorage.setItem(PRE_IMPORT_KEY, JSON.stringify(snap))
       setHasSnapshot(true)
-      setSnapshotInfo({ ts: snap._ts, keys: Object.keys(snap).filter(key => key !== '_ts') })
+      setSnapshotInfo({ ts: snap._ts, keys: Object.keys(snap.content) })
     } catch (e) {
       console.warn('Snapshot save failed:', e)
     }
@@ -110,9 +116,9 @@ export default function ImportPanel() {
     try {
       const raw = localStorage.getItem(PRE_IMPORT_KEY)
       if (!raw) return
-      const snap = JSON.parse(raw)
-      delete snap._ts
-      data.replaceOverrides(snap)
+      const snapshot = readSnapshot(raw)
+      data.replaceOverrides(snapshot.content)
+      if (snapshot.style) setStyle(snapshot.style)
       localStorage.removeItem(PRE_IMPORT_KEY)
       setHasSnapshot(false)
       setSnapshotInfo(null)
@@ -157,43 +163,65 @@ export default function ImportPanel() {
     URL.revokeObjectURL(url)
   }
 
-  const applyContentPreset = preset => {
-    const sections = Object.keys(preset.data)
+  const applyGoal = goalId => {
+    const selection = resolveGoalSelection(goalId)
     if (
-      !window.confirm(`应用「${preset.label}」会覆盖这些章节:\n\n${sections.join(', ')}\n\n继续吗?`)
+      !window.confirm(
+        `应用「${selection.goal.label}」会替换当前全部内容草稿和风格。\n\n导入前状态会保留为一次撤销快照。继续吗?`,
+      )
     )
       return
-    applySections(sections, preset.data, `✓ 已应用预制模板: ${preset.label}`)
-    if (preset.stylePreset) {
-      applyPreset(preset.stylePreset)
-    }
+
+    saveSnapshot()
+    data.replaceOverrides(selection.content)
+    applyPreset(selection.stylePreset)
+    setApplied(`✓ 已切换起点: ${selection.goal.label}`)
+    setJsonText('')
+    setParseResult(null)
+    setTimeout(() => setApplied(''), 5000)
   }
 
   return (
     <div className="ce-import">
       <div className="ce-import-intro">
-        <p>用自然语言描述你自己,AI 帮你填好整个网站的全部数据 —— 这是模板最有意思的功能。</p>
+        <p>第一次使用只需要按下面五步前进。先确定网站类型，再逐步填写，不必一次理解所有字段。</p>
       </div>
 
+      <ol className="ce-onboarding-path" aria-label="首次使用流程">
+        {['选择网站类型', '选择视觉模板', '填写核心信息', '进入自由编辑', '发布前审计'].map(
+          (item, index) => (
+            <li key={item}>
+              <span>{String(index + 1).padStart(2, '0')}</span>
+              <strong>{item}</strong>
+            </li>
+          ),
+        )}
+      </ol>
+
       <div className="ce-import-step">
-        <h4>预制模板</h4>
+        <h4>第一步：选择网站类型</h4>
         <p>
-          先选择一个完整方向，文字、模块和图片路径会一起填入。图片只保存 public 路径，不写入大体积
-          base64。
+          空白起点会清除 Chen 示例身份；其他模板会同时填入文案骨架、模块结构、首页布局和视觉方向。
         </p>
         <div className="ce-template-grid">
-          {CONTENT_PRESETS.map(preset => (
-            <article key={preset.id} className="ce-template-card">
-              <span
-                className="ce-template-thumb"
-                style={{ backgroundImage: `url("${preset.preview}")` }}
-              />
+          {GOAL_PRESETS.map(goal => (
+            <article key={goal.id} className="ce-template-card" data-goal-id={goal.id}>
+              {goal.preview ? (
+                <span
+                  className="ce-template-thumb"
+                  style={{ backgroundImage: `url("${goal.preview}")` }}
+                />
+              ) : (
+                <span className="ce-template-thumb ce-template-thumb-empty" aria-hidden="true">
+                  Aa
+                </span>
+              )}
               <div className="ce-template-copy">
-                <strong>{preset.label}</strong>
-                <p>{preset.description}</p>
+                <strong>{goal.label}</strong>
+                <p>{goal.description}</p>
               </div>
-              <button className="ce-btn" type="button" onClick={() => applyContentPreset(preset)}>
-                应用模板
+              <button className="ce-btn" type="button" onClick={() => applyGoal(goal.id)}>
+                使用此起点
               </button>
             </article>
           ))}
@@ -323,4 +351,20 @@ export default function ImportPanel() {
 
 function deepClone(v) {
   return JSON.parse(JSON.stringify(v))
+}
+
+function readSnapshot(raw) {
+  const parsed = JSON.parse(raw)
+  if (parsed?._version === 2 && parsed.content && typeof parsed.content === 'object') {
+    return {
+      ts: parsed._ts || null,
+      content: parsed.content,
+      style: parsed.style && typeof parsed.style === 'object' ? parsed.style : null,
+    }
+  }
+
+  const legacy = { ...(parsed || {}) }
+  const ts = legacy._ts || null
+  delete legacy._ts
+  return { ts, content: legacy, style: null }
 }

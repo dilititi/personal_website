@@ -1,5 +1,6 @@
-import React, { useEffect, useMemo, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { useLang } from '../lang.jsx'
+import { useData } from '../data-context.jsx'
 import { useStyle } from '../style-context.jsx'
 import {
   STYLE_ANCHOR_TYPES,
@@ -7,25 +8,17 @@ import {
   STYLE_MOOD_KEYWORDS,
   STYLE_PRESETS,
 } from '../style.js'
+import { resolveTemplateModules, SITE_TEMPLATE_PROFILES } from './editor/siteTemplates.js'
 import { findMissingPublicPaths, pathWarning } from './editor/export.js'
 import PreviewFrame from './editor/PreviewFrame.jsx'
 import PublishPanel from './editor/PublishPanel.jsx'
 import { publishStyle } from '../lib/publish.js'
 
-const LIVE_DIMENSIONS = new Set([
-  'design',
-  'color',
-  'typography',
-  'space',
-  'motion',
-  'texture',
-  'light',
-  'depth',
-])
-
-const STATIC_TABS = [{ key: 'presets', label: { zh: '预设', en: 'Presets' }, live: true }]
-
-const REFERENCE_TAB = { key: 'reference', label: { zh: '情绪板', en: 'Mood board' }, live: true }
+const WORKSPACE_VIEWS = [
+  { key: 'templates', label: { zh: '选择模板', en: 'Templates' } },
+  { key: 'tune', label: { zh: '调整参数', en: 'Tune' } },
+  { key: 'reference', label: { zh: '情绪板', en: 'Mood board' } },
+]
 
 const FONT_OPTIONS = [
   { value: 'serif', zh: '衬线 / 文学', en: 'Serif' },
@@ -854,27 +847,280 @@ function DepthPanel({ style, updateDimension, lang }) {
   )
 }
 
-function ReservedPanel({ dimension, lang }) {
+const CULTURE_OPTIONS = {
+  era: [
+    { value: 'contemporary', label: { zh: '当代', en: 'Contemporary' } },
+    { value: 'archival', label: { zh: '档案感', en: 'Archival' } },
+    { value: 'retro', label: { zh: '复古', en: 'Retro' } },
+    { value: 'speculative', label: { zh: '未来想象', en: 'Speculative' } },
+  ],
+  register: [
+    { value: 'hybrid', label: { zh: '混合语境', en: 'Hybrid' } },
+    { value: 'east-asian', label: { zh: '东亚参照', en: 'East Asian' } },
+    { value: 'western', label: { zh: '西方参照', en: 'Western' } },
+    { value: 'global', label: { zh: '全球参照', en: 'Global' } },
+  ],
+  medium: [
+    { value: 'digital', label: { zh: '数字界面', en: 'Digital interface' } },
+    { value: 'print', label: { zh: '纸面编辑', en: 'Editorial print' } },
+    { value: 'film', label: { zh: '电影影像', en: 'Film image' } },
+    { value: 'handmade', label: { zh: '手作材料', en: 'Handmade material' } },
+  ],
+}
+
+function CulturePanel({ style, updateDimension, lang }) {
+  const culture = style.culture || {}
+  const update = patch => updateDimension('culture', patch)
+
   return (
-    <div className="se-panel se-reserved-panel">
+    <div className="se-panel se-grid">
+      <SelectControl
+        label={lang === 'zh' ? '时代语感' : 'Era'}
+        value={culture.era || 'contemporary'}
+        options={CULTURE_OPTIONS.era}
+        onChange={era => update({ era })}
+        lang={lang}
+      />
+      <SelectControl
+        label={lang === 'zh' ? '文化参照' : 'Register'}
+        value={culture.register || 'hybrid'}
+        options={CULTURE_OPTIONS.register}
+        onChange={register => update({ register })}
+        lang={lang}
+      />
+      <SelectControl
+        label={lang === 'zh' ? '媒介气质' : 'Medium'}
+        value={culture.medium || 'digital'}
+        options={CULTURE_OPTIONS.medium}
+        onChange={medium => update({ medium })}
+        lang={lang}
+      />
+      <p className="ce-hint se-context-note">
+        {lang === 'zh'
+          ? '语境作为风格描述随 STYLE 保存，用来约束预设选择与后续参考图解析；它不会单独覆盖颜色或排版。'
+          : 'Context is saved with STYLE to guide presets and future reference parsing; it does not override color or type by itself.'}
+      </p>
+    </div>
+  )
+}
+
+function MoodPanel({ style, setStyle, lang }) {
+  const mood = Array.isArray(style.mood) ? style.mood : []
+  const toggleMood = value => {
+    const next = mood.includes(value) ? mood.filter(item => item !== value) : [...mood, value]
+    setStyle(prev => ({ ...prev, preset: 'custom', mood: next }))
+  }
+
+  return (
+    <div className="se-panel">
       <p className="ce-hint">
         {lang === 'zh'
-          ? `${pick(dimension.label, lang)} 是描述性语境，随风格一起保存，但不直接驱动渲染（不改 CSS）。`
-          : `${pick(dimension.label, lang)} is descriptive context — saved with your style as part of the mood board, but it does not drive rendering (no CSS effect).`}
+          ? '先用少量关键词定义情绪基调。更具体的图片、电影和网站参考可继续放进 Mood board。'
+          : 'Set the emotional register with a few keywords. Keep detailed image, film, and site references in the Mood board.'}
       </p>
-      <div className="se-reserved-card">
-        <strong>{pick(dimension.label, lang)}</strong>
-        <span>{dimension.summary}</span>
-        <em>
-          {lang === 'zh' ? '描述性信号，非实时控件。' : 'Descriptive signal, not a live control.'}
-        </em>
+      <div className="se-chip-grid">
+        {STYLE_MOOD_KEYWORDS.map(option => {
+          const active = mood.includes(option.value)
+          return (
+            <button
+              key={option.value}
+              type="button"
+              className={`se-chip ${active ? 'act' : ''}`}
+              aria-pressed={active}
+              onClick={() => toggleMood(option.value)}
+            >
+              {pick(option.label, lang)}
+            </button>
+          )
+        })}
       </div>
     </div>
   )
 }
 
-export default function StyleEditor({ open, onClose }) {
+function TuningSection({ id, label, summary, active, onToggle, children }) {
+  return (
+    <section className={`se-tuning-section ${active ? 'is-active' : ''}`} data-style-group={id}>
+      <button
+        className="se-tuning-section-toggle"
+        type="button"
+        aria-expanded={active}
+        onClick={() => onToggle(id)}
+      >
+        <span>
+          <strong>{label}</strong>
+          <small>{summary}</small>
+        </span>
+        <em aria-hidden="true">{active ? '−' : '+'}</em>
+      </button>
+      {active && <div className="se-tuning-section-body">{children}</div>}
+    </section>
+  )
+}
+
+function TuningPanel({ style, setStyle, updateDimension, lang }) {
+  const [activeBasic, setActiveBasic] = useState('design')
+  const [advancedOpen, setAdvancedOpen] = useState(false)
+  const [activeAdvanced, setActiveAdvanced] = useState('texture')
+  const advancedRef = useRef(null)
+  const labelFor = key => pick(STYLE_DIMENSIONS.find(item => item.key === key)?.label, lang)
+  const summaryFor = key => STYLE_DIMENSIONS.find(item => item.key === key)?.summary || ''
+
+  const basic = [
+    ['design', <DesignPanel style={style} updateDimension={updateDimension} lang={lang} />],
+    ['color', <ColorPanel style={style} updateDimension={updateDimension} lang={lang} />],
+    ['typography', <TypographyPanel style={style} updateDimension={updateDimension} lang={lang} />],
+    ['space', <SpacePanel style={style} updateDimension={updateDimension} lang={lang} />],
+    ['motion', <MotionPanel style={style} updateDimension={updateDimension} lang={lang} />],
+  ]
+  const advanced = [
+    ['texture', <TexturePanel style={style} updateDimension={updateDimension} lang={lang} />],
+    ['light', <LightPanel style={style} updateDimension={updateDimension} lang={lang} />],
+    ['culture', <CulturePanel style={style} updateDimension={updateDimension} lang={lang} />],
+    ['depth', <DepthPanel style={style} updateDimension={updateDimension} lang={lang} />],
+    ['mood', <MoodPanel style={style} setStyle={setStyle} lang={lang} />],
+  ]
+  const advancedLabel = key => (key === 'mood' ? (lang === 'zh' ? '情绪' : 'Mood') : labelFor(key))
+
+  return (
+    <div className="se-tuning">
+      <div className="se-workspace-intro">
+        <span>02</span>
+        <div>
+          <strong>{lang === 'zh' ? '先调基础，再看高级' : 'Start with the essentials'}</strong>
+          <p>
+            {lang === 'zh'
+              ? '一次展开一组参数，右侧网站会即时响应。设计基础决定整体秩序。'
+              : 'Open one group at a time. The website on the right responds immediately.'}
+          </p>
+        </div>
+      </div>
+
+      <div className="se-tuning-list">
+        {basic.map(([key, panel]) => (
+          <TuningSection
+            key={key}
+            id={key}
+            label={labelFor(key)}
+            summary={summaryFor(key)}
+            active={activeBasic === key}
+            onToggle={next => setActiveBasic(current => (current === next ? '' : next))}
+          >
+            {panel}
+          </TuningSection>
+        ))}
+      </div>
+
+      <section ref={advancedRef} className={`se-advanced ${advancedOpen ? 'is-open' : ''}`}>
+        <button
+          className="se-advanced-toggle"
+          type="button"
+          aria-expanded={advancedOpen}
+          onClick={() =>
+            setAdvancedOpen(value => {
+              const next = !value
+              if (next) {
+                requestAnimationFrame(() =>
+                  advancedRef.current?.scrollIntoView({ block: 'nearest' }),
+                )
+              }
+              return next
+            })
+          }
+        >
+          <span>
+            <strong>{lang === 'zh' ? '高级表现' : 'Advanced expression'}</strong>
+            <small>
+              {lang === 'zh'
+                ? '质感、光影、语境、深度与情绪，建议在基础确定后再调整'
+                : 'Texture, light, context, depth, and mood after the foundation is settled'}
+            </small>
+          </span>
+          <em aria-hidden="true">{advancedOpen ? '−' : '+'}</em>
+        </button>
+        {advancedOpen && (
+          <div className="se-advanced-body">
+            <div className="se-advanced-tabs" role="tablist">
+              {advanced.map(([key]) => (
+                <button
+                  key={key}
+                  type="button"
+                  className={activeAdvanced === key ? 'act' : ''}
+                  onClick={() => setActiveAdvanced(key)}
+                >
+                  {advancedLabel(key)}
+                </button>
+              ))}
+            </div>
+            {advanced.find(([key]) => key === activeAdvanced)?.[1]}
+          </div>
+        )}
+      </section>
+    </div>
+  )
+}
+
+function SiteTemplatePanel({ lang, activePreset, onApplyTemplate, onApplyPreset, onContinue }) {
+  const templates = SITE_TEMPLATE_PROFILES
+  return (
+    <div className="se-template-onboarding">
+      <div className="se-workspace-intro">
+        <span>01</span>
+        <div>
+          <strong>{lang === 'zh' ? '先选择网站类型' : 'Choose a site type first'}</strong>
+          <p>
+            {lang === 'zh'
+              ? '结构模板会调整首页、模块数量、顺序和布局，但保留你已经填写的内容。'
+              : 'Structure templates change the landing, module set, order, and layout while keeping your content.'}
+          </p>
+        </div>
+      </div>
+
+      <div className="se-site-template-grid">
+        {templates.map(template => (
+          <article
+            className="se-site-template-card"
+            data-site-template-id={template.id}
+            key={template.id}
+          >
+            <span
+              className="se-site-template-image"
+              style={{ backgroundImage: `url("${template.preview}")` }}
+              aria-hidden="true"
+            />
+            <div>
+              <strong>{template.label}</strong>
+              <p>{template.description}</p>
+            </div>
+            <button className="ce-btn" type="button" onClick={() => onApplyTemplate(template.id)}>
+              {lang === 'zh' ? '应用结构' : 'Apply structure'}
+            </button>
+          </article>
+        ))}
+      </div>
+
+      <div className="se-workspace-intro se-workspace-intro-secondary">
+        <span>02</span>
+        <div>
+          <strong>{lang === 'zh' ? '再选择视觉方向' : 'Then choose a visual direction'}</strong>
+          <p>
+            {lang === 'zh'
+              ? '视觉预设只改变颜色、字体、节奏与质感，不会覆盖内容。'
+              : 'Visual presets change color, type, rhythm, and texture without replacing content.'}
+          </p>
+        </div>
+      </div>
+      <PresetPanel lang={lang} activePreset={activePreset} onApply={onApplyPreset} />
+      <button className="ce-btn se-continue-btn" type="button" onClick={onContinue}>
+        {lang === 'zh' ? '继续微调参数' : 'Continue to fine-tuning'}
+      </button>
+    </div>
+  )
+}
+
+export default function StyleEditor({ open, onClose, initialView = 'templates' }) {
   const { lang } = useLang()
+  const data = useData()
   const {
     style,
     setStyle,
@@ -887,55 +1133,14 @@ export default function StyleEditor({ open, onClose }) {
     lastSaved,
     isDirty,
   } = useStyle()
-  const [active, setActive] = useState('design')
+  const [view, setView] = useState(initialView)
   const [copied, setCopied] = useState('')
   const [showPublish, setShowPublish] = useState(false)
-  const [mode, setMode] = useState(() => {
-    try {
-      return localStorage.getItem('chen.se.mode') === 'modal' ? 'modal' : 'side'
-    } catch {
-      return 'side'
-    }
-  })
-  const [sideWidth, setSideWidth] = useState(() => {
-    try {
-      return Number(localStorage.getItem('chen.se.sideWidth')) || 520
-    } catch {
-      return 520
-    }
-  })
-
-  const tabs = useMemo(
-    () => [
-      ...STATIC_TABS,
-      ...STYLE_DIMENSIONS.map(dim => ({
-        key: dim.key,
-        label: dim.label,
-        summary: dim.summary,
-        live: LIVE_DIMENSIONS.has(dim.key),
-      })),
-      REFERENCE_TAB,
-    ],
-    [],
-  )
-  const activeTab = tabs.find(tab => tab.key === active) || tabs[0]
-  const reservedTabs = tabs.filter(tab => !tab.live)
-
-  useEffect(() => {
-    try {
-      localStorage.setItem('chen.se.mode', mode)
-    } catch {}
-  }, [mode])
-  useEffect(() => {
-    try {
-      localStorage.setItem('chen.se.sideWidth', String(sideWidth))
-    } catch {}
-  }, [sideWidth])
-
+  const [previewRevision, setPreviewRevision] = useState(0)
+  const activeView = WORKSPACE_VIEWS.find(item => item.key === view) || WORKSPACE_VIEWS[0]
   useEffect(() => {
     if (!open) return
-    if (mode === 'modal') document.body.style.overflow = 'hidden'
-    else document.body.style.overflow = ''
+    document.body.style.overflow = 'hidden'
 
     const onKey = e => {
       if (e.key === 'Escape') onClose()
@@ -945,29 +1150,9 @@ export default function StyleEditor({ open, onClose }) {
       document.body.style.overflow = ''
       window.removeEventListener('keydown', onKey)
     }
-  }, [open, mode, onClose])
+  }, [open, onClose])
 
   if (!open) return null
-
-  const onResizeStart = e => {
-    e.preventDefault()
-    const startX = e.clientX
-    const startW = sideWidth
-    const onMove = ev => {
-      const next = Math.max(380, Math.min(window.innerWidth - 100, startW + (startX - ev.clientX)))
-      setSideWidth(next)
-    }
-    const onUp = () => {
-      document.body.style.cursor = ''
-      document.body.style.userSelect = ''
-      window.removeEventListener('pointermove', onMove)
-      window.removeEventListener('pointerup', onUp)
-    }
-    document.body.style.cursor = 'ew-resize'
-    document.body.style.userSelect = 'none'
-    window.addEventListener('pointermove', onMove)
-    window.addEventListener('pointerup', onUp)
-  }
 
   const copyStyle = async () => {
     const text = exportStyle()
@@ -1011,7 +1196,28 @@ export default function StyleEditor({ open, onClose }) {
       if (!ok) return
     }
     applyPreset(id)
+    setPreviewRevision(value => value + 1)
     setCopied(lang === 'zh' ? '已应用预设，可继续微调' : 'Preset applied. You can keep tuning it.')
+  }
+
+  const handleApplyTemplate = id => {
+    const template = SITE_TEMPLATE_PROFILES.find(item => item.id === id)
+    if (!template) return
+    const ok = window.confirm(
+      lang === 'zh'
+        ? `应用「${template.label}」会调整模块显示、顺序、布局和视觉风格，但保留当前内容。继续吗？`
+        : `Apply "${template.label}"? This changes module visibility, order, layout, and visual style while keeping your content.`,
+    )
+    if (!ok) return
+
+    data.setSection('MODULES', resolveTemplateModules(data.MODULES, template.modules))
+    applyPreset(template.stylePreset)
+    setPreviewRevision(value => value + 1)
+    setCopied(
+      lang === 'zh'
+        ? `已应用结构模板：${template.label}`
+        : `Structure template applied: ${template.label}`,
+    )
   }
 
   const handlePublish = ({ github, config }) =>
@@ -1022,76 +1228,54 @@ export default function StyleEditor({ open, onClose }) {
       styleExport: exportStyle(),
     })
 
-  const panel = {
-    presets: <PresetPanel lang={lang} activePreset={style.preset} onApply={handleApplyPreset} />,
-    reference: <ReferencePanel style={style} setStyle={setStyle} lang={lang} />,
-    design: <DesignPanel style={style} updateDimension={updateDimension} lang={lang} />,
-    color: <ColorPanel style={style} updateDimension={updateDimension} lang={lang} />,
-    typography: <TypographyPanel style={style} updateDimension={updateDimension} lang={lang} />,
-    space: <SpacePanel style={style} updateDimension={updateDimension} lang={lang} />,
-    motion: <MotionPanel style={style} updateDimension={updateDimension} lang={lang} />,
-    texture: <TexturePanel style={style} updateDimension={updateDimension} lang={lang} />,
-    light: <LightPanel style={style} updateDimension={updateDimension} lang={lang} />,
-    depth: <DepthPanel style={style} updateDimension={updateDimension} lang={lang} />,
-  }[active] || <ReservedPanel dimension={activeTab} lang={lang} />
-  const showLivePreview = mode === 'modal' && active !== 'presets' && active !== 'reference'
+  const workspacePanel =
+    view === 'templates' ? (
+      <SiteTemplatePanel
+        lang={lang}
+        activePreset={style.preset}
+        onApplyTemplate={handleApplyTemplate}
+        onApplyPreset={handleApplyPreset}
+        onContinue={() => setView('tune')}
+      />
+    ) : view === 'reference' ? (
+      <ReferencePanel style={style} setStyle={setStyle} lang={lang} />
+    ) : (
+      <TuningPanel
+        style={style}
+        setStyle={setStyle}
+        updateDimension={updateDimension}
+        lang={lang}
+      />
+    )
 
   return (
-    <div
-      className={`ce-overlay mode-${mode} se-overlay`}
-      style={mode === 'side' ? { width: sideWidth } : undefined}
-    >
+    <div className="ce-overlay mode-modal se-overlay se-workbench-overlay">
       <div className="ce-shell se-shell">
-        {mode === 'side' && (
-          <div
-            className="ce-resize-handle"
-            onPointerDown={onResizeStart}
-            title={lang === 'zh' ? '拖动调整宽度' : 'Drag to resize'}
-          />
-        )}
         <header className="ce-header">
           <div className="ce-title">
             <span className="ce-title-main">{lang === 'zh' ? '风格编辑器' : 'Style Editor'}</span>
             <span className="ce-title-sub">
-              {mode === 'side'
-                ? lang === 'zh'
-                  ? '侧栏模式 - 左侧主站实时预览'
-                  : 'Side mode - live preview on the left'
-                : lang === 'zh'
-                  ? '全屏模式 - 可切换侧栏直接观察网站'
-                  : 'Modal mode - switch to side for live site preview'}
+              {lang === 'zh'
+                ? '左侧调整参数，右侧即时观察完整网站'
+                : 'Tune on the left and watch the full site respond on the right'}
             </span>
           </div>
           <div className="ce-header-actions">
             {isCustomized && (
               <span className="ce-tag">{lang === 'zh' ? '本地风格中' : 'local style'}</span>
             )}
-            <button
-              className="ce-mode-toggle"
-              type="button"
-              onClick={() => setMode(m => (m === 'modal' ? 'side' : 'modal'))}
-              title={lang === 'zh' ? '切换布局模式' : 'Toggle layout'}
-            >
-              {mode === 'modal'
-                ? lang === 'zh'
-                  ? '侧栏'
-                  : 'Side'
-                : lang === 'zh'
-                  ? '全屏'
-                  : 'Modal'}
-            </button>
             <button className="ce-btn ce-btn-ghost" type="button" onClick={copyStyle}>
               {lang === 'zh' ? '复制 STYLE' : 'Copy STYLE'}
             </button>
             <button
-              className="ce-btn ce-btn-ghost"
+              className="ce-btn ce-btn-ghost se-action-download"
               type="button"
               onClick={handleDownloadGeneratedStyle}
             >
               ⬇ style.js
             </button>
             <button
-              className="ce-btn ce-btn-ghost"
+              className="ce-btn ce-btn-ghost se-action-download"
               type="button"
               onClick={handleDownloadBackup}
               title={lang === 'zh' ? '下载本地备份 (JSON)' : 'Download local backup (JSON)'}
@@ -1144,56 +1328,31 @@ export default function StyleEditor({ open, onClose }) {
           />
         )}
 
-        <div className="ce-body se-body">
-          <nav className="ce-tabs" aria-label="style dimensions">
-            {tabs.map(tab => (
-              <button
-                key={tab.key}
-                type="button"
-                className={`ce-tab ${active === tab.key ? 'act' : ''} ${tab.live ? '' : 'se-tab-reserved'}`}
-                onClick={() => setActive(tab.key)}
-              >
-                <span className="ce-tab-label">{pick(tab.label, lang)}</span>
-                {!tab.live && (
-                  <span className="ce-tab-dot" title={lang === 'zh' ? '已预留' : 'Reserved'}>
-                    ○
-                  </span>
-                )}
-              </button>
-            ))}
-          </nav>
+        <div className="se-workbench">
+          <aside className="se-workbench-controls">
+            <nav className="se-workspace-nav" aria-label="style workflow">
+              {WORKSPACE_VIEWS.map(item => (
+                <button
+                  key={item.key}
+                  type="button"
+                  className={view === item.key ? 'act' : ''}
+                  aria-current={view === item.key ? 'page' : undefined}
+                  onClick={() => setView(item.key)}
+                >
+                  {pick(item.label, lang)}
+                </button>
+              ))}
+            </nav>
+            <div className="se-workbench-scroll">{workspacePanel}</div>
+          </aside>
 
-          <main className="ce-main">
-            <div className="ce-main-head">
-              <h3 className="ce-section-title">{pick(activeTab.label, lang)}</h3>
-              {!activeTab.live && (
-                <span className="ce-tag">{lang === 'zh' ? '已预留' : 'reserved'}</span>
-              )}
-            </div>
-            <div className="se-preview" aria-hidden="true">
-              <span />
-              <strong>{lang === 'zh' ? '风格预览' : 'Style preview'}</strong>
-              <em>{style.typography.personality}</em>
-            </div>
-            {panel}
-            {showLivePreview && (
-              <PreviewFrame style={style} lang={lang} label={pick(activeTab.label, lang)} />
-            )}
-            {reservedTabs.length > 0 && (
-              <div className="se-reserved">
-                <span>{lang === 'zh' ? '后续维度' : 'Next dimensions'}</span>
-                {reservedTabs.map(dim => (
-                  <button
-                    key={dim.key}
-                    type="button"
-                    className={active === dim.key ? 'act' : ''}
-                    onClick={() => setActive(dim.key)}
-                  >
-                    {pick(dim.label, lang)}
-                  </button>
-                ))}
-              </div>
-            )}
+          <main className="se-workbench-preview">
+            <PreviewFrame
+              style={style}
+              lang={lang}
+              label={pick(activeView.label, lang)}
+              reloadKey={`${data.lastSaved || 0}-${previewRevision}`}
+            />
           </main>
         </div>
 

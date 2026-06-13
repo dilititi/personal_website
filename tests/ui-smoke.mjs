@@ -159,7 +159,7 @@ async function run() {
         }),
       )
       ;[
-        ['/', rootHtml, /<html lang="en">/, /class="landing landing-masthead"/],
+        ['/', rootHtml, /<html lang="en">/, /class="landing landing-template landing-minimal"/],
         ['/en/', enHtml, /<html lang="en">/, /id="about"/],
         ['/zh/', zhHtml, /<html lang="zh">/, /id="about"/],
       ].forEach(([route, html, languagePattern, bodyPattern]) => {
@@ -387,7 +387,7 @@ async function run() {
     await waitForExpression(`window.scrollY > 500`, 'scroll away from landing')
     await evaluate(`location.reload()`)
     await waitForExpression(
-      `document.readyState === 'complete' && !!document.querySelector('.landing-masthead')`,
+      `document.readyState === 'complete' && !!document.querySelector('#home.landing')`,
       'application shell after scroll restoration reload',
     )
     await new Promise(resolve => setTimeout(resolve, 1600))
@@ -397,20 +397,20 @@ async function run() {
     const restoredScrollY = await evaluate(`window.scrollY`)
     assert(
       restoredScrollY < 10,
-      `A normal page load must start at the landing masthead instead of restoring an old scroll position (scrollY: ${restoredScrollY}).`,
+      `A normal page load must start at the landing instead of restoring an old scroll position (scrollY: ${restoredScrollY}).`,
     )
     assert(
       await evaluate(`(() => {
-        const masthead = document.querySelector('.landing-masthead')
-        const name = document.querySelector('.landing-masthead .mh-name')
-        if (!masthead || !name) return false
-        const mastheadRect = masthead.getBoundingClientRect()
+        const landing = document.querySelector('#home.landing')
+        const name = landing?.querySelector('h1, .mh-name')
+        if (!landing || !name) return false
+        const mastheadRect = landing.getBoundingClientRect()
         const nameRect = name.getBoundingClientRect()
         return Math.abs(mastheadRect.top) < 10
           && nameRect.top >= 0
           && nameRect.bottom <= window.innerHeight
       })()`),
-      'The landing masthead name must be visible in the first viewport after load.',
+      'The landing name must be visible in the first viewport after load.',
     )
 
     assert(
@@ -497,6 +497,11 @@ async function run() {
       `!!document.querySelector('.ce-overlay .ce-shell')`,
       'content editor open',
     )
+    await waitForExpression(
+      `document.querySelectorAll('.ce-onboarding-path li').length === 5`,
+      'first-run guided path',
+    )
+    await click('.ce-tab', 'SITE')
 
     await click('.ce-header-actions button', 'Publish')
     await waitForExpression(`!!document.querySelector('.ce-publish-panel')`, 'publish panel open')
@@ -592,21 +597,30 @@ async function run() {
     await click('.ce-header-actions button', 'data.js')
     await waitForDownload('data.generated.js')
 
-    await click('.ce-tab', 'Auto-fill')
+    await click('.ce-tab', 'Start')
     await waitForExpression(
-      `!!document.querySelector('.ce-template-card .ce-btn')`,
-      'content presets',
+      `!!document.querySelector('[data-goal-id="personal-journal"] .ce-btn')`,
+      'goal picker',
     )
-    await click('.ce-template-card .ce-btn')
+    await click('[data-goal-id="personal-journal"] .ce-btn')
     await waitForExpression(
       `JSON.parse(localStorage.getItem(${JSON.stringify(CONTENT_KEY)}) || '{}').SITE?.portrait === '/picture/template-organic-portrait.svg'`,
-      'content preset save',
+      'goal content save',
       5000,
     )
     await waitForExpression(
-      `JSON.parse(localStorage.getItem(${JSON.stringify(STYLE_KEY)}) || '{}').preset === 'organic'`,
-      'content and style preset linkage',
+      `JSON.parse(localStorage.getItem(${JSON.stringify(STYLE_KEY)}) || '{}').preset === 'personalJournal'`,
+      'goal content and style linkage',
       5000,
+    )
+    assert(
+      await evaluate(`(() => {
+        const content = JSON.parse(localStorage.getItem(${JSON.stringify(CONTENT_KEY)}) || '{}')
+        return Array.isArray(content.READING_LOG)
+          && content.READING_LOG.length === 0
+          && content.TEXTS?.landing?.metaRole?.en === 'CREATIVE TECHNOLOGIST'
+      })()`),
+      'A goal must replace identity-sensitive visitor data instead of inheriting the demo.',
     )
 
     await click('.ce-header-actions button', 'Paths')
@@ -622,6 +636,19 @@ async function run() {
     assert(
       !auditText.includes('0 media path'),
       `Path audit did not inspect preset assets. Received: ${auditText}`,
+    )
+
+    await click('.ce-tab', 'Audit')
+    await waitForExpression(`!!document.querySelector('.ce-audit .ce-btn')`, 'layout audit panel')
+    await click('.ce-audit .ce-btn', 'Run full audit')
+    await waitForExpression(
+      `!!document.querySelector('.ce-audit-report')`,
+      'layout audit report',
+      20000,
+    )
+    assert(
+      await evaluate(`document.querySelectorAll('.ce-audit-list li.is-error').length === 0`),
+      'A curated goal should have no publication-blocking content audit errors.',
     )
 
     await click('.ce-tab', 'MODULES')
@@ -652,7 +679,22 @@ async function run() {
       5000,
     )
 
-    await click('.ce-tab', 'Auto-fill')
+    await click('.ce-tab', 'Start')
+    await click('[data-goal-id="blank"] .ce-btn')
+    await waitForExpression(
+      `JSON.parse(localStorage.getItem(${JSON.stringify(CONTENT_KEY)}) || '{}').SITE?.name?.en === '<Your name>'`,
+      'blank goal save',
+      5000,
+    )
+    await click('.ce-tab', 'Audit')
+    await click('.ce-audit .ce-btn', 'Run full audit')
+    await waitForExpression(
+      `[...document.querySelectorAll('.ce-audit-list li.is-error code')].some(node => node.textContent === 'SITE.name.en')`,
+      'blank goal placeholder audit',
+      20000,
+    )
+
+    await click('.ce-tab', 'Start')
     await waitForExpression(`!!document.querySelector('.ce-btn-danger')`, 'content reset all')
     await click('.ce-btn-danger', '重置所有本地编辑')
     await waitForExpression(
@@ -667,12 +709,48 @@ async function run() {
       'content editor close',
     )
 
+    await click('[data-edit-scope="ABOUT"] .inline-edit-tools button', 'Edit')
+    await waitForExpression(
+      `!!document.querySelector('[data-edit-scope="ABOUT"] .inline-quick-editor')`,
+      'section inline quick editor',
+    )
+    await setValue('[data-edit-scope="ABOUT"] .inline-quick-fields input', 'Inline biography')
+    await waitForExpression(
+      `document.querySelector('#about .section-title')?.textContent?.includes('Inline biography')`,
+      'inline title update',
+    )
+    await waitForExpression(
+      `JSON.parse(localStorage.getItem(${JSON.stringify(CONTENT_KEY)}) || '{}').TEXTS?.about?.headerTitle?.en === 'Inline biography'`,
+      'inline edit persistence',
+      5000,
+    )
+    await click('[data-edit-scope="ABOUT"] .inline-quick-editor footer button', 'Open full editor')
+    await waitForExpression(
+      `document.querySelector('.ce-section-title')?.textContent?.includes('About')`,
+      'section-scoped content editor',
+    )
+    await click('.ce-close')
+    await waitForExpression(
+      `!document.querySelector('.ce-overlay .ce-shell')`,
+      'section-scoped content editor close',
+    )
+
     await click('[title="Style editor"]')
     await waitForExpression(
       `!!document.querySelector('.se-overlay .ce-shell')`,
       'style editor shell',
     )
-    await click('.se-overlay .ce-tab', 'Presets')
+    await waitForExpression(`!!document.querySelector('.se-workspace-nav')`, 'style workbench')
+    await click('[data-site-template-id="minimal-portfolio"] .ce-btn')
+    await waitForExpression(
+      `(() => {
+        const content = JSON.parse(localStorage.getItem(${JSON.stringify(CONTENT_KEY)}) || '{}')
+        const style = JSON.parse(localStorage.getItem(${JSON.stringify(STYLE_KEY)}) || '{}')
+        return content.MODULES?.library?.enabled === false && style.preset === 'minimalPortfolio'
+      })()`,
+      'structure and style template linkage',
+      5000,
+    )
     await waitForExpression(`!!document.querySelector('.se-preset-card')`, 'style editor open')
     await click('.se-preset-card:nth-child(2)')
     await waitForExpression(
@@ -682,6 +760,19 @@ async function run() {
     await waitForExpression(
       `Number(localStorage.getItem(${JSON.stringify(STYLE_SAVED_KEY)}))`,
       'style save timestamp',
+    )
+    await click('.se-workspace-nav button', 'Tune')
+    await waitForExpression(
+      `!!document.querySelector('[data-style-group="design"].is-active') && !!document.querySelector('.se-workbench-preview iframe')`,
+      'single-page tuning and live preview',
+    )
+    await click('.se-advanced-toggle', 'Advanced expression')
+    await waitForExpression(
+      `(() => {
+        const labels = [...document.querySelectorAll('.se-advanced-tabs button')].map(node => node.textContent.trim())
+        return labels.length === 5 && labels.includes('Culture') && labels.includes('Mood')
+      })()`,
+      'advanced style dimensions',
     )
     const styleSavedAt = await evaluate(
       `Number(localStorage.getItem(${JSON.stringify(STYLE_SAVED_KEY)}))`,
@@ -722,7 +813,7 @@ async function run() {
     }
 
     console.log(
-      `UI smoke tests passed${PREVIEW_MODE ? ' against prerendered production output' : ''}: runtime SEO localization, landing scroll reset, dialog focus restoration, reduced motion, legacy migration, storage failure feedback, publish fallback, editors, refresh-safe timestamps, save/reset, templates, preset linkage, drag order, path audit, and exports.`,
+      `UI smoke tests passed${PREVIEW_MODE ? ' against prerendered production output' : ''}: runtime SEO localization, landing scroll reset, dialog focus restoration, reduced motion, legacy migration, storage failure feedback, publish fallback, editors, refresh-safe timestamps, save/reset, templates, goal linkage, layout audit, drag order, path audit, and exports.`,
     )
   } finally {
     try {

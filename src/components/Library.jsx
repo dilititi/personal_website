@@ -277,9 +277,9 @@ function Playlist() {
             >
               <span className="num">{String(i + 1).padStart(2, '0')}</span>
               <span className="track">
-                {m.track}
+                {t(m.track)}
                 <em>
-                  {m.artist} · {m.album}
+                  {t(m.artist)} · {m.album}
                 </em>
               </span>
               <span className="note">{t(m.note)}</span>

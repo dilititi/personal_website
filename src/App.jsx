@@ -1,5 +1,5 @@
 import React, { lazy, Suspense, useCallback, useEffect, useMemo, useState } from 'react'
-import { LangProvider } from './lang.jsx'
+import { LangProvider, useLang } from './lang.jsx'
 import { NowPlayingProvider } from './np-context.jsx'
 import { DataProvider, useData } from './data-context.jsx'
 import { StyleProvider } from './style-context.jsx'
@@ -18,16 +18,75 @@ import Colophon from './components/Colophon.jsx'
 import NowPlaying from './components/NowPlaying.jsx'
 import CVModal from './components/CVModal.jsx'
 import { FilmstripProgress, CursorSpotlight } from './components/Overlays.jsx'
+import InlineQuickEditor from './components/editor/InlineQuickEditor.jsx'
+import { getInlineQuickEditConfig } from './components/editor/inlineQuickEdit.js'
 
 const ContentEditor = lazy(() => import('./components/ContentEditor.jsx'))
 const StyleEditor = lazy(() => import('./components/StyleEditor.jsx'))
+
+function InlineEditScope({
+  enabled = true,
+  sectionKey,
+  quickKey = sectionKey,
+  onEditContent,
+  onEditStyle,
+  children,
+}) {
+  const { lang } = useLang()
+  const [quickOpen, setQuickOpen] = useState(false)
+  if (!enabled) return children
+  const quickConfig = getInlineQuickEditConfig(quickKey)
+
+  const openFullEditor = () => {
+    setQuickOpen(false)
+    onEditContent(sectionKey)
+  }
+
+  return (
+    <div
+      className={`inline-edit-scope ${quickOpen ? 'is-quick-editing' : ''}`}
+      data-edit-scope={sectionKey}
+      data-quick-edit-scope={quickKey}
+    >
+      {children}
+      <div className="inline-edit-tools" role="group" aria-label={`${sectionKey} editor`}>
+        <button
+          type="button"
+          aria-expanded={quickConfig ? quickOpen : undefined}
+          onClick={() => (quickConfig ? setQuickOpen(value => !value) : openFullEditor())}
+        >
+          {quickConfig ? (lang === 'zh' ? '编辑' : 'Edit') : lang === 'zh' ? '内容' : 'Content'}
+        </button>
+        <button
+          type="button"
+          onClick={() => {
+            setQuickOpen(false)
+            onEditStyle()
+          }}
+        >
+          {lang === 'zh' ? '风格' : 'Style'}
+        </button>
+      </div>
+      {quickOpen && quickConfig && (
+        <InlineQuickEditor
+          configKey={quickKey}
+          onClose={() => setQuickOpen(false)}
+          onOpenFull={openFullEditor}
+        />
+      )}
+    </div>
+  )
+}
 
 function AppInner({ prerendered = false }) {
   const [cvOpen, setCvOpen] = useState(false)
   const [editorOpen, setEditorOpen] = useState(false)
   const [styleEditorOpen, setStyleEditorOpen] = useState(false)
+  const [editorSection, setEditorSection] = useState('SITE')
+  const [styleEditorView, setStyleEditorView] = useState('templates')
   const [hydrationComplete, setHydrationComplete] = useState(!prerendered)
-  const { getModuleConfig, isModuleEnabled } = useData()
+  const { getModuleConfig, isModuleEnabled, userOverrides } = useData()
+  const hasContentDraft = Object.keys(userOverrides || {}).length > 0
   useDocumentHead()
   useReveal(hydrationComplete)
 
@@ -51,22 +110,71 @@ function AppInner({ prerendered = false }) {
     }
   }, [])
 
+  const openContentEditor = useCallback(sectionKey => {
+    setEditorSection(sectionKey || 'SITE')
+    setEditorOpen(true)
+  }, [])
+
+  const openStyleEditor = useCallback((view = 'templates') => {
+    setStyleEditorView(view)
+    setStyleEditorOpen(true)
+  }, [])
+
   const sections = useMemo(
     () =>
       [
         {
           key: 'about',
+          editorKey: 'ABOUT',
+          quickKey: 'ABOUT',
           render: layout => <About layout={layout} onOpenCV={() => setCvOpen(true)} />,
         },
-        { key: 'journey', render: layout => <Journey layout={layout} /> },
-        { key: 'works', render: layout => <Works layout={layout} /> },
-        { key: 'library', render: layout => <Library layout={layout} /> },
-        { key: 'photography', render: layout => <Photography layout={layout} /> },
-        { key: 'travel', render: layout => <Travel layout={layout} /> },
-        { key: 'contact', render: layout => <Contact layout={layout} /> },
-        { key: 'colophon', render: layout => <Colophon layout={layout} /> },
+        {
+          key: 'journey',
+          editorKey: 'JOURNEY',
+          quickKey: 'JOURNEY',
+          render: layout => <Journey layout={layout} />,
+        },
+        {
+          key: 'works',
+          editorKey: 'WORKS',
+          quickKey: 'WORKS',
+          render: layout => <Works layout={layout} />,
+        },
+        {
+          key: 'library',
+          editorKey: 'BOOKS',
+          quickKey: 'BOOKS',
+          render: layout => <Library layout={layout} />,
+        },
+        {
+          key: 'photography',
+          editorKey: 'PHOTOS',
+          quickKey: 'PHOTOS',
+          render: layout => <Photography layout={layout} />,
+        },
+        {
+          key: 'travel',
+          editorKey: 'TRAVEL',
+          quickKey: 'TRAVEL',
+          render: layout => <Travel layout={layout} />,
+        },
+        {
+          key: 'contact',
+          editorKey: 'TEXTS',
+          quickKey: 'CONTACT',
+          render: layout => <Contact layout={layout} />,
+        },
+        {
+          key: 'colophon',
+          editorKey: 'TEXTS',
+          quickKey: 'COLOPHON',
+          render: layout => <Colophon layout={layout} />,
+        },
         {
           key: 'nowPlaying',
+          editorKey: 'NOW_PLAYING',
+          quickKey: 'NOW_PLAYING',
           render: layout => <NowPlaying layout={layout} prerendered={prerendered} />,
         },
       ]
@@ -82,29 +190,40 @@ function AppInner({ prerendered = false }) {
       <FilmstripProgress />
       <NavShell
         onJump={onJump}
-        onOpenEditor={() => setEditorOpen(true)}
-        onOpenStyleEditor={() => setStyleEditorOpen(true)}
+        onOpenEditor={() => openContentEditor(hasContentDraft ? 'SITE' : '_IMPORT')}
+        onOpenStyleEditor={() => openStyleEditor('templates')}
       />
       <main id="main-content">
         <Landing onJump={onJump} prerendered={prerendered} />
         {renderedSections.map(section => {
           const config = getModuleConfig(section.key)
           return (
-            <React.Fragment key={section.key}>
+            <InlineEditScope
+              enabled={hydrationComplete}
+              key={section.key}
+              sectionKey={section.editorKey}
+              quickKey={section.quickKey}
+              onEditContent={openContentEditor}
+              onEditStyle={() => openStyleEditor('tune')}
+            >
               {section.render(config.layout || 'default')}
-            </React.Fragment>
+            </InlineEditScope>
           )
         })}
       </main>
       <CVModal open={cvOpen} onClose={() => setCvOpen(false)} />
       {editorOpen && (
         <Suspense fallback={null}>
-          <ContentEditor open onClose={() => setEditorOpen(false)} />
+          <ContentEditor open initialSection={editorSection} onClose={() => setEditorOpen(false)} />
         </Suspense>
       )}
       {styleEditorOpen && (
         <Suspense fallback={null}>
-          <StyleEditor open onClose={() => setStyleEditorOpen(false)} />
+          <StyleEditor
+            open
+            initialView={styleEditorView}
+            onClose={() => setStyleEditorOpen(false)}
+          />
         </Suspense>
       )}
     </>

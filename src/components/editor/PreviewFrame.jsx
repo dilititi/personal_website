@@ -21,6 +21,7 @@ function applyPreviewStyle(doc, style) {
     doc.body.dataset.motion = style.motion?.mode || 'lively'
     doc.body.dataset.previewSurface = 'true'
     doc.body.dataset.styleAlignment = style.design?.alignment || 'editorial'
+    doc.body.dataset.landingLayout = style.layout?.landing || 'minimal'
   }
 }
 

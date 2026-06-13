@@ -1,6 +1,6 @@
 # Personal Website · 个人网站
 
-基于 **React 19 + Vite 8** 的双语（EN / 中文）个人作品集**模板**。内置站内**内容编辑器**与**风格编辑器**，支持「用 AI 一键生成全部内容」，构建为纯静态站点，可部署到任意静态托管。
+基于 **React 19 + Vite 8** 的双语（EN / 中文）个人作品集**模板**。内置站内**内容编辑器**与**风格编辑器**，提供目标化起点、空白骨架、部署前审计和 AI JSON 导入，构建为纯静态站点，可部署到任意静态托管。
 
 > 仓库里的「Chen · 杭州电影学生」是模板自带的**示例内容**，替换成你自己的即可。
 
@@ -28,10 +28,12 @@ npm run dev      # 打开 http://localhost:5173/
 
 ### 方式 A · 站内编辑器（推荐）
 
-- 顶栏点 **✏️ 内容** 打开内容编辑器：分章节填写 SITE / ABOUT / WORKS… 改动**实时保存到浏览器 localStorage**，主站即时预览。
-- 顶部的 **🪄 自动填充** 可以让 AI 帮你生成整站数据 —— 复制提示词喂给任意大模型，把返回的 JSON 粘回来一键导入（详见 [CONTENT_GUIDE.md](./CONTENT_GUIDE.md)）。
-- 不想从示例改起？同一个 **🪄 自动填充** 面板里可以**直接套用一个内容预设**（organic / film / digital…，会同时套上对应风格）作为起点，或下载空白 starter JSON 从零填。
-- 顶栏点 **🎨 风格** 打开风格编辑器：8 个预设起步，再微调色彩、排版、空间、质感、光影、深度、动态。
+- 顶栏点 **内容 / Content** 打开内容编辑器。先进入 **开始 / Start**，选择空白、创作档案、影像作品集或数字作品集；内容、模块和默认风格会一起切换，主站即时预览。
+- 空白起点会覆盖全部访客数据段，并用 `<...>` 标出待填写内容；重置全部本地编辑仍会回到 `src/data.js` 中的 Chen 示例。
+- **审计 / Audit** 会检查结构、占位符、标题、空链接、内联媒体和 public 资源路径。错误会阻断 GitHub 内容发布，警告可继续处理。
+- 原有 AI JSON 导入仍在 **开始 / Start** 下方：复制提示词给任意大模型，把返回的 JSON 粘回来即可分章节导入（详见 [CONTENT_GUIDE.md](./CONTENT_GUIDE.md)）。
+- 顶栏点 **风格 / Style** 打开单页工作台：左侧选择结构模板或调整参数，右侧始终显示完整网站实时预览。基础组按设计秩序、色彩、排版、空间、动态逐组展开；质感、光影、语境、深度、情绪收在高级区。
+- 结构模板不是换色：Minimal Portfolio、Personal Journal、Gradient Studio 会改变 Landing 构图、模块显示、导航、顺序和布局，同时保留已经填写的内容。About、Works 等页面区块也提供就地快速编辑；复杂字段仍进入完整 ContentEditor。
 
 浏览器存储只是草稿层。要永久上线，可以继续用 **📋 全部 / 下载 data.js** 手动提交，也可以在内容或风格编辑器点 **发布**，用仅授权本仓库 Contents 读写的 fine-grained PAT 直接生成 GitHub commit。token 默认只保存在当前标签页的 sessionStorage。
 
@@ -74,7 +76,7 @@ export const ABOUT = {
         ├── NavShell  Landing  About  Journey  Works  Library
         ├── Photography  Travel  Contact  Colophon  NowPlaying  CVModal  Overlays
         ├── ContentEditor  StyleEditor
-        └── editor/           # schema · export · validation · PublishPanel · content presets · fields/
+        └── editor/           # goals · siteTemplates · inlineQuickEdit · audit · schema · export · validation · presets · fields/
 ```
 
 ## 从编辑器发布
@@ -102,7 +104,7 @@ export const ABOUT = {
 
 ## 技术栈
 
-React 19 · Vite 8 · 原生 CSS（无第三方 UI 库）· 自定义双语 Context · 站内内容 / 风格编辑器 · AI 自动填充导入。
+React 19 · Vite 8 · 原生 CSS（无第三方 UI 库）· 自定义双语 Context · 站内内容 / 风格编辑器 · 目标预设 · 部署前审计 · AI JSON 导入。
 
 ## 许可
 

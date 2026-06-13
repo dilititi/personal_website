@@ -139,6 +139,7 @@ body {
   letter-spacing: var(--style-body-tracking);
   -webkit-font-smoothing: antialiased;
   overflow-x: hidden;
+  overflow-x: clip;
 }
 
 html[data-initial-scroll='locked'] {

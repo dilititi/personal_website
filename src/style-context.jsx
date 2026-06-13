@@ -19,6 +19,7 @@ function applyStyleToDocument(style) {
   })
   document.body.dataset.motion = style?.motion?.mode || 'lively'
   document.body.dataset.styleAlignment = style?.design?.alignment || 'editorial'
+  document.body.dataset.landingLayout = style?.layout?.landing || 'minimal'
 }
 
 export function useStyle() {

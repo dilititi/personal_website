@@ -45,13 +45,15 @@ LangProvider → DataProvider → StyleProvider → NowPlayingProvider → AppIn
 - `useLocalStorageState` compares serialized persistence snapshots, so initial mount and React StrictMode effect replay do not rewrite data or advance `lastSaved`. Only successful writes update the timestamp; full reset atomically clears both the value and timestamp keys.
 - `MODULES` is special: each value is `{ enabled, nav, order, label, layout }`. Legacy boolean overrides get normalized into this shape by `normalizeModuleConfig`. Use the helpers `getModuleConfig(id)`, `isModuleEnabled(id)`, `isModuleInNav(id)` — don't read `MODULES[id]` directly when you need the resolved value.
 - The ContentEditor's export buttons (per-section "Copy", "📋 All", and the `data.js` download) serialize sections to pasteable `export const X = ...` JS via `exportLine` / `jsLiteral` in `src/components/editor/export.js`, which emits idiomatic `L(en, zh)` calls. The GitHub publisher reuses this same serializer; there is intentionally no second serialization path.
+- The editor's Start step is defined by `components/editor/goals.js`. `resolveGoalSelection()` maps a curated goal to one complete content override plus an existing style preset; `ImportPanel` applies content with `replaceOverrides()` and style with `StyleProvider.applyPreset()`. `data.js` remains the Chen demo fact source, while reset returns to that demo.
+- `STARTER_TEMPLATE` and every curated goal cover all `EXPORTABLE_SECTIONS`, including `READING_LOG` and `PHOTO_SERIES`. They fully override identity-bearing `SITE` and `TEXTS` fields so switching away from the demo does not inherit visitor-facing Chen copy.
 
 ### GitHub publishing (`src/lib/github.js` + `src/lib/publish.js`)
 
 - Both editors expose a shared `PublishPanel`. It accepts a fine-grained PAT limited to the target repository and Contents read/write, verifies the repository and branch, then commits directly through the GitHub Contents REST API. There is no production backend.
 - `src/data.js` and `src/style.js` contain `EDITOR:*` sentinel pairs. Publishing replaces only selected export declarations inside those bounds, preserving every unselected declaration and all text outside the region. A 409 conflict refetches the current SHA and retries once.
 - `chen.github.config` stores owner/repository/branch in localStorage. `chen.github.token` uses sessionStorage by default and localStorage only when the user explicitly selects “remember”; storage failure falls back to the token held in the open panel.
-- Publication validates the resolved content/style, rejects large embedded data URLs and token-looking source, and confirms referenced public assets either exist on the current site or in the target GitHub branch.
+- Content publication first runs `components/editor/audit.js#auditSiteData`, rejects blocking structural/placeholder/title/media issues, and then confirms referenced public assets either exist on the current site or in the target GitHub branch. The same pure audit powers the editor's Audit panel and the pre-token PublishPanel check. Style publication keeps its focused object/media validation.
 
 ### SEO / document head (`src/lib/seo.js` + `vite.config.js`)
 
@@ -80,6 +82,10 @@ LangProvider → DataProvider → StyleProvider → NowPlayingProvider → AppIn
 ### In-site editors and media upload
 
 - `ContentEditor.jsx` (opened from the "Content editor" / "内容编辑器" button in `NavShell`) is driven by `src/components/editor/schema.js`, which declares per-section field schemas (`bi`, `bi-text`, `obj-arr`, `file-image`, `file-audio`, etc.) and item title formatters. To add an editable field, update this schema **and** the matching default in `data.js` — they can drift silently.
+- Its **Start** tab applies a blank or goal-oriented starting point and preserves one undo snapshot in `chen.content.preImport`; version-2 snapshots contain both content and style, while legacy content-only snapshots remain readable. Its **Audit** tab runs structural, placeholder, title, link, embedded-media, and public-path checks without requiring a GitHub token.
+- `editor/siteTemplates.js` is the single source for structural templates. A template may alter `MODULES.enabled/nav/order/layout` and select an existing style preset, but must preserve the user's content. `STYLE.layout.landing` selects the Landing composition (`minimal`, `journal`, or `gradient`).
+- `StyleEditor` is one workbench rather than dimension-by-dimension modals: Templates / Tune / Mood board share a persistent `PreviewFrame`. Desktop uses a left-control/right-preview split; mobile uses a control/preview vertical split.
+- Rendered sections expose a small `InlineQuickEditor`: `inlineQuickEdit.js` maps only the most common title/text/image fields to existing DataProvider sections. It writes through `setSection`; complex arrays, uploads, and full bilingual editing still open `ContentEditor`. This is a shortcut into the same state, not a second editor store.
 - In dev, `file-image` / `file-audio` / `file-pdf` fields POST to `/api/upload` (defined in `vite.config.js` via `uploadPlugin`) and write into whitelisted `public/{subfolder}/` directories.
 - In production, the same fields use the verified GitHub configuration and token to commit files to `public/{subfolder}/`. Without a token they safely fall back to manual public-path entry. Images are resized client-side and may generate `480/960/1440/1800` responsive variants before either upload path.
 
