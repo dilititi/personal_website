@@ -41,9 +41,12 @@ describe('accessibility contracts', () => {
   })
 
   it('preserves 44px touch targets for compact visitor controls', () => {
-    const css = readSource('../src/styles/sections.css')
+    const css = [
+      readSource('../src/styles/sections.css'),
+      readSource('../src/styles/motion.css'),
+    ].join('\n')
 
-    for (const selector of ['.cf-action', '.np-pill-expand']) {
+    for (const selector of ['.cf-action', '.np-pill-expand', '.mobile-disclosure-toggle']) {
       const rule = css.match(new RegExp(`\\${selector}\\s*\\{[^}]+\\}`, 's'))?.[0] || ''
       expect(rule).toContain('min-height: 44px')
     }
@@ -51,5 +54,13 @@ describe('accessibility contracts', () => {
     const atlasPin = css.match(/\.atlas-pin\s*\{[^}]+\}/s)?.[0] || ''
     expect(atlasPin).toContain('width: 32px')
     expect(atlasPin).toContain('height: 32px')
+  })
+
+  it('keeps progressive mobile disclosures explicitly accessible', () => {
+    const disclosure = readSource('../src/components/MobileDisclosure.jsx')
+
+    expect(disclosure).toContain('aria-controls={contentId}')
+    expect(disclosure).toContain('aria-expanded={expanded}')
+    expect(disclosure).toContain('type="button"')
   })
 })

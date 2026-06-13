@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { deriveStyleVars } from '../../style-engine.js'
+import { createStylePreviewMessage } from '../../lib/style-preview.js'
 
 function previewSrc() {
   if (typeof window === 'undefined') return '/'
@@ -19,9 +20,18 @@ function applyPreviewStyle(doc, style) {
   })
   if (doc.body) {
     doc.body.dataset.motion = style.motion?.mode || 'lively'
+    doc.body.dataset.motif = style.motion?.motif || 'none'
+    doc.body.dataset.motifAmbient = style.motion?.ambient === false ? 'off' : 'on'
+    doc.body.dataset.motifInteraction = style.motion?.interaction || 'subtle'
     doc.body.dataset.previewSurface = 'true'
     doc.body.dataset.styleAlignment = style.design?.alignment || 'editorial'
+    doc.body.dataset.landingLayout = style.layout?.landing || 'minimal'
   }
+}
+
+function postPreviewStyle(frame, style) {
+  if (!frame?.contentWindow || !style || typeof window === 'undefined') return
+  frame.contentWindow.postMessage(createStylePreviewMessage(style), window.location.origin)
 }
 
 function getScrollParent(node) {
@@ -79,7 +89,9 @@ export default function PreviewFrame({ style, lang, label, viewport = 'desktop',
 
   useEffect(() => {
     try {
-      applyPreviewStyle(iframeRef.current?.contentDocument, style)
+      const frame = iframeRef.current
+      applyPreviewStyle(frame?.contentDocument, style)
+      postPreviewStyle(frame, style)
     } catch {
       // Same-origin during local dev; if access is blocked the iframe still shows persisted state.
     }
@@ -133,6 +145,7 @@ export default function PreviewFrame({ style, lang, label, viewport = 'desktop',
           onFocus={restoreUserScroll}
           onLoad={() => {
             setLoadTick(tick => tick + 1)
+            postPreviewStyle(iframeRef.current, style)
             // Belt-and-suspenders: the focus that triggers the yank can land
             // right around load; revert on the next frame too.
             requestAnimationFrame(restoreUserScroll)

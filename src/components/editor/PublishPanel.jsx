@@ -11,7 +11,14 @@ import {
   validatePublishConfig,
 } from '../../lib/publish-config.js'
 
-export default function PublishPanel({ lang, kind, onPublish, onClose, publishDisabled = false }) {
+export default function PublishPanel({
+  lang,
+  kind,
+  onPreflight,
+  onPublish,
+  onClose,
+  publishDisabled = false,
+}) {
   const [token, setToken] = useState(readGitHubToken)
   const [remember, setRemember] = useState(isGitHubTokenRemembered)
   const [config, setConfig] = useState(readPublishConfig)
@@ -111,6 +118,7 @@ export default function PublishPanel({ lang, kind, onPublish, onClose, publishDi
     setBusy('publish')
     setStatus(null)
     try {
+      await onPreflight?.()
       const { client, config: savedConfig, repository } = await verifiedClient()
       const confirmed = window.confirm(
         lang === 'zh'

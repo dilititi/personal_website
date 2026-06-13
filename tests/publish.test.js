@@ -71,6 +71,21 @@ ${CONTENT_END}`
     await assert.rejects(() => validateContentPublication(data, {}, 'main'), /embedded data URL/)
   })
 
+  it('blocks unresolved starter placeholders before GitHub publication', async () => {
+    const data = {
+      ...createSectionRegistry(dataExports),
+      SITE: {
+        ...dataExports.SITE,
+        name: { en: '<Your name>', zh: '<你的名字>' },
+      },
+    }
+
+    await assert.rejects(
+      () => validateContentPublication(data, {}, 'main'),
+      /SITE\.name\.en: Replace the unresolved/,
+    )
+  })
+
   it('rejects missing or duplicate markers', () => {
     assert.throws(
       () => buildContentSource('export const SITE = {}', { SITE: {} }, ['SITE']),

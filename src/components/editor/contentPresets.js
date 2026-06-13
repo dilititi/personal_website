@@ -149,12 +149,12 @@ export const AI_PROMPT = `我要填充一个个人网站模板的 JSON 内容。
   ],
 
   "TRAVEL": [
-    { "city": { "en": "Hangzhou", "zh": "杭州" }, "country": { "en": "China", "zh": "中国" }, "year": 2004, "kind": "home", "lat": 30.27, "lon": 120.15, "note": { "en": "...", "zh": "..." } }
+    { "city": { "en": "Hangzhou", "zh": "杭州" }, "country": { "en": "China", "zh": "中国" }, "year": 2004, "kind": "home", "theme": "botanical", "lat": 30.27, "lon": 120.15, "note": { "en": "...", "zh": "..." } }
   ],
 
   "MODULES": {
     "about": { "enabled": true, "nav": true, "order": 1, "label": { "en": "About", "zh": "关于" }, "layout": "default" },
-    "journey": { "enabled": true, "nav": true, "order": 2, "label": { "en": "Reel", "zh": "影格" }, "layout": "default" },
+    "journey": { "enabled": false, "nav": false, "order": 2, "label": { "en": "Reel", "zh": "影格" }, "layout": "default" },
     "works": { "enabled": true, "nav": true, "order": 3, "label": { "en": "Works", "zh": "作品集" }, "layout": "default" },
     "library": { "enabled": true, "nav": true, "order": 4, "label": { "en": "Stacks", "zh": "私藏" }, "layout": "default" },
     "photography": { "enabled": true, "nav": true, "order": 5, "label": { "en": "Stills", "zh": "影像" }, "layout": "default" },
@@ -200,7 +200,7 @@ export const AI_PROMPT = `我要填充一个个人网站模板的 JSON 内容。
 - JOURNEY: 8 个节点(必须 8 个)
 - WORKS: 2-5 件
 - BOOKS / FILMS / MUSIC: 各 5-8 条
-- TRAVEL: 4-10 座城市
+- TRAVEL: 4-10 座城市；theme 从 botanical/metropolitan/garden/archive/neon/terracotta/harbor/graphic/craft/rain/chrome 中选择
 - PHOTOS: 0(后续手动上传)
 - TEXTS: 不用生成,保持模板默认
 
@@ -209,11 +209,160 @@ export const AI_PROMPT = `我要填充一个个人网站模板的 JSON 内容。
 // ════════════════════════════════════════════════════════════════════
 // STARTER TEMPLATE — empty but structurally complete; downloadable
 // ════════════════════════════════════════════════════════════════════
+const B = (en, zh) => ({ en, zh })
+
+const TEMPLATE_NAV = [
+  {
+    num: '00',
+    id: 'home',
+    label: B('Home', '首页'),
+    en: B('home', '首页'),
+  },
+]
+
+const TEMPLATE_PHOTO_SERIES = [
+  { id: 'all', label: B('All', '全部') },
+  { id: 'portraits', label: B('Portraits', '人像') },
+  { id: 'walks', label: B('Walks', '散步') },
+]
+
+function createTemplateTexts({
+  metaRole = B('<Your role>', '<你的身份>'),
+  metaSchool = B('<Your field>', '<你的领域>'),
+  wordA = B('<Your>', '<你的>'),
+  wordB = B('<Portfolio statement>', '<作品集宣言>'),
+  wordC = B('Based', '现居'),
+  wordD = B('<Your city>', '<你的城市>'),
+  sealChar = '<字>',
+  langItems = [B('<Language>', '<语言>')],
+  nowItems = [B('<Current status>', '<当前状态>')],
+  contactEn = 'Write a short statement about the work or collaboration you welcome.',
+  contactZh = '写一段你欢迎何种工作或合作的简短说明。',
+  signoff = B(
+    'A small archive of work, references, and ongoing questions.',
+    '一个收纳作品、参考与持续问题的小档案。',
+  ),
+} = {}) {
+  return {
+    landing: {
+      metaRole,
+      metaSchool,
+      metaEmailLbl: B('EMAIL ↗', '邮箱 ↗'),
+      metaCity: B('CITY', '城市'),
+      nameLeft: B('Name', '名字'),
+      nameRight: B('N.', '字'),
+      pillAboutLbl: B('About', '关于'),
+      pillWorksLbl: B('Works', '作品'),
+      pillLibraryLbl: B('Library', '私藏'),
+      wordA,
+      wordB,
+      wordC,
+      wordD,
+    },
+    about: {
+      headerTitle: B('A short biography', '简短的自述'),
+      headerSubTag: B('biography', '简介'),
+      headerMeta: B('Read time · 3 min', '阅读约 3 分钟'),
+      portraitTagL: B('[ portrait ]', '[ 肖像 ]'),
+      portraitTagR: 'personal archive',
+      fullCvLabel: B('Full CV / Curriculum', '查看完整简历'),
+      sealChar,
+      blockEdu: B('Education', '学历'),
+      blockWork: B('Practice', '工作'),
+      blockAwards: B('Awards', '奖项'),
+      blockSkills: B('Tools', '技能'),
+    },
+    cvModal: {
+      eyebrow: B('CURRICULUM VITAE', '个人简历'),
+      sealChar,
+      blockEdu: B('Education', '学历'),
+      blockWork: B('Practice', '工作经历'),
+      blockAwards: B('Awards & selections', '奖项与入选'),
+      blockSkills: B('Tools & skills', '技能 / 工具'),
+      contactLabel: B('Contact', '联系'),
+      linksLabel: B('Links', '链接'),
+      langsLabel: B('Languages', '语言'),
+      nowLabel: B('Currently', '当前'),
+      langItems,
+      nowItems,
+      printLabel: B('Print / Save as PDF', '打印 / 存为 PDF'),
+      lastUpdated: B('Last updated ', '最后更新 '),
+    },
+    contact: {
+      statementEn: contactEn,
+      statementZh: contactZh,
+      writeMeLabel: B('Write me', '写邮件'),
+      secondaryLbl: B('Secondary link ↗', '其他链接 ↗'),
+      secondaryUrl: '#',
+    },
+    colophon: {
+      signoff,
+      fontsLine: B(
+        'Typography and colors are editable in Style.',
+        '字体与色彩可在风格编辑器调整。',
+      ),
+      handCodedLine: B(
+        'Static by default. No tracking. No cookies.',
+        '默认纯静态。无追踪。无 cookie。',
+      ),
+    },
+  }
+}
+
+const STARTER_TEXTS = createTemplateTexts()
+const ORGANIC_TEXTS = createTemplateTexts({
+  metaRole: B('CREATIVE TECHNOLOGIST', '创意技术'),
+  metaSchool: B('FIELD NOTES · WEB · SOUND', '田野笔记 · 网页 · 声音'),
+  wordA: B('Field', '田野'),
+  wordB: B('Notes & Interfaces', '笔记与界面'),
+  wordD: B('in Hangzhou', '杭州'),
+  sealChar: '林',
+  langItems: [B('Chinese (native)', '中文（母语）'), B('English (working)', '英文（工作语言）')],
+  nowItems: [B('Building field archives', '正在制作田野档案')],
+  contactEn: 'Open to thoughtful collaborations across web, image, sound, and field research.',
+  contactZh: '欢迎网页、影像、声音与田野研究之间的认真合作。',
+  signoff: B(
+    'A field notebook for things that are still growing.',
+    '一本写给仍在生长之物的田野笔记。',
+  ),
+})
+const FILM_TEXTS = createTemplateTexts({
+  metaRole: B('FILMMAKER · EDITOR', '影像创作 · 剪辑'),
+  metaSchool: B('MOVING IMAGE ARCHIVE', '活动影像档案'),
+  wordA: B('Moving', '活动'),
+  wordB: B('Images & Edits', '影像与剪辑'),
+  wordD: B('in Shanghai', '上海'),
+  sealChar: '映',
+  langItems: [B('Chinese (native)', '中文（母语）'), B('English (working)', '英文（工作语言）')],
+  nowItems: [B('Editing a short film', '正在剪辑一部短片')],
+  contactEn: 'Open to short-film, editing, title-design, and moving-image collaborations.',
+  contactZh: '欢迎短片、剪辑、片头设计与活动影像合作。',
+  signoff: B('A small screening room for work in progress.', '一间放映未完成作品的小房间。'),
+})
+const DIGITAL_TEXTS = createTemplateTexts({
+  metaRole: B('FRONTEND · DATA DESIGN', '前端 · 数据设计'),
+  metaSchool: B('WEB SYSTEMS ARCHIVE', '网页系统档案'),
+  wordA: B('Code', '代码'),
+  wordB: B('Interfaces & Data', '界面与数据'),
+  wordD: B('Online', '线上'),
+  sealChar: '节',
+  langItems: [B('Chinese / English', '中文 / 英文')],
+  nowItems: [B('Shipping editable web systems', '正在发布可编辑网页系统')],
+  contactEn: 'Open to frontend systems, data interfaces, and design-engineering collaborations.',
+  contactZh: '欢迎前端系统、数据界面与设计工程合作。',
+  signoff: B(
+    'An editable archive built from content, modules, and visual tokens.',
+    '一个由内容、模块与视觉 token 组成的可编辑档案。',
+  ),
+})
+
 export const STARTER_TEMPLATE = {
   SITE: {
+    url: '',
     name: { en: '<Your name>', zh: '<你的名字>' },
     nameRight: { en: 'X.', zh: '字' },
     nameFull: { en: '<Your Full Name>', zh: '<你的全名>' },
+    glyph: 'X',
     portrait: '',
     ogImage: '',
     googleSiteVerification: '',
@@ -324,13 +473,16 @@ export const STARTER_TEMPLATE = {
       audio: '',
     },
   ],
+  PHOTO_SERIES: TEMPLATE_PHOTO_SERIES,
   PHOTOS: [],
+  READING_LOG: [],
   TRAVEL: [
     {
       city: { en: '<City>', zh: '<城市>' },
       country: { en: '<Country>', zh: '<国家>' },
       year: '<Year>',
       kind: 'trip',
+      theme: 'graphic',
       lat: 0,
       lon: 0,
       note: { en: '<Note>', zh: '<备注>' },
@@ -341,20 +493,7 @@ export const STARTER_TEMPLATE = {
     netease: [],
     html5: [],
   },
-  NAV: [
-    {
-      num: '00',
-      id: 'home',
-      label: { en: 'Frame 00', zh: '片头' },
-      en: { en: 'home', zh: '首页' },
-    },
-    {
-      num: '01',
-      id: 'about',
-      label: { en: 'About', zh: '关于' },
-      en: { en: 'biography', zh: '简介' },
-    },
-  ],
+  NAV: TEMPLATE_NAV,
   MODULES: {
     about: {
       enabled: true,
@@ -364,8 +503,8 @@ export const STARTER_TEMPLATE = {
       layout: 'default',
     },
     journey: {
-      enabled: true,
-      nav: true,
+      enabled: false,
+      nav: false,
       order: 2,
       label: { en: 'Reel', zh: '影格' },
       layout: 'default',
@@ -427,14 +566,12 @@ export const STARTER_TEMPLATE = {
       layout: 'default',
     },
   },
-  TEXTS: {},
+  TEXTS: STARTER_TEXTS,
 }
-
-const B = (en, zh) => ({ en, zh })
 
 const TEMPLATE_MODULES = {
   about: { enabled: true, nav: true, order: 1, label: B('About', '关于'), layout: 'default' },
-  journey: { enabled: true, nav: true, order: 2, label: B('Reel', '影格'), layout: 'default' },
+  journey: { enabled: false, nav: false, order: 2, label: B('Reel', '影格'), layout: 'default' },
   works: { enabled: true, nav: true, order: 3, label: B('Works', '作品'), layout: 'default' },
   library: { enabled: true, nav: true, order: 4, label: B('Library', '私藏'), layout: 'default' },
   photography: {
@@ -475,11 +612,14 @@ export const FIELD_TEMPLATES = {
       id: 'site-organic',
       label: '自然系身份',
       value: {
+        url: '',
         name: B('LIN', '林'),
         nameRight: B('M.', '木'),
         nameFull: B('Lin Mu', '林木'),
         glyph: 'L',
         portrait: '/picture/template-organic-portrait.svg',
+        ogImage: '',
+        googleSiteVerification: '',
         cvPdf: '',
         tagline: B(
           'A field notebook for web, image, and sound experiments.',
@@ -511,11 +651,14 @@ export const FIELD_TEMPLATES = {
       id: 'site-digital',
       label: '数字档案身份',
       value: {
+        url: '',
         name: B('NODE', '节点'),
         nameRight: B('N.', '点'),
         nameFull: B('Node Archive', '节点档案'),
         glyph: 'N',
         portrait: '/picture/template-digital-portrait.svg',
+        ogImage: '',
+        googleSiteVerification: '',
         cvPdf: '',
         tagline: B(
           'A structured portfolio for code, data, and interface experiments.',
@@ -705,12 +848,17 @@ export const CONTENT_PRESETS = [
     stylePreset: 'organic',
     data: {
       MODULES: TEMPLATE_MODULES,
+      NAV: TEMPLATE_NAV,
+      TEXTS: ORGANIC_TEXTS,
       SITE: {
+        url: '',
         name: B('LIN', '林'),
         nameRight: B('M.', '木'),
         nameFull: B('Lin Mu', '林木'),
         glyph: 'L',
         portrait: '/picture/template-organic-portrait.svg',
+        ogImage: '',
+        googleSiteVerification: '',
         cvPdf: '',
         tagline: B(
           'A quiet field notebook for web, image, and sound experiments.',
@@ -919,6 +1067,7 @@ export const CONTENT_PRESETS = [
           audio: '',
         },
       ],
+      PHOTO_SERIES: TEMPLATE_PHOTO_SERIES,
       PHOTOS: [
         {
           id: 'organic-1',
@@ -930,12 +1079,15 @@ export const CONTENT_PRESETS = [
           image: '/photos/template-organic-photo.svg',
         },
       ],
+      READING_LOG: [],
+      USER_READING_LOG: [],
       TRAVEL: [
         {
           city: B('Hangzhou', '杭州'),
           country: B('China', '中国'),
           year: '2026',
           kind: 'home',
+          theme: 'botanical',
           lat: 30.25,
           lon: 120.16,
           note: B('Mist, lake, notebooks.', '雾、湖、笔记。'),
@@ -945,6 +1097,7 @@ export const CONTENT_PRESETS = [
           country: B('China', '中国'),
           year: '2025',
           kind: 'trip',
+          theme: 'botanical',
           lat: 30.61,
           lon: 119.87,
           note: B('Bamboo paths and field recordings.', '竹径与田野录音。'),
@@ -954,6 +1107,7 @@ export const CONTENT_PRESETS = [
           country: B('China', '中国'),
           year: '2024',
           kind: 'trip',
+          theme: 'garden',
           lat: 30.64,
           lon: 119.68,
           note: B('Green references for interface rhythm.', '给界面节奏的绿色参考。'),
@@ -970,12 +1124,17 @@ export const CONTENT_PRESETS = [
     stylePreset: 'film',
     data: {
       MODULES: TEMPLATE_MODULES,
+      NAV: TEMPLATE_NAV,
+      TEXTS: FILM_TEXTS,
       SITE: {
+        url: '',
         name: B('REEL', '映'),
         nameRight: B('R.', '室'),
         nameFull: B('Reel Room', '放映室'),
         glyph: 'R',
         portrait: '/picture/template-film-portrait.svg',
+        ogImage: '',
+        googleSiteVerification: '',
         cvPdf: '',
         tagline: B(
           'A portfolio for moving images, edits, and late-night references.',
@@ -1113,6 +1272,7 @@ export const CONTENT_PRESETS = [
           audio: '',
         },
       ],
+      PHOTO_SERIES: TEMPLATE_PHOTO_SERIES,
       PHOTOS: [
         {
           id: 'film-1',
@@ -1124,12 +1284,15 @@ export const CONTENT_PRESETS = [
           image: '/photos/template-film-photo.svg',
         },
       ],
+      READING_LOG: [],
+      USER_READING_LOG: [],
       TRAVEL: [
         {
           city: B('Shanghai', '上海'),
           country: B('China', '中国'),
           year: '2026',
           kind: 'home',
+          theme: 'metropolitan',
           lat: 31.23,
           lon: 121.47,
           note: B('Screens, rain, late edits.', '银幕、雨、深夜剪辑。'),
@@ -1146,12 +1309,17 @@ export const CONTENT_PRESETS = [
     stylePreset: 'coldModern',
     data: {
       MODULES: TEMPLATE_MODULES,
+      NAV: TEMPLATE_NAV,
+      TEXTS: DIGITAL_TEXTS,
       SITE: {
+        url: '',
         name: B('NODE', '节'),
         nameRight: B('N.', '点'),
         nameFull: B('Node Archive', '节点档案'),
         glyph: 'N',
         portrait: '/picture/template-digital-portrait.svg',
+        ogImage: '',
+        googleSiteVerification: '',
         cvPdf: '',
         tagline: B(
           'A structured portfolio for code, data, and interface experiments.',
@@ -1289,6 +1457,7 @@ export const CONTENT_PRESETS = [
           audio: '',
         },
       ],
+      PHOTO_SERIES: TEMPLATE_PHOTO_SERIES,
       PHOTOS: [
         {
           id: 'digital-1',
@@ -1300,12 +1469,15 @@ export const CONTENT_PRESETS = [
           image: '/photos/template-digital-photo.svg',
         },
       ],
+      READING_LOG: [],
+      USER_READING_LOG: [],
       TRAVEL: [
         {
           city: B('Online', '线上'),
           country: B('Network', '网络'),
           year: '2026',
           kind: 'home',
+          theme: 'chrome',
           lat: 30.25,
           lon: 120.16,
           note: B('Most routes begin in localhost.', '多数路线从 localhost 开始。'),

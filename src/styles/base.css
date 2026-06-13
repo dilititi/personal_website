@@ -87,6 +87,7 @@
 
   /* Style editor runtime tokens */
   --style-motion-duration: 280ms;
+  --style-motif-intensity: 0.4;
   --style-grain-opacity: 0.09;
   --style-shadow-card:
     0 18px 48px -4px rgba(0, 0, 0, 0.11), inset 0 1px 0 rgba(255, 255, 255, 0.06);
@@ -139,6 +140,7 @@ body {
   letter-spacing: var(--style-body-tracking);
   -webkit-font-smoothing: antialiased;
   overflow-x: hidden;
+  overflow-x: clip;
 }
 
 html[data-initial-scroll='locked'] {

@@ -86,6 +86,9 @@ body[data-motion='lively'] .nav-mark .dot {
 }
 
 .section-header,
+.medium-filter,
+.collection-tabs,
+.photo-toolbar,
 .about-grid,
 .works-grid,
 .bookshelf,
@@ -292,6 +295,16 @@ body[data-style-alignment='center'] .section-title em {
   margin-left: 0;
   margin-top: 8px;
 }
+body[data-style-alignment='center'] .medium-filter,
+body[data-style-alignment='center'] .collection-tabs {
+  justify-content: center;
+}
+body[data-style-alignment='center'] .photo-toolbar {
+  justify-content: center;
+}
+body[data-style-alignment='center'] .photo-toolbar .medium-filter {
+  flex: 0 1 auto;
+}
 body[data-style-alignment='center'] .work-card,
 body[data-style-alignment='center'] .film,
 body[data-style-alignment='center'] .atlas-card {
@@ -320,6 +333,59 @@ body[data-style-alignment='loose'] .section-title em {
   display: block;
   margin-left: 0;
   margin-top: 8px;
+}
+
+@media (max-width: 1024px) {
+  section#about[data-layout] .about-grid,
+  section#contact[data-layout] .contact-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .about-grid > *,
+  .contact-grid > * {
+    min-width: 0;
+  }
+}
+
+@media (max-width: 640px) {
+  .section-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .section-meta {
+    text-align: left;
+  }
+
+  body[data-style-alignment='center'] .section-header {
+    align-items: center;
+  }
+
+  body[data-style-alignment='center'] .section-meta {
+    text-align: center;
+  }
+
+  .medium-filter,
+  .collection-tabs {
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+    margin-inline: 0;
+    max-width: 100%;
+    overflow-x: auto;
+    padding-bottom: 8px;
+    scroll-snap-type: x proximity;
+  }
+
+  .medium-pill,
+  .collection-tab {
+    flex: 0 0 auto;
+    scroll-snap-align: start;
+  }
+
+  body[data-style-alignment='center'] .medium-filter,
+  body[data-style-alignment='center'] .collection-tabs {
+    justify-content: flex-start;
+  }
 }
 
 :where(a, button, input, select, textarea, [tabindex]):focus-visible {

@@ -76,8 +76,8 @@ const filmItem = [
 ]
 
 const musicItem = [
-  { key: 'track', type: 'str', label: '曲目 Track' },
-  { key: 'artist', type: 'str', label: '艺人 Artist' },
+  { key: 'track', type: 'bi', label: '曲目 Track' },
+  { key: 'artist', type: 'bi', label: '艺人 Artist' },
   { key: 'album', type: 'str', label: '专辑 Album' },
   { key: 'duration', type: 'str', label: '时长 Duration' },
   { key: 'mood', type: 'bi', label: '心境 Mood' },
@@ -103,6 +103,19 @@ const readingLogUserItem = [
   { key: 'excerpt', type: 'bi-text', label: '笔记 / 感想' },
 ]
 
+const readingLogItem = [
+  { key: 'date', type: 'str', label: '日期 Date（如 2026.05）' },
+  { key: 'title', type: 'bi', label: '书名 Title' },
+  { key: 'author', type: 'str', label: '作者 Author' },
+  { key: 'stars', type: 'num', label: '星级 Stars (1-5)' },
+  { key: 'status', type: 'str', label: '状态 Status (finished/reread/skimmed/abandoned)' },
+]
+
+const photoSeriesItem = [
+  { key: 'id', type: 'str', label: '系列 ID（如 portraits）' },
+  { key: 'label', type: 'bi', label: '系列名称 Label' },
+]
+
 const photoItem = [
   { key: 'id', type: 'str', label: 'ID（短标识，如 h1, s2）' },
   { key: 'series', type: 'str', label: '系列 Series（要跟 PHOTO_SERIES 的 id 对得上）' },
@@ -118,6 +131,12 @@ const travelItem = [
   { key: 'country', type: 'bi', label: '国家 Country' },
   { key: 'year', type: 'str', label: '年份 Year（数字或字符串都行）' },
   { key: 'kind', type: 'str', label: '类型 Kind (home/frequent/festival/trip)' },
+  {
+    key: 'theme',
+    type: 'str',
+    label:
+      '城市视觉 Theme (botanical/metropolitan/garden/archive/neon/terracotta/harbor/graphic/craft/rain/chrome)',
+  },
   { key: 'lat', type: 'num', label: '纬度 Lat（0=不在地图上显示）' },
   { key: 'lon', type: 'num', label: '经度 Lon' },
   { key: 'note', type: 'bi', label: '备注 Note' },
@@ -174,7 +193,8 @@ export const MODULES_SCHEMA = [
 
 export const SECTIONS = [
   // ─── 顶部：自动填充入口 + 模块开关 ───
-  { key: '_IMPORT', label: '🪄 自动填充 · Auto-fill', type: 'import', group: '' },
+  { key: '_IMPORT', label: '开始 · Start', type: 'import', group: '' },
+  { key: '_AUDIT', label: '审计 · Audit', type: 'audit', group: '' },
   { key: 'MODULES', label: '🎛 MODULES · 模块开关', type: 'object', schema: 'modules', group: '' },
 
   // ─── 基础设置（不属于某个章节）───
@@ -229,6 +249,14 @@ export const SECTIONS = [
     group: '章节内容',
   },
   {
+    key: 'READING_LOG',
+    label: '04 私藏 · 阅读档案',
+    type: 'array',
+    itemSchema: readingLogItem,
+    titleFor: (e, _, lang) => `${e.date || 'date'} · ${pick(e.title, lang) || '(无标题)'}`,
+    group: '章节内容',
+  },
+  {
     key: 'USER_READING_LOG',
     label: '04 私藏 · 个人读书日志',
     type: 'array',
@@ -249,7 +277,15 @@ export const SECTIONS = [
     label: '04 私藏 · 音 Music',
     type: 'array',
     itemSchema: musicItem,
-    titleFor: e => `${e.track} — ${e.artist}`,
+    titleFor: (e, _, lang) => `${pick(e.track, lang)} — ${pick(e.artist, lang)}`,
+    group: '章节内容',
+  },
+  {
+    key: 'PHOTO_SERIES',
+    label: '05 摄影 · 系列 Photo series',
+    type: 'array',
+    itemSchema: photoSeriesItem,
+    titleFor: (e, _, lang) => `${e.id || 'series'} · ${pick(e.label, lang) || '(无标题)'}`,
     group: '章节内容',
   },
   {

@@ -1,0 +1,326 @@
+.theme-motif-layer {
+  --motif-progress: 0;
+  --motif-pointer-x: 50vw;
+  --motif-pointer-y: 50vh;
+
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  position: fixed;
+  z-index: 42;
+}
+
+.theme-motif-layer > * {
+  position: absolute;
+}
+
+.motif-film-gate {
+  border-color: color-mix(in srgb, var(--ember) 58%, transparent);
+  border-style: solid;
+  height: 46px;
+  opacity: calc(0.18 + var(--style-motif-intensity) * 0.52);
+  top: calc(14% + var(--motif-progress) * 58%);
+  width: 30px;
+}
+
+.motif-film-gate-a {
+  border-width: 1px 0 1px 1px;
+  left: 18px;
+}
+
+.motif-film-gate-b {
+  border-width: 1px 1px 1px 0;
+  right: 18px;
+}
+
+.motif-film-counter {
+  bottom: 52px;
+  color: var(--cream-mute);
+  font: 9px/1 var(--font-mono);
+  letter-spacing: 0.16em;
+  opacity: calc(0.22 + var(--style-motif-intensity) * 0.48);
+  right: 22px;
+}
+
+.motif-web-line {
+  background: color-mix(in srgb, var(--ember) 72%, transparent);
+  height: 1px;
+  opacity: calc(0.08 + var(--style-motif-intensity) * 0.34);
+  transform-origin: right center;
+  width: min(42vw, 560px);
+}
+
+.motif-web-line-a {
+  right: -7vw;
+  top: 22%;
+  transform: rotate(-28deg);
+}
+
+.motif-web-line-b {
+  right: -8vw;
+  top: 48%;
+  transform: rotate(16deg);
+}
+
+.motif-web-line-c {
+  right: -4vw;
+  top: 72%;
+  transform: rotate(-12deg);
+}
+
+.motif-web-runner {
+  background: var(--ember);
+  border: 0;
+  border-radius: 50%;
+  box-shadow:
+    -8px -5px 0 -3px var(--ember),
+    8px -5px 0 -3px var(--ember),
+    -9px 5px 0 -3px var(--ember),
+    9px 5px 0 -3px var(--ember);
+  cursor: pointer;
+  height: 13px;
+  left: calc(7% + var(--motif-progress) * 82%);
+  opacity: calc(0.36 + var(--style-motif-intensity) * 0.58);
+  pointer-events: auto;
+  top: calc(12% + var(--motif-progress) * 70%);
+  transform: rotate(calc(-16deg + var(--motif-progress) * 42deg));
+  transition:
+    box-shadow 180ms var(--ease-out),
+    scale 180ms var(--ease-out);
+  width: 13px;
+}
+
+.motif-web-runner::before,
+.motif-web-runner::after {
+  background: var(--ember);
+  content: '';
+  height: 1px;
+  left: 50%;
+  position: absolute;
+  top: 50%;
+  transform-origin: center;
+  width: 34px;
+}
+
+.motif-web-runner::before {
+  transform: translate(-50%, -50%) rotate(34deg);
+}
+
+.motif-web-runner::after {
+  transform: translate(-50%, -50%) rotate(-34deg);
+}
+
+.motif-web-runner:hover,
+.motif-web-runner:focus-visible {
+  scale: 1.32;
+}
+
+.motif-web-burst {
+  border: 1px solid var(--ember);
+  border-radius: 50%;
+  height: 40px;
+  left: calc(7% + var(--motif-progress) * 82%);
+  opacity: 0;
+  top: calc(12% + var(--motif-progress) * 70%);
+  transform: translate(-34%, -34%) scale(0.2);
+  width: 40px;
+}
+
+.motif-web-burst::before,
+.motif-web-burst::after {
+  border: 1px solid color-mix(in srgb, var(--ember) 64%, transparent);
+  border-radius: inherit;
+  content: '';
+  inset: 7px;
+  position: absolute;
+}
+
+.motif-web-burst::after {
+  inset: 14px;
+}
+
+.motif-web.is-bursting .motif-web-burst {
+  animation: motif-web-pulse 800ms var(--ease-out);
+}
+
+@keyframes motif-web-pulse {
+  0% {
+    opacity: 0.9;
+    transform: translate(-34%, -34%) scale(0.2);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-34%, -34%) scale(3.4);
+  }
+}
+
+.motif-botanical-stem {
+  border-left: 1px solid color-mix(in srgb, var(--moss) 64%, transparent);
+  bottom: -30px;
+  height: 230px;
+  opacity: calc(0.16 + var(--style-motif-intensity) * 0.5);
+  right: 34px;
+  transform: rotate(calc(-5deg + var(--motif-progress) * 10deg));
+  transform-origin: bottom center;
+  width: 74px;
+}
+
+.motif-leaf {
+  background: color-mix(in srgb, var(--moss) 34%, transparent);
+  border: 1px solid color-mix(in srgb, var(--moss) 72%, transparent);
+  border-radius: 90% 0 90% 0;
+  height: 56px;
+  left: -1px;
+  transform-origin: left bottom;
+  width: 32px;
+}
+
+.motif-leaf-a {
+  bottom: 42px;
+  transform: rotate(-36deg);
+}
+
+.motif-leaf-b {
+  bottom: 96px;
+  transform: rotate(18deg) scaleX(-1);
+}
+
+.motif-leaf-c {
+  bottom: 148px;
+  transform: rotate(-24deg) scale(0.82);
+}
+
+.motif-scanline {
+  background: linear-gradient(
+    90deg,
+    transparent,
+    color-mix(in srgb, var(--ember) 54%, transparent),
+    transparent
+  );
+  height: 1px;
+  left: 0;
+  opacity: calc(0.18 + var(--style-motif-intensity) * 0.52);
+  top: calc(5% + var(--motif-progress) * 88%);
+  width: 100%;
+}
+
+.motif-scanline::after {
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--ember) 8%, transparent),
+    transparent
+  );
+  content: '';
+  height: 46px;
+  inset: 0;
+  position: absolute;
+}
+
+.motif-scan-index {
+  color: var(--ember);
+  font: 9px/1 var(--font-mono);
+  left: 18px;
+  letter-spacing: 0.14em;
+  opacity: calc(0.25 + var(--style-motif-intensity) * 0.42);
+  top: calc(5% + var(--motif-progress) * 88% - 16px);
+}
+
+.mobile-disclosure-toggle {
+  display: none;
+  min-height: 44px;
+}
+
+@media (max-width: 640px) {
+  .theme-motif-layer {
+    z-index: 38;
+  }
+
+  .motif-film-gate {
+    height: 32px;
+    width: 20px;
+  }
+
+  .motif-film-gate-a {
+    left: 8px;
+  }
+
+  .motif-film-gate-b {
+    right: 8px;
+  }
+
+  .motif-film-counter,
+  .motif-scan-index {
+    display: none;
+  }
+
+  .motif-web-line {
+    width: 58vw;
+  }
+
+  .motif-web-runner {
+    height: 11px;
+    width: 11px;
+  }
+
+  .motif-botanical-stem {
+    height: 170px;
+    opacity: calc(0.1 + var(--style-motif-intensity) * 0.34);
+    right: 12px;
+  }
+
+  .mobile-disclosure-content {
+    max-height: var(--mobile-collapse-height);
+    overflow: hidden;
+    position: relative;
+  }
+
+  .mobile-disclosure:not(.is-expanded) .mobile-disclosure-content {
+    mask-image: linear-gradient(to bottom, black 0 82%, transparent 100%);
+  }
+
+  .mobile-disclosure.is-expanded .mobile-disclosure-content {
+    max-height: none;
+  }
+
+  .mobile-disclosure-toggle {
+    align-items: center;
+    background: transparent;
+    border: 1px solid var(--ink-line);
+    color: var(--cream);
+    cursor: pointer;
+    display: flex;
+    font: 10px/1 var(--font-mono);
+    justify-content: space-between;
+    letter-spacing: 0.12em;
+    margin-top: 14px;
+    min-height: 44px;
+    padding: 12px 14px;
+    text-transform: uppercase;
+    width: 100%;
+  }
+
+  .mobile-disclosure-toggle em {
+    color: var(--ember);
+    font-size: 18px;
+    font-style: normal;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .theme-motif-layer {
+    --motif-progress: 0.18 !important;
+  }
+
+  .motif-web-runner,
+  .motif-botanical-stem,
+  .motif-film-gate,
+  .motif-scanline {
+    transform: none !important;
+    transition: none !important;
+  }
+
+  .motif-web-burst {
+    animation: none !important;
+    display: none;
+  }
+}

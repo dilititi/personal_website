@@ -4,13 +4,13 @@
 > 配套文档：`ENGINEERING.md`（工程契约 / 实现规则）、`CLAUDE.md`（架构说明）、`CODEBASE_ANALYSIS.html`（现状分析）、`PRODUCT-DIRECTION.md`（产品方向评估与优先级）。
 > 读者：项目所有者 + AI 编码 Agent。每一项工作的「怎么改」以 `ENGINEERING.md` 为准。
 
-## 当前进度（2026-06-11）
+## 当前进度（2026-06-13）
 
 | 项目                      | 状态      | 当前证据 / 下一步                                                                                               |
 | ------------------------- | --------- | --------------------------------------------------------------------------------------------------------------- |
 | 1.1 Section 单一事实源    | ✅ 已完成 | `SECTION_KEYS` 已删除；编辑器清单来自 `EXPORTABLE_SECTIONS`，运行时数据由 `section-registry.js` 派生            |
 | 1.2 Provider / 持久化去重 | ✅ 已完成 | `persist.js`、`modules.js` 已共享；StrictMode、失败写入、reset 语义有单测和 UI smoke                            |
-| 1.3 测试 + CI             | ✅ 已完成 | Vitest 覆盖 20 个文件 / 94 项测试；CDP smoke 覆盖开发态与生产预渲染态                                           |
+| 1.3 测试 + CI             | ✅ 已完成 | Vitest 覆盖 27 个文件 / 135 项测试；CDP smoke 覆盖开发态与生产预渲染态                                          |
 | 1.4 ESLint + Prettier     | ✅ 已完成 | `lint`、`format:check` 已进入 package scripts 与 CI                                                             |
 | 1.5 迁移垫片退场策略      | ✅ 已确定 | 旧 key 只读迁移，成功进入统一状态后清理；代码标记 2026-12-31 后删除                                             |
 | 2.1a SEO 元数据           | ✅ 已完成 | 静态/运行时 head、`SITE.url`、OG/Twitter、robots/sitemap 与 SEO 测试已落地                                      |
@@ -21,6 +21,11 @@
 | 2.4 部署上线              | 🟡 收尾中 | Render 已上线；独立 OG 图、缓存配置与 deploy checker 已落地，待部署后外部平台/GSC 验收                          |
 | 3A.1 内容 / 风格发布      | 🟡 待外验 | GitHub Contents API、精确 export 替换、token 安全边界、贯通 mock 与编辑器发布 UI 已落地；待真实 PAT commit 验收 |
 | 3A.2 生产媒体上传         | 🟡 待外验 | `FileField` 可在生产提交响应式媒体到仓库 `public/`；mock 已覆盖创建/冲突重试，待真实图片提交                    |
+| 4.P0 空白起点             | ✅ 已完成 | W0-a：保留 `data.js` 示例；Start 可原子应用完整空白 overrides，身份字段不再泄漏 Chen 默认值                     |
+| 4.P1 Goal Picker          | ✅ 已完成 | 四个目标复用既有内容/风格预设；内容、模块与风格同步应用，目标映射有纯函数单测                                   |
+| 4.P2 部署前审计           | ✅ 已完成 | Audit 面板定位错误/警告；占位符和大体积媒体阻断发布；public 路径与 production smoke 继续复用                    |
+| 4.UX1 首轮用户反馈        | ✅ 已收口 | 5 位用户反馈已转化为单页风格工作台、渐进引导、区块就地编辑、3 种结构模板与 3 套 Landing 构图                    |
+| 4.UX2 主题动作 / 移动收放 | ✅ 已实现 | 5 种 motif、实时预览桥、3 套差异化 Landing 及可记忆的移动端局部展开已落地，待用户复测                           |
 
 > **2026-06-08 · Phase 2 收口于 `codex/perf-font-a1`**：该分支是 `codex/perf-images-a11y`（图片 B3 + 无障碍）的线性超集，再叠加字体 A1，因此合并进单一 PR，旧 PR 关闭。
 >
@@ -47,15 +52,15 @@
 
 ## 2. 路线图总览
 
-| 阶段    | 主题                 | 目标                                                           | 关键收益               |
-| ------- | -------------------- | -------------------------------------------------------------- | ---------------------- |
-| Phase 0 | 已完成（本轮）       | 统一导出、接入 temperature/personality、修复生产上传、对齐文档 | 消除两处分叉与误导     |
-| Phase 1 | 已完成当前稳定化目标 | 单一事实源、去重 provider、测试 + CI、迁移退场策略、lint       | 让后续改动「安全」     |
-| Phase 2 | 已启动（SEO 已完成） | 性能、SEO、无障碍                                              | 让站点「被看见、可用」 |
-| Phase 3 | 3A.1 / 3A.2 已实现   | 浏览器草稿可提交到 GitHub，生产媒体可写入仓库                  | 待真实账号链路验收     |
-| Phase 4 | 拓展产品             | 新章节/布局、主题分享、AI 填充增强、多语言                     | 模板的增长面           |
+| 阶段    | 主题                   | 目标                                                           | 关键收益               |
+| ------- | ---------------------- | -------------------------------------------------------------- | ---------------------- |
+| Phase 0 | 已完成（本轮）         | 统一导出、接入 temperature/personality、修复生产上传、对齐文档 | 消除两处分叉与误导     |
+| Phase 1 | 已完成当前稳定化目标   | 单一事实源、去重 provider、测试 + CI、迁移退场策略、lint       | 让后续改动「安全」     |
+| Phase 2 | 已启动（SEO 已完成）   | 性能、SEO、无障碍                                              | 让站点「被看见、可用」 |
+| Phase 3 | 3A.1 / 3A.2 已实现     | 浏览器草稿可提交到 GitHub，生产媒体可写入仓库                  | 待真实账号链路验收     |
+| Phase 4 | P0–P2 + UX1/UX2 已实现 | 空白起点、目标预设、审计、结构模板、主题动作与移动收放         | 让模板 5 分钟可上手    |
 
-排序原则：**先把地基（Phase 1）做扎实**，因为它降低后面每一步的回归风险；Phase 2/3 可并行启动，按你对「曝光」vs「持久化」的偏好取舍；Phase 4 是探索性、随时可插队的增长项。
+排序原则：地基、质量与发布链路已建立；Phase 4 已根据首轮 5 人反馈完成两轮 UX 收口。下一步先做任务制复测和 Phase 2/3 外部验收，再决定是否启动 Prompt Builder 等 P3+。
 
 ---
 
@@ -88,7 +93,7 @@
 ### 1.3 测试 + CI 〔#7 · ✅ 已完成〕
 
 - 实现：使用 **Vitest 4** 覆盖 `deepMerge`、持久化读写、`normalizeModuleConfig`（布尔 → 对象向后兼容）、section registry、`export.js#jsLiteral` 往返与 `validation.js` 关键分支；CDP smoke 独立验证浏览器主流程。
-- 验收结果：20 个测试文件、94 项测试通过。GitHub Actions 顺序为 `install → lint → test → build → check:dist → format:check`。
+- 验收结果：23 个测试文件、113 项测试通过。GitHub Actions 顺序为 `install → lint → test → build → check:dist → format:check`。
 
 ### 1.4 引入 lint / format 〔✅ 已完成〕
 
@@ -175,15 +180,20 @@
 
 ---
 
-## Phase 4 · 拓展产品（探索性、可插队）
+## Phase 4 · 模板上手（P0–P2 + UX1/UX2 已实现）
 
-> 「模板上手」已细化为可实施合同 [`SPEC-4-TEMPLATE.md`](./SPEC-4-TEMPLATE.md)（P0 解耦 + 空载实例化 / P1 目标预设 / P2 部署前审计），优先级与理由见 [`PRODUCT-DIRECTION.md`](./PRODUCT-DIRECTION.md)。这是「让别人 5 分钟用起来」的主线,建议在投入下面其它探索项之前先做。
+> 实施合同见 [`SPEC-4-TEMPLATE.md`](./SPEC-4-TEMPLATE.md)，优先级与理由见 [`PRODUCT-DIRECTION.md`](./PRODUCT-DIRECTION.md)。首轮已收集 5 位用户反馈；证据优先指向编辑器简化、引导、结构差异和首页质量，而不是立即接 AI。
 
+- ✅ **模板上手 P0–P2**：Start 可选择完整空白起点或三个目标；`goals.js` 原子写入 content overrides 并复用 `applyPreset`；Audit 面板与 GitHub 发布共用结构化阻断规则。
+- ✅ **反馈驱动 UX1**：StyleEditor 改为“左侧参数 + 右侧完整站点预览”的单页工作台；基础参数一次展开一组，高级质感/光影/深度折叠；页面区块提供 Content/Style 就地入口。
+- ✅ **结构与首页差异**：`siteTemplates.js` 提供 Minimal Portfolio、Personal Journal、Gradient Studio，分别控制模块显示/导航/顺序/layout 与 Landing 构图；结构模板保留用户内容。
+- ✅ **主题动作 UX2**：`motion` 增加 motif、滚动强度、环境动画和交互模式；提供 Film、Web、Botanical、Scanline、None 五种主题动作，并完整支持 reduced motion。StyleEditor 通过同源预览消息把完整 style 注入真实 App iframe，React 驱动的 motif 和 Landing 构图也会即时更新。
+- ✅ **移动渐进展开 UX2**：About CV、Library 和 Travel 在移动端折叠次级长内容，首屏与 Works 保持展开；统一控件具备无障碍状态、稳定触摸目标，并通过 `chen.ui.mobileDisclosures` 记忆用户展开选择。
 - **主题分享 / 市场**：`exportStyle()` 已能导出 `STYLE`；把它产品化为可分享/导入的主题文件，甚至一个画廊。
 - **AI 填充增强**：把分散的 prompt/preset 统一；支持分章节增量填充、图片建议、把「情绪板（mood/anchors）」真正喂给 AI 生成初始风格（`ReferencePanel` 已为此留好数据）。
 - **新章节 / 布局**：把 `compact`/`feature` 之外的布局体系化；新增如「时间线变体」「画廊」等模块（走 `MODULES` + `schema` + 组件三件套）。
 - **多语言**：当前 `L(en, zh)` 是两语硬编码；评估推广到 N 语言（影响 `pick`、schema、编辑器、导出器——属于较大重构，列为候选）。
-- **模板上手**：首次启动向导、空白模板与示例数据的更清晰切换。
+- **任务制复测**：首轮 5 人定性反馈及处理结论见 [`PHASE4-USER-RETEST-RESULTS.md`](./PHASE4-USER-RETEST-RESULTS.md)；下一轮继续按 [`PHASE4-USER-RETEST.md`](./PHASE4-USER-RETEST.md) 记录完成率、耗时、提示次数与错误路径。
 
 ---
 
@@ -191,14 +201,15 @@
 
 1. **已完成的地基**：1.1 单一事实源、1.2 provider 去重、1.3 Vitest + CI、1.4 lint/format、2.2 编辑器懒加载。
 2. **已完成的性能阶段**：图片 B3、字体 A1、a11y 与移动端 Lighthouse 验收。
-3. **当前收口**：Phase 3A.1 / 3A.2 真实 GitHub commit、生产图片与 Render 部署验收。
-4. **之后**：模板上手 P0；Phase 4 其余探索项按真实需求排序，3A.3 PR 模式不预做。
+3. **当前收口**：Phase 2.4 部署外验、Phase 3A.1 / 3A.2 真实 GitHub commit 与生产图片验收。
+4. **产品验证**：首轮 5 人观感反馈已完成；下一步做任务制复测。其余探索项按证据排序，3A.3 PR 模式不预做。
 
 ## 4. 风险与权衡
 
 - **引后端 = 破坏静态气质**：Phase 3 必须坚持「未配置即纯静态降级」，否则模板对 clone 者变重。
 - **SSG 复杂度**：已用独立 `prerender.jsx`、首帧稳定值和 production CDP smoke 控制水合风险；以后新增首屏动态数据时必须同步扩展该契约。
 - **范围蔓延**：Phase 4 诱人但别在地基（Phase 1）稳之前投入。
+- **过早进入 P3**：已有反馈优先要求简化与差异化；在任务制复测证明主流程顺畅前，不增加 Prompt Builder、AI API、组件市场或后端。
 - **多语言重构**：收益高但触面广，非必要不早做。
 
 ## 5. 成功指标
@@ -221,14 +232,18 @@
 7. ✅ section registry 契约测试、显式 ESM 扩展名、`isDirty` 保存状态与迁移垫片退场日期全部落地。
 8. ✅ Phase 2.1a/2.1b：双语 SEO head、发现资源、三条静态路由、首屏预渲染与无错误 hydration。
 9. ✅ Phase 3A.1/3A.2 代码：GitHub 发布、精确 export 替换、token/storage 安全边界和生产媒体提交已落地并有单测。
+10. ✅ Phase 4 P0–P2：完整空白起点、目标预设原子应用、部署前 Audit 面板与发布阻断已落地。
+11. ✅ Phase 4 UX1：首轮 5 人反馈已落实为单页 Style 工作台、引导路径、就地编辑、结构模板和新 Landing。
+12. ✅ Phase 4 UX2：主题 motif、差异化首页内容、移动端局部展开和对应自动化回归已落地。
 
 下一步建议顺序：
 
 1. **完成 Phase 2.4 外部验收**：部署独立 OG 图和缓存规则，跑 `check:deploy`，刷新三家社交平台卡片，完成 Search Console 验证与 sitemap 提交。
 2. **Phase 3 外部验收**：用最小权限 PAT 提交一处测试文案和一张测试图片，确认 GitHub diff、Render 重建与线上资源。
-3. **模板上手 P0**：按 `SPEC-4-TEMPLATE.md` 解耦示例身份并提供空载实例。
-4. 保留当前 Lighthouse 基线；指标低于门槛时再评估 A2/B1。
-5. 2026-12-31 后删除两个旧 localStorage 迁移垫片。
+3. **Phase 4 任务制复测**：执行 [`PHASE4-USER-RETEST.md`](./PHASE4-USER-RETEST.md)，覆盖 5 人、3 种模板和至少 2 位移动端用户；重点验证 motif 辨识度与移动端展开入口。
+4. 根据复测证据决定是否启动 P3 Prompt Builder；不预做 iframe、后端代理或任意组件生成。
+5. 保留当前 Lighthouse 基线；指标低于门槛时再评估 A2/B1。
+6. 2026-12-31 后删除两个旧 localStorage 迁移垫片。
 
 > 每一步的具体「改哪些文件、满足哪些不变量、Definition of Done」见 `ENGINEERING.md`。
 

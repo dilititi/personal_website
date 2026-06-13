@@ -20,9 +20,11 @@ import {
 import { JsonEditor, ObjectArrayField, ObjectField } from './editor/fields/index.jsx'
 import { FIELD_TEMPLATES } from './editor/contentPresets.js'
 import ImportPanel from './editor/ImportPanel.jsx'
+import AuditPanel from './editor/AuditPanel.jsx'
 import PreviewFrame from './editor/PreviewFrame.jsx'
 import PublishPanel from './editor/PublishPanel.jsx'
 import { publishContent } from '../lib/publish.js'
+import { auditSiteData, formatAuditError } from './editor/audit.js'
 
 function SectionEditor({ section, value, onChange, onTemplateApply }) {
   const data = useData()
@@ -30,6 +32,9 @@ function SectionEditor({ section, value, onChange, onTemplateApply }) {
 
   if (section.type === 'import') {
     return <ImportPanel />
+  }
+  if (section.type === 'audit') {
+    return <AuditPanel />
   }
   if (section.key === 'SITE') {
     return (
@@ -329,7 +334,7 @@ function downloadText(filename, text, type = 'text/plain') {
   setTimeout(() => URL.revokeObjectURL(url), 0)
 }
 
-export default function ContentEditor({ open, onClose }) {
+export default function ContentEditor({ open, onClose, initialSection = 'SITE' }) {
   const { lang } = useLang()
   const data = useData()
   const { setSection } = data
@@ -337,7 +342,9 @@ export default function ContentEditor({ open, onClose }) {
   dataRef.current = data
   const ceMainRef = useRef(null)
   const { style } = useStyle()
-  const [activeKey, setActiveKey] = useState('SITE')
+  const [activeKey, setActiveKey] = useState(() =>
+    SECTIONS.some(section => section.key === initialSection) ? initialSection : 'SITE',
+  )
   const [workingValue, setWorkingValue] = useState(null)
   const [showCode, setShowCode] = useState(false)
   const [copied, setCopied] = useState('')
@@ -611,7 +618,7 @@ export default function ContentEditor({ open, onClose }) {
     )
   }
 
-  const handlePublish = async ({ github, config }) => {
+  const buildPublishDraft = () => {
     const resolved = { ...data.resolvedData }
     const changedKeys = new Set(
       Object.keys(data.userOverrides || {}).filter(
@@ -620,19 +627,36 @@ export default function ContentEditor({ open, onClose }) {
       ),
     )
 
+    let workingChanged = false
     if (!isSpecial && workingValue != null) {
       resolved[activeKey] = workingValue
       if (JSON.stringify(workingValue) !== JSON.stringify(data[activeKey])) {
         changedKeys.add(activeKey)
-        data.setSection(activeKey, workingValue)
+        workingChanged = true
       }
     }
+
+    return { resolved, changedKeys: [...changedKeys], workingChanged }
+  }
+
+  const handlePublishPreflight = () => {
+    const { resolved } = buildPublishDraft()
+    const report = auditSiteData(resolved)
+    if (report.errors.length) {
+      throw new Error(formatAuditError(report.errors[0], lang))
+    }
+    return report
+  }
+
+  const handlePublish = async ({ github, config }) => {
+    const draft = buildPublishDraft()
+    if (draft.workingChanged) data.setSection(activeKey, workingValue)
 
     return publishContent({
       github,
       branch: config.branch,
-      data: resolved,
-      changedKeys: [...changedKeys],
+      data: draft.resolved,
+      changedKeys: draft.changedKeys,
     })
   }
 
@@ -752,6 +776,7 @@ export default function ContentEditor({ open, onClose }) {
           <PublishPanel
             lang={lang}
             kind="content"
+            onPreflight={handlePublishPreflight}
             onPublish={handlePublish}
             onClose={() => setShowPublish(false)}
             publishDisabled={!hasPublishChanges}

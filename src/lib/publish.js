@@ -1,5 +1,5 @@
 import { collectDataUrls, exportLine, findMissingPublicPaths } from '../components/editor/export.js'
-import { validateSiteData } from '../components/editor/validation.js'
+import { auditSiteData, formatAuditError } from '../components/editor/audit.js'
 
 export const CONTENT_START = '// <<< EDITOR:CONTENT START >>>'
 export const CONTENT_END = '// <<< EDITOR:CONTENT END >>>'
@@ -180,9 +180,8 @@ function assertNoLargeDataUrls(value, scope) {
 }
 
 export async function validateContentPublication(data, github, branch) {
-  const errors = validateSiteData(data)
-  if (errors.length) throw new Error(errors[0])
-  assertNoLargeDataUrls(data, 'content')
+  const audit = auditSiteData(data)
+  if (audit.errors.length) throw new Error(formatAuditError(audit.errors[0]))
   const missing = await unresolvedPublicPaths(data, github, branch, 'content')
   if (missing.length) {
     throw new Error(`Missing public asset: ${missing[0].path} -> ${missing[0].url}`)
