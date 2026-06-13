@@ -4,6 +4,7 @@ import { useData } from '../data-context.jsx'
 import { Stars, useFocusTrap } from '../hooks.jsx'
 import { useNP } from '../np-context.jsx'
 import { responsiveImageAttributes } from '../lib/images.js'
+import MobileDisclosure from './MobileDisclosure.jsx'
 
 const LEGACY_LOG_STORAGE_KEY = 'chen.readingLog.userEntries'
 // Compatibility shim for pre-unified storage. Remove after 2026-12-31.
@@ -75,10 +76,17 @@ export default function Library({ layout = 'default' }) {
         ))}
       </div>
 
-      {tab === 'books' && <Bookshelf />}
-      {tab === 'films' && <Cinema />}
-      {tab === 'music' && <Playlist />}
-      {tab === 'log' && <ReadingLog />}
+      <MobileDisclosure
+        key={tab}
+        className={`library-disclosure library-disclosure-${tab}`}
+        collapsedHeight={tab === 'music' ? 520 : 720}
+        storageId={`library-${tab}`}
+      >
+        {tab === 'books' && <Bookshelf />}
+        {tab === 'films' && <Cinema />}
+        {tab === 'music' && <Playlist />}
+        {tab === 'log' && <ReadingLog />}
+      </MobileDisclosure>
     </section>
   )
 }

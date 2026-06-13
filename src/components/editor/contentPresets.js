@@ -149,12 +149,12 @@ export const AI_PROMPT = `我要填充一个个人网站模板的 JSON 内容。
   ],
 
   "TRAVEL": [
-    { "city": { "en": "Hangzhou", "zh": "杭州" }, "country": { "en": "China", "zh": "中国" }, "year": 2004, "kind": "home", "lat": 30.27, "lon": 120.15, "note": { "en": "...", "zh": "..." } }
+    { "city": { "en": "Hangzhou", "zh": "杭州" }, "country": { "en": "China", "zh": "中国" }, "year": 2004, "kind": "home", "theme": "botanical", "lat": 30.27, "lon": 120.15, "note": { "en": "...", "zh": "..." } }
   ],
 
   "MODULES": {
     "about": { "enabled": true, "nav": true, "order": 1, "label": { "en": "About", "zh": "关于" }, "layout": "default" },
-    "journey": { "enabled": true, "nav": true, "order": 2, "label": { "en": "Reel", "zh": "影格" }, "layout": "default" },
+    "journey": { "enabled": false, "nav": false, "order": 2, "label": { "en": "Reel", "zh": "影格" }, "layout": "default" },
     "works": { "enabled": true, "nav": true, "order": 3, "label": { "en": "Works", "zh": "作品集" }, "layout": "default" },
     "library": { "enabled": true, "nav": true, "order": 4, "label": { "en": "Stacks", "zh": "私藏" }, "layout": "default" },
     "photography": { "enabled": true, "nav": true, "order": 5, "label": { "en": "Stills", "zh": "影像" }, "layout": "default" },
@@ -200,7 +200,7 @@ export const AI_PROMPT = `我要填充一个个人网站模板的 JSON 内容。
 - JOURNEY: 8 个节点(必须 8 个)
 - WORKS: 2-5 件
 - BOOKS / FILMS / MUSIC: 各 5-8 条
-- TRAVEL: 4-10 座城市
+- TRAVEL: 4-10 座城市；theme 从 botanical/metropolitan/garden/archive/neon/terracotta/harbor/graphic/craft/rain/chrome 中选择
 - PHOTOS: 0(后续手动上传)
 - TEXTS: 不用生成,保持模板默认
 
@@ -482,6 +482,7 @@ export const STARTER_TEMPLATE = {
       country: { en: '<Country>', zh: '<国家>' },
       year: '<Year>',
       kind: 'trip',
+      theme: 'graphic',
       lat: 0,
       lon: 0,
       note: { en: '<Note>', zh: '<备注>' },
@@ -502,8 +503,8 @@ export const STARTER_TEMPLATE = {
       layout: 'default',
     },
     journey: {
-      enabled: true,
-      nav: true,
+      enabled: false,
+      nav: false,
       order: 2,
       label: { en: 'Reel', zh: '影格' },
       layout: 'default',
@@ -570,7 +571,7 @@ export const STARTER_TEMPLATE = {
 
 const TEMPLATE_MODULES = {
   about: { enabled: true, nav: true, order: 1, label: B('About', '关于'), layout: 'default' },
-  journey: { enabled: true, nav: true, order: 2, label: B('Reel', '影格'), layout: 'default' },
+  journey: { enabled: false, nav: false, order: 2, label: B('Reel', '影格'), layout: 'default' },
   works: { enabled: true, nav: true, order: 3, label: B('Works', '作品'), layout: 'default' },
   library: { enabled: true, nav: true, order: 4, label: B('Library', '私藏'), layout: 'default' },
   photography: {
@@ -1086,6 +1087,7 @@ export const CONTENT_PRESETS = [
           country: B('China', '中国'),
           year: '2026',
           kind: 'home',
+          theme: 'botanical',
           lat: 30.25,
           lon: 120.16,
           note: B('Mist, lake, notebooks.', '雾、湖、笔记。'),
@@ -1095,6 +1097,7 @@ export const CONTENT_PRESETS = [
           country: B('China', '中国'),
           year: '2025',
           kind: 'trip',
+          theme: 'botanical',
           lat: 30.61,
           lon: 119.87,
           note: B('Bamboo paths and field recordings.', '竹径与田野录音。'),
@@ -1104,6 +1107,7 @@ export const CONTENT_PRESETS = [
           country: B('China', '中国'),
           year: '2024',
           kind: 'trip',
+          theme: 'garden',
           lat: 30.64,
           lon: 119.68,
           note: B('Green references for interface rhythm.', '给界面节奏的绿色参考。'),
@@ -1288,6 +1292,7 @@ export const CONTENT_PRESETS = [
           country: B('China', '中国'),
           year: '2026',
           kind: 'home',
+          theme: 'metropolitan',
           lat: 31.23,
           lon: 121.47,
           note: B('Screens, rain, late edits.', '银幕、雨、深夜剪辑。'),
@@ -1472,6 +1477,7 @@ export const CONTENT_PRESETS = [
           country: B('Network', '网络'),
           year: '2026',
           kind: 'home',
+          theme: 'chrome',
           lat: 30.25,
           lon: 120.16,
           note: B('Most routes begin in localhost.', '多数路线从 localhost 开始。'),

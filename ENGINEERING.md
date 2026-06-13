@@ -64,7 +64,7 @@
 所有 localStorage / sessionStorage 键以 `chen.*` 命名，且**全部访问包 try/catch**（隐私模式/禁用存储要安全降级）。
 
 - 新增键必须登记到 `CLAUDE.md`。
-- 现有键（勿与之冲突）：`chen.content.overrides`、`chen.content.lastSaved`、`chen.style.overrides`、`chen.style.lastSaved`、`chen.lang`、`chen.np.source`、`chen.ce.{mode,sideWidth,autosave}`、`chen.se.{mode,sideWidth}`、`chen.content.preImport`、`chen.github.config`、`chen.github.token`；遗留待清理：`chen.readingLog.userEntries`、`chen.photos.userEntries`。
+- 现有键（勿与之冲突）：`chen.content.overrides`、`chen.content.lastSaved`、`chen.style.overrides`、`chen.style.lastSaved`、`chen.lang`、`chen.np.source`、`chen.ce.{mode,sideWidth,autosave}`、`chen.se.{mode,sideWidth}`、`chen.ui.mobileDisclosures`、`chen.content.preImport`、`chen.github.config`、`chen.github.token`；遗留待清理：`chen.readingLog.userEntries`、`chen.photos.userEntries`。
 - `chen.github.token` 默认只写入 sessionStorage；只有用户显式选择“记住”时才写入 localStorage。存储不可用时必须退化为当前组件内存态，不得阻断本次发布。
 - 两个遗留读取垫片只用于迁入统一内容存储，代码已标记在 **2026-12-31 后移除**；不得再向旧 key 写入新数据。
 
@@ -169,7 +169,8 @@ Phase 4 模板上手契约：
 - `editor/goals.js` 只保存目标元数据和“目标 → 既有内容/风格预设”的纯映射，不复制内容数据。
 - `editor/siteTemplates.js` 是结构模板单一事实源；结构应用只改 `MODULES` 与既有 style preset，必须保留当前内容。
 - 新 Landing 构图通过 `STYLE.layout.landing` 选择；不得在组件内按 preset id 分支，也不得为预览维护第二套页面实现。
-- StyleEditor 的实时预览必须复用 `PreviewFrame` 和真实 App 路由；桌面/移动端只改变工作台排布，不改变数据语义。
+- StyleEditor 的实时预览必须复用 `PreviewFrame` 和真实 App 路由；桌面/移动端只改变工作台排布，不改变数据语义。完整 style 只允许通过同源 `chen:style-preview` 消息作为 iframe 内存覆盖，不得建立第二份预览组件树或写入另一套持久化。
+- 移动端次级长内容统一使用 `MobileDisclosure`；稳定 `storageId` 汇总写入 `chen.ui.mobileDisclosures`，存储访问必须安全降级，首屏和 Works 不得默认折叠。
 - 页面内快速编辑字段只在 `editor/inlineQuickEdit.js` 声明并通过 `DataProvider.setSection()` 写回；不得在 section 组件内新增局部草稿或另一份持久化。
 - `STARTER_TEMPLATE` 与所有目标解析结果必须覆盖 `EXPORTABLE_SECTIONS` 全集；新增可导出 section 时同步更新并让 `tests/goals.test.js` 明确失败。
 - 每个目标必须完整覆盖 `SITE` 和 `TEXTS` 的访客身份字段，避免默认示例文案通过深合并泄漏。

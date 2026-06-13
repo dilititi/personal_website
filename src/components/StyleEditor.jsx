@@ -37,6 +37,24 @@ const MOTION_OPTIONS = [
   { value: 'calm', zh: '安静', en: 'Calm' },
 ]
 
+const MOTIF_OPTIONS = [
+  { value: 'none', zh: '关闭', en: 'None' },
+  { value: 'film', zh: '电影帧线', en: 'Film gates' },
+  { value: 'web', zh: '蛛网轨迹', en: 'Web trail' },
+  { value: 'botanical', zh: '植物枝叶', en: 'Botanical' },
+  { value: 'scanline', zh: '数字扫描线', en: 'Scanline' },
+]
+
+const AMBIENT_OPTIONS = [
+  { value: 'on', zh: '显示', en: 'Visible' },
+  { value: 'off', zh: '关闭', en: 'Off' },
+]
+
+const INTERACTION_OPTIONS = [
+  { value: 'subtle', zh: '轻微互动', en: 'Subtle' },
+  { value: 'none', zh: '不互动', en: 'None' },
+]
+
 const DESIGN_ALIGNMENT_OPTIONS = [
   { value: 'editorial', zh: '编排 / Editorial', en: 'Editorial' },
   { value: 'grid', zh: '网格 / Grid', en: 'Grid' },
@@ -734,6 +752,35 @@ function MotionPanel({ style, updateDimension, lang }) {
         suffix="ms"
         value={motion.duration}
         onChange={duration => update({ duration })}
+      />
+      <SelectControl
+        label={lang === 'zh' ? '主题动作' : 'Theme motif'}
+        value={motion.motif || 'none'}
+        options={MOTIF_OPTIONS}
+        onChange={motif => update({ motif })}
+        lang={lang}
+      />
+      <RangeControl
+        label={lang === 'zh' ? '滚动响应强度' : 'Scroll intensity'}
+        min={0}
+        max={1}
+        step={0.01}
+        value={motion.scrollIntensity ?? 0.4}
+        onChange={scrollIntensity => update({ scrollIntensity })}
+      />
+      <SelectControl
+        label={lang === 'zh' ? '环境动作' : 'Ambient motif'}
+        value={motion.ambient === false ? 'off' : 'on'}
+        options={AMBIENT_OPTIONS}
+        onChange={value => update({ ambient: value === 'on' })}
+        lang={lang}
+      />
+      <SelectControl
+        label={lang === 'zh' ? '点击互动' : 'Interaction'}
+        value={motion.interaction || 'subtle'}
+        options={INTERACTION_OPTIONS}
+        onChange={interaction => update({ interaction })}
+        lang={lang}
       />
     </div>
   )

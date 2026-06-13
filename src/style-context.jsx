@@ -1,7 +1,8 @@
-import React, { createContext, useCallback, useContext, useMemo } from 'react'
+import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
 import { DEFAULT_STYLE, STYLE_PRESETS } from './style.js'
 import { deriveStyleVars } from './style-engine.js'
 import { deepMerge, isPlainObject, readJSON, useLocalStorageState } from './lib/persist.js'
+import { isStylePreviewMessage, isStylePreviewSurface } from './lib/style-preview.js'
 
 const STORAGE_KEY = 'chen.style.overrides'
 const LAST_SAVED_KEY = 'chen.style.lastSaved'
@@ -18,6 +19,9 @@ function applyStyleToDocument(style) {
     document.documentElement.style.setProperty(key, value)
   })
   document.body.dataset.motion = style?.motion?.mode || 'lively'
+  document.body.dataset.motif = style?.motion?.motif || 'none'
+  document.body.dataset.motifAmbient = style?.motion?.ambient === false ? 'off' : 'on'
+  document.body.dataset.motifInteraction = style?.motion?.interaction || 'subtle'
   document.body.dataset.styleAlignment = style?.design?.alignment || 'editorial'
   document.body.dataset.landingLayout = style?.layout?.landing || 'minimal'
 }
@@ -29,10 +33,9 @@ export function useStyle() {
 }
 
 export function StyleProvider({ children, prerendered = false }) {
-  const [style, setStyleState, { storageError, lastSaved, isDirty, reset }] = useLocalStorageState(
-    STORAGE_KEY,
-    LAST_SAVED_KEY,
-    {
+  const [previewStyle, setPreviewStyle] = useState(null)
+  const [persistedStyle, setStyleState, { storageError, lastSaved, isDirty, reset }] =
+    useLocalStorageState(STORAGE_KEY, LAST_SAVED_KEY, {
       init: () => {
         if (prerendered) return DEFAULT_STYLE
         const stored = readJSON(STORAGE_KEY, null)
@@ -47,8 +50,30 @@ export function StyleProvider({ children, prerendered = false }) {
       isDefault: value => stylesMatch(value, DEFAULT_STYLE),
       quotaHint: 'Remove large local assets before saving more style data.',
       onApply: applyStyleToDocument,
-    },
-  )
+    })
+  const style = previewStyle || persistedStyle
+
+  useEffect(() => {
+    if (typeof window === 'undefined' || !isStylePreviewSurface()) return undefined
+
+    const receivePreviewStyle = event => {
+      if (
+        event.origin !== window.location.origin ||
+        event.source !== window.parent ||
+        !isStylePreviewMessage(event.data)
+      ) {
+        return
+      }
+      setPreviewStyle(deepMerge(DEFAULT_STYLE, event.data.style))
+    }
+
+    window.addEventListener('message', receivePreviewStyle)
+    return () => window.removeEventListener('message', receivePreviewStyle)
+  }, [])
+
+  useEffect(() => {
+    if (previewStyle) applyStyleToDocument(previewStyle)
+  }, [previewStyle])
 
   const setStyle = useCallback(
     nextStyle => {

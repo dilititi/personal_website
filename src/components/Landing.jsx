@@ -48,7 +48,8 @@ function LandingActions({ TL, t, onJump, isModuleEnabled }) {
   )
 }
 
-function MinimalLanding({ SITE, TL, t, onJump, isModuleEnabled, now }) {
+function MinimalLanding({ SITE, TL, WORKS, t, onJump, isModuleEnabled, now }) {
+  const featuredWorks = WORKS.slice(0, 3)
   return (
     <section id="home" className="landing landing-template landing-minimal">
       <LandingPortrait SITE={SITE} t={t} className="landing-template-media" />
@@ -62,6 +63,19 @@ function MinimalLanding({ SITE, TL, t, onJump, isModuleEnabled, now }) {
         <h1>{t(SITE.nameFull) || t(SITE.name)}</h1>
         <p>{t(SITE.tagline) || t(SITE.role)}</p>
         <LandingActions TL={TL} t={t} onJump={onJump} isModuleEnabled={isModuleEnabled} />
+        {isModuleEnabled('works') && featuredWorks.length > 0 && (
+          <ol className="landing-minimal-projects">
+            {featuredWorks.map((work, index) => (
+              <li key={work.id || index}>
+                <button type="button" onClick={() => onJump('works')}>
+                  <span>{String(index + 1).padStart(2, '0')}</span>
+                  <strong>{t(work.title)}</strong>
+                  <em>{work.year}</em>
+                </button>
+              </li>
+            ))}
+          </ol>
+        )}
       </div>
       <span className="landing-next-cue" aria-hidden="true">
         01
@@ -70,7 +84,7 @@ function MinimalLanding({ SITE, TL, t, onJump, isModuleEnabled, now }) {
   )
 }
 
-function JournalLanding({ SITE, TL, t, onJump, isModuleEnabled, now }) {
+function JournalLanding({ SITE, TL, lang, t, onJump, isModuleEnabled, now }) {
   return (
     <section id="home" className="landing landing-template landing-journal">
       <LandingPortrait SITE={SITE} t={t} className="landing-template-media" />
@@ -83,6 +97,10 @@ function JournalLanding({ SITE, TL, t, onJump, isModuleEnabled, now }) {
         <p className="landing-journal-kicker">{t(TL.metaRole)}</p>
         <h1>{t(SITE.nameFull) || t(SITE.name)}</h1>
         <blockquote>{t(SITE.tagline) || t(SITE.now)}</blockquote>
+        <div className="landing-journal-current">
+          <span>{lang === 'zh' ? '此刻' : 'Current note'}</span>
+          <p>{t(SITE.now)}</p>
+        </div>
         <LandingActions TL={TL} t={t} onJump={onJump} isModuleEnabled={isModuleEnabled} />
       </div>
       <span className="landing-next-cue" aria-hidden="true">
@@ -92,7 +110,8 @@ function JournalLanding({ SITE, TL, t, onJump, isModuleEnabled, now }) {
   )
 }
 
-function GradientLanding({ SITE, TL, t, onJump, isModuleEnabled, now }) {
+function GradientLanding({ SITE, TL, WORKS, t, onJump, isModuleEnabled, now }) {
+  const media = [...new Set(WORKS.map(work => work.medium).filter(Boolean))].slice(0, 4)
   return (
     <section id="home" className="landing landing-template landing-gradient">
       <LandingPortrait SITE={SITE} t={t} className="landing-template-media" />
@@ -108,6 +127,16 @@ function GradientLanding({ SITE, TL, t, onJump, isModuleEnabled, now }) {
           <i>{t(SITE.nameRight)}</i>
         </h1>
         <p>{t(SITE.tagline)}</p>
+        {media.length > 0 && (
+          <div className="landing-gradient-disciplines" aria-label="Featured disciplines">
+            {media.map((item, index) => (
+              <span key={item}>
+                <i>{String(index + 1).padStart(2, '0')}</i>
+                {item}
+              </span>
+            ))}
+          </div>
+        )}
         <LandingActions TL={TL} t={t} onJump={onJump} isModuleEnabled={isModuleEnabled} />
       </div>
       <span className="landing-next-cue" aria-hidden="true">
@@ -118,14 +147,14 @@ function GradientLanding({ SITE, TL, t, onJump, isModuleEnabled, now }) {
 }
 
 export default function Landing({ onJump, prerendered = false }) {
-  const { t } = useLang()
-  const { SITE, TEXTS, isModuleEnabled } = useData()
+  const { lang, t } = useLang()
+  const { SITE, TEXTS, WORKS, isModuleEnabled } = useData()
   const { style } = useStyle()
   const TL = TEXTS.landing
   const now = useClock({ defer: prerendered })
   const landingLayout = style?.layout?.landing || 'minimal'
 
-  const templateProps = { SITE, TL, t, onJump, isModuleEnabled, now }
+  const templateProps = { SITE, TL, WORKS, lang, t, onJump, isModuleEnabled, now }
   if (landingLayout === 'journal') return <JournalLanding {...templateProps} />
   if (landingLayout === 'gradient') return <GradientLanding {...templateProps} />
   if (landingLayout === 'minimal') return <MinimalLanding {...templateProps} />

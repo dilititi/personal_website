@@ -83,7 +83,10 @@ export default function Works({ layout = 'default' }) {
         ))}
       </div>
 
-      <div className="works-grid">
+      <div
+        className={`works-grid ${filtered.length === 1 ? 'is-single' : ''}`}
+        data-result-count={filtered.length}
+      >
         {filtered.map(w => (
           <button
             type="button"
@@ -146,6 +149,11 @@ export default function Works({ layout = 'default' }) {
             </div>
           </button>
         ))}
+        {filtered.length === 0 && (
+          <div className="works-empty" role="status">
+            {lang === 'zh' ? '这个分类还没有作品。' : 'No work in this medium yet.'}
+          </div>
+        )}
       </div>
 
       {/* Work Modal */}

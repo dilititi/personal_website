@@ -16,6 +16,8 @@ describe('prerender entry', () => {
     const zh = await prerender({ url: '/zh/' })
 
     assert.match(en.html, /class="landing landing-template landing-minimal"/)
+    assert.match(en.html, /class="landing-minimal-projects"/)
+    assert.match(en.html, /class="theme-motif-layer motif-film/)
     assert.match(en.html, /id="about"/)
     assert.match(en.html, />CHEN</)
     assert.match(zh.html, /class="landing landing-template landing-minimal"/)

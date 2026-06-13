@@ -18,6 +18,7 @@ import Colophon from './components/Colophon.jsx'
 import NowPlaying from './components/NowPlaying.jsx'
 import CVModal from './components/CVModal.jsx'
 import { FilmstripProgress, CursorSpotlight } from './components/Overlays.jsx'
+import ThemeMotifLayer from './components/ThemeMotifLayer.jsx'
 import InlineQuickEditor from './components/editor/InlineQuickEditor.jsx'
 import { getInlineQuickEditConfig } from './components/editor/inlineQuickEdit.js'
 
@@ -188,6 +189,7 @@ function AppInner({ prerendered = false }) {
     <>
       <CursorSpotlight />
       <FilmstripProgress />
+      <ThemeMotifLayer />
       <NavShell
         onJump={onJump}
         onOpenEditor={() => openContentEditor(hasContentDraft ? 'SITE' : '_IMPORT')}

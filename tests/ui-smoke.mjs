@@ -13,6 +13,7 @@ const CONTENT_KEY = 'chen.content.overrides'
 const CONTENT_SAVED_KEY = 'chen.content.lastSaved'
 const STYLE_KEY = 'chen.style.overrides'
 const STYLE_SAVED_KEY = 'chen.style.lastSaved'
+const MOBILE_DISCLOSURE_KEY = 'chen.ui.mobileDisclosures'
 const LEGACY_READING_KEY = 'chen.readingLog.userEntries'
 const LEGACY_PHOTO_KEY = 'chen.photos.userEntries'
 
@@ -332,6 +333,15 @@ async function run() {
       })()`),
       'Default runtime SEO metadata must be populated once from SITE.',
     )
+    assert(
+      await evaluate(`(() => {
+        const motif = document.querySelector('.theme-motif-layer')
+        return document.body.dataset.motif === 'film'
+          && motif?.classList.contains('motif-film')
+          && getComputedStyle(motif).pointerEvents === 'none'
+      })()`),
+      'The default theme motif must render without intercepting page interaction.',
+    )
     const englishTitle = await evaluate(`document.title`)
     await click('.lang-toggle button', '中')
     await waitForExpression(`document.documentElement.lang === 'zh'`, 'Chinese document language')
@@ -414,6 +424,70 @@ async function run() {
     )
 
     assert(
+      await evaluate(`!document.querySelector('#journey')`),
+      'Journey must remain available as an optional module instead of rendering by default.',
+    )
+
+    await click('#works .medium-pill', 'Docs')
+    await waitForExpression(
+      `document.querySelectorAll('#works .work-card').length === 1 && document.querySelector('#works .works-grid')?.classList.contains('is-single')`,
+      'single-result work filter',
+    )
+    assert(
+      await evaluate(`(() => {
+        const grid = document.querySelector('#works .works-grid')
+        const card = grid?.querySelector('.work-card')
+        if (!grid || !card || !card.textContent.includes('Late Bus')) return false
+        return card.getBoundingClientRect().width >= grid.getBoundingClientRect().width - 4
+      })()`),
+      'A single filtered work must fill the grid instead of leaving a blank color column.',
+    )
+    await click('#works .medium-pill', 'All')
+    await waitForExpression(
+      `document.querySelectorAll('#works .work-card').length > 1`,
+      'all work filter restore',
+    )
+
+    const desktopViewportWidth = await evaluate(`window.innerWidth`)
+    await cdp.send('Emulation.setDeviceMetricsOverride', {
+      width: 390,
+      height: 844,
+      deviceScaleFactor: 1,
+      mobile: true,
+      screenWidth: 390,
+      screenHeight: 844,
+    })
+    await waitForExpression(`window.innerWidth === 390`, 'mobile viewport emulation')
+    assert(
+      await evaluate(`(() => {
+        const grid = document.querySelector('#about .about-grid')
+        const disclosures = [...document.querySelectorAll('.mobile-disclosure-toggle')]
+        if (!grid) return false
+        const columns = getComputedStyle(grid).gridTemplateColumns.split(' ').filter(Boolean)
+        return document.body.scrollWidth <= window.innerWidth
+          && document.documentElement.scrollWidth <= window.innerWidth
+          && columns.length === 1
+          && disclosures.length >= 3
+          && disclosures.every(button => button.getAttribute('aria-expanded') === 'false')
+      })()`),
+      'The mobile layout must use one About column without horizontal overflow.',
+    )
+    await click('.about-cv-disclosure .mobile-disclosure-toggle')
+    await waitForExpression(
+      `document.querySelector('.about-cv-disclosure .mobile-disclosure-toggle')?.getAttribute('aria-expanded') === 'true'`,
+      'mobile About disclosure expansion',
+    )
+    await waitForExpression(
+      `JSON.parse(localStorage.getItem(${JSON.stringify(MOBILE_DISCLOSURE_KEY)}) || '{}')['about-cv'] === true`,
+      'mobile About disclosure persistence',
+    )
+    await cdp.send('Emulation.clearDeviceMetricsOverride')
+    await waitForExpression(
+      `window.innerWidth === ${JSON.stringify(desktopViewportWidth)}`,
+      'desktop viewport restore',
+    )
+
+    assert(
       await evaluate(`(() => {
         const trigger = document.querySelector('.work-card')
         if (!trigger) return false
@@ -454,23 +528,31 @@ async function run() {
       `(() => {
         const spotlight = document.querySelector('.cursor-spotlight')
         const reveal = document.querySelector('[data-reveal]')
-        if (!spotlight || !reveal) return false
+        const motif = document.querySelector('.theme-motif-layer')
+        const filmGate = motif?.querySelector('.motif-film-gate')
+        if (!spotlight || !reveal || !motif || !filmGate) return false
         return getComputedStyle(spotlight).display === 'none'
           && getComputedStyle(reveal).opacity === '1'
           && getComputedStyle(reveal).transform === 'none'
       })()`,
-      'reduced motion styles',
+      'reduced motion styles and motif freeze',
     )
     const reducedMotionState = await evaluate(`(() => {
         const spotlight = document.querySelector('.cursor-spotlight')
         const reveal = document.querySelector('[data-reveal]')
-        if (!spotlight || !reveal) return null
+        const motif = document.querySelector('.theme-motif-layer')
+        const filmGate = motif?.querySelector('.motif-film-gate')
+        if (!spotlight || !reveal || !motif || !filmGate) return null
         const spotlightStyle = getComputedStyle(spotlight)
         const revealStyle = getComputedStyle(reveal)
         return {
           spotlightDisplay: spotlightStyle.display,
           revealOpacity: revealStyle.opacity,
           revealTransform: revealStyle.transform,
+          motifProgress: Number(
+            getComputedStyle(motif).getPropertyValue('--motif-progress').trim(),
+          ),
+          motifTransform: getComputedStyle(filmGate).transform,
         }
       })()`)
     assert.deepEqual(
@@ -479,6 +561,8 @@ async function run() {
         spotlightDisplay: 'none',
         revealOpacity: '1',
         revealTransform: 'none',
+        motifProgress: 0.18,
+        motifTransform: 'none',
       },
       'System reduced-motion preference must disable spotlight and reveal transforms.',
     )
@@ -746,7 +830,10 @@ async function run() {
       `(() => {
         const content = JSON.parse(localStorage.getItem(${JSON.stringify(CONTENT_KEY)}) || '{}')
         const style = JSON.parse(localStorage.getItem(${JSON.stringify(STYLE_KEY)}) || '{}')
-        return content.MODULES?.library?.enabled === false && style.preset === 'minimalPortfolio'
+        return content.MODULES?.library?.enabled === false
+          && style.preset === 'minimalPortfolio'
+          && document.body.dataset.motif === 'none'
+          && !document.querySelector('.theme-motif-layer')
       })()`,
       'structure and style template linkage',
       5000,
@@ -765,6 +852,51 @@ async function run() {
     await waitForExpression(
       `!!document.querySelector('[data-style-group="design"].is-active') && !!document.querySelector('.se-workbench-preview iframe')`,
       'single-page tuning and live preview',
+    )
+    await click('[data-style-group="motion"] .se-tuning-section-toggle')
+    await waitForExpression(
+      `(() => {
+        const motion = document.querySelector('[data-style-group="motion"].is-active')
+        const options = [...(motion?.querySelectorAll('option') || [])].map(node => node.value)
+        return options.includes('film') && options.includes('web') && options.includes('botanical') && options.includes('scanline')
+      })()`,
+      'theme motif controls',
+    )
+    assert(
+      await evaluate(`(() => {
+        const motion = document.querySelector('[data-style-group="motion"].is-active')
+        const select = [...(motion?.querySelectorAll('select') || [])]
+          .find(node => [...node.options].some(option => option.value === 'web'))
+        if (!select) return false
+        const setter = Object.getOwnPropertyDescriptor(HTMLSelectElement.prototype, 'value')?.set
+        setter?.call(select, 'web')
+        select.dispatchEvent(new Event('change', { bubbles: true }))
+        return true
+      })()`),
+      'The motif select must accept a live Web preview choice.',
+    )
+    await waitForExpression(
+      `(() => {
+        const frame = document.querySelector('.se-live-preview iframe')
+        const doc = frame?.contentDocument
+        return doc?.body?.dataset.motif === 'web'
+          && !!doc.querySelector('.theme-motif-layer.motif-web')
+      })()`,
+      'live motif preview bridge',
+    )
+    assert(
+      await evaluate(`(() => {
+        const doc = document.querySelector('.se-live-preview iframe')?.contentDocument
+        const runner = doc?.querySelector('.motif-web-runner')
+        runner?.click()
+        return !!runner
+      })()`),
+      'The Web motif must expose its optional interaction in the live preview.',
+    )
+    await waitForExpression(
+      `document.querySelector('.se-live-preview iframe')?.contentDocument
+        ?.querySelector('.theme-motif-layer.motif-web')?.classList.contains('is-bursting')`,
+      'live Web motif interaction',
     )
     await click('.se-advanced-toggle', 'Advanced expression')
     await waitForExpression(
@@ -787,6 +919,13 @@ async function run() {
       'application shell after style refresh',
     )
     await new Promise(resolve => setTimeout(resolve, 300))
+    assert.equal(
+      await evaluate(
+        `document.querySelector('.about-cv-disclosure .mobile-disclosure-toggle')?.getAttribute('aria-expanded')`,
+      ),
+      'true',
+      'Refreshing must restore the visitor’s mobile disclosure choice.',
+    )
     assert.equal(
       await evaluate(`Number(localStorage.getItem(${JSON.stringify(STYLE_SAVED_KEY)}))`),
       styleSavedAt,

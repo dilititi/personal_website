@@ -131,6 +131,12 @@ const travelItem = [
   { key: 'country', type: 'bi', label: '国家 Country' },
   { key: 'year', type: 'str', label: '年份 Year（数字或字符串都行）' },
   { key: 'kind', type: 'str', label: '类型 Kind (home/frequent/festival/trip)' },
+  {
+    key: 'theme',
+    type: 'str',
+    label:
+      '城市视觉 Theme (botanical/metropolitan/garden/archive/neon/terracotta/harbor/graphic/craft/rain/chrome)',
+  },
   { key: 'lat', type: 'num', label: '纬度 Lat（0=不在地图上显示）' },
   { key: 'lon', type: 'num', label: '经度 Lon' },
   { key: 'note', type: 'bi', label: '备注 Note' },

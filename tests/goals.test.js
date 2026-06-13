@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { describe, it } from 'vitest'
-import { SITE, TEXTS } from '../src/data.js'
+import { MODULES, SITE, TEXTS } from '../src/data.js'
 import { EXPORTABLE_SECTIONS } from '../src/components/editor/schema.js'
 import { GOAL_PRESETS, resolveGoalSelection } from '../src/components/editor/goals.js'
 
@@ -65,6 +65,9 @@ describe('goal presets', () => {
 
     assert.equal(minimal.works.layout, 'feature')
     assert.equal(minimal.library.enabled, false)
+    assert.equal(MODULES.journey.enabled, false)
+    assert.equal(MODULES.journey.nav, false)
+    assert.equal(journal.journey.enabled, true)
     assert.equal(journal.library.enabled, true)
     assert.equal(journal.library.layout, 'feature')
     assert.equal(studio.photography.enabled, true)

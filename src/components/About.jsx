@@ -3,6 +3,7 @@ import { useLang } from '../lang.jsx'
 import { useData } from '../data-context.jsx'
 import { emph } from '../hooks.jsx'
 import { responsiveImageAttributes } from '../lib/images.js'
+import MobileDisclosure from './MobileDisclosure.jsx'
 
 export default function About({ layout = 'default', onOpenCV }) {
   const { lang, t } = useLang()
@@ -94,21 +95,27 @@ export default function About({ layout = 'default', onOpenCV }) {
             ))}
           </div>
 
-          {blocks.map(b => (
-            <div className="cv-block" key={b.key}>
-              <h3>{b.title}</h3>
-              {cv[b.key].map((e, i) => (
-                <div className="cv-entry" key={i}>
-                  <span className="year">{e.year}</span>
-                  <div className="body">
-                    <h4>{emph(t(e.title))}</h4>
-                    <p>{emph(t(e.role))}</p>
+          <MobileDisclosure
+            className="about-cv-disclosure"
+            collapsedHeight={620}
+            storageId="about-cv"
+          >
+            {blocks.map(b => (
+              <div className="cv-block" key={b.key}>
+                <h3>{b.title}</h3>
+                {cv[b.key].map((e, i) => (
+                  <div className="cv-entry" key={i}>
+                    <span className="year">{e.year}</span>
+                    <div className="body">
+                      <h4>{emph(t(e.title))}</h4>
+                      <p>{emph(t(e.role))}</p>
+                    </div>
+                    <span className="place">{t(e.place)}</span>
                   </div>
-                  <span className="place">{t(e.place)}</span>
-                </div>
-              ))}
-            </div>
-          ))}
+                ))}
+              </div>
+            ))}
+          </MobileDisclosure>
         </div>
       </div>
     </section>

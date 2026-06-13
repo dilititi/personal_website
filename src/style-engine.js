@@ -179,6 +179,7 @@ export function deriveStyleVars(style) {
 
   const easing = EASINGS[motion.easing] || EASINGS.easeOut
   const duration = clamp(motion.duration ?? 280, 80, 800)
+  const motifIntensity = clamp(motion.scrollIntensity ?? 0.4)
   const grain = clamp(texture.grain ?? 0.09, 0, 0.32)
   const imageSaturation = clamp(texture.imageSaturation ?? 1, 0.4, 1.8)
   const imageContrast = clamp(texture.imageContrast ?? 1, 0.7, 1.5)
@@ -244,6 +245,7 @@ export function deriveStyleVars(style) {
     '--ease-out': easing.out,
     '--ease-in-out': easing.inOut,
     '--style-motion-duration': `${Math.round(duration)}ms`,
+    '--style-motif-intensity': motifIntensity.toFixed(2),
     '--style-grain-opacity': grain.toFixed(2),
     '--style-shadow-card': `0 ${cardShadowY}px ${cardShadowBlur}px ${cardShadowSpread}px ${rgba('#000000', shadowAlpha)}, inset 0 1px 0 ${rgba('#ffffff', highlightAlpha)}`,
     '--style-shadow-soft': `0 ${softShadowY}px ${softShadowBlur}px ${rgba('#000000', softShadowAlpha)}`,
