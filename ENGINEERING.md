@@ -115,7 +115,7 @@ SEO 文案的唯一来源是 `src/lib/seo.js#buildSeo(SITE, lang)`，规范根 U
 - 构建必须生成 `/`、`/en/`、`/zh/`；语言路径的首帧语言、canonical、hreflang 与 hydrate 输入必须一致。
 - SSR 期不得读取 DOM、时间动态值或浏览器存储；内容/风格/播放器状态统一在 hydration 后恢复。
 - `src/prerender.jsx` 与 React server renderer 仅供构建使用，最终 `dist/assets` 不得残留 browser-reachable prerender/server chunk。
-- 上线后必须运行 `npm run check:deploy`：HTML 要 revalidate，`/assets/*` 要具备一年 `max-age` 与 `immutable`；bot/head/robots/sitemap 检查不得被构建期测试替代。
+- 上线后必须运行 `npm run check:deploy`：HTML 要 revalidate，`/assets/*` 要具备一年 `max-age` 与 `immutable`；bot/head/robots/sitemap 检查不得被构建期测试替代。构建必须输出 `build-commit` meta，严格部署检查默认与当前 Git HEAD 比较，避免旧部署被误判为通过；仅做站点健康检查时才可显式使用 `--skip-version`。
 
 ---
 

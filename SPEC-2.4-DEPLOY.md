@@ -99,7 +99,7 @@ https://dilititi.github.io/personal_website/
    - `/`、`/en/*`、`/zh/*`、`/*.html` → `Cache-Control: no-cache`
    - `/robots.txt`、`/sitemap.xml` → `Cache-Control: public, max-age=300`
 3. 手动触发一次 Clear build cache & deploy，避免旧 HTML 与新哈希资源混用。
-4. 运行 `npm run check:deploy`。只有严格模式通过，才能把缓存项标为完成。
+4. 运行 `npm run check:deploy`。严格模式除 SEO、缓存与资源外，还会读取 `build-commit` meta 并与当前 Git HEAD 比较；只有版本与缓存均通过，才能把部署项标为完成。若只诊断既有站点健康，可显式使用 `npm run check:deploy -- --skip-version`，但它不能作为发布验收证据。
 
 > `render.yaml` 不会自动接管一个原本由 Dashboard 创建的既有服务。不要为了读取 Blueprint 新建第二个同名生产站；要么在 Dashboard 同步规则，要么明确迁移为 Blueprint 后再删除旧服务。
 
