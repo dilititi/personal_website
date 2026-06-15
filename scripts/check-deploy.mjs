@@ -83,6 +83,13 @@ export function deploymentCommitMatches(actual, expected) {
   return deployed.startsWith(requested) || requested.startsWith(deployed)
 }
 
+export function hasPrerenderedLanding(html) {
+  const sections = String(html || '').match(/<section\b[^>]*>/gi) || []
+  return sections.some(
+    tag => /\bid=["']home["']/i.test(tag) && /\bclass=["'][^"']*\blanding(?:\s|["'])/i.test(tag),
+  )
+}
+
 export function resolveExpectedCommit(env = process.env) {
   for (const candidate of [env.DEPLOY_EXPECT_COMMIT, env.GITHUB_SHA]) {
     const commit = normalizeCommit(candidate)
@@ -108,7 +115,7 @@ function routeUrl(siteRoot, route) {
 
 function assertSeoRoute(html, expectedUrl, expectedImage, routeName, expectedCommit = '') {
   assert(/id=["']root["']/.test(html), `${routeName}: missing #root`)
-  assert(/landing-masthead/.test(html), `${routeName}: missing prerendered landing content`)
+  assert(hasPrerenderedLanding(html), `${routeName}: missing prerendered landing content`)
   if (expectedCommit) {
     const deployedCommit = metaContent(html, 'name', 'build-commit')
     assert(

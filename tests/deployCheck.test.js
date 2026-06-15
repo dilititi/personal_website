@@ -3,6 +3,7 @@ import { describe, it } from 'vitest'
 import {
   cacheDirectives,
   deploymentCommitMatches,
+  hasPrerenderedLanding,
   htmlMustRevalidate,
   linkHref,
   metaContent,
@@ -42,5 +43,20 @@ describe('deployment checker parsers', () => {
     assert.equal(deploymentCommitMatches(commit, 'abcdef1'), true)
     assert.equal(deploymentCommitMatches('', 'abcdef1'), false)
     assert.equal(deploymentCommitMatches(commit, '1234567'), false)
+  })
+
+  it('recognizes prerendered landing templates without coupling to a template class', () => {
+    assert.equal(
+      hasPrerenderedLanding(
+        '<section id="home" class="landing landing-template landing-minimal"></section>',
+      ),
+      true,
+    )
+    assert.equal(
+      hasPrerenderedLanding('<section class="landing landing-editorial" id="home"></section>'),
+      true,
+    )
+    assert.equal(hasPrerenderedLanding('<main id="home" class="landing"></main>'), false)
+    assert.equal(hasPrerenderedLanding('<section id="home" class="hero"></section>'), false)
   })
 })
