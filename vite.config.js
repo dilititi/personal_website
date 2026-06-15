@@ -2,6 +2,7 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import { vitePrerenderPlugin } from 'vite-prerender-plugin'
 import { writeFileSync, mkdirSync } from 'fs'
+import { execFileSync } from 'node:child_process'
 import { resolve } from 'path'
 import { SITE } from './src/data.js'
 import { buildSeo, SEO_DEFAULT_LANG, SEO_THEME_COLOR } from './src/lib/seo.js'
@@ -16,6 +17,34 @@ function escapeHtml(value) {
 
 function escapeXml(value) {
   return escapeHtml(value).replace(/'/g, '&apos;')
+}
+
+function normalizeCommit(value) {
+  const commit = String(value || '').trim()
+  return /^[0-9a-f]{7,64}$/i.test(commit) ? commit.toLowerCase() : ''
+}
+
+export function resolveBuildCommit(env = process.env) {
+  for (const candidate of [env.RENDER_GIT_COMMIT, env.GITHUB_SHA, env.VERCEL_GIT_COMMIT_SHA]) {
+    const commit = normalizeCommit(candidate)
+    if (commit) return commit
+  }
+
+  try {
+    return normalizeCommit(
+      execFileSync('git', ['rev-parse', 'HEAD'], {
+        cwd: process.cwd(),
+        encoding: 'utf8',
+        stdio: ['ignore', 'pipe', 'ignore'],
+      }),
+    )
+  } catch {
+    return 'unknown'
+  }
+}
+
+export function renderBuildMeta(commit = resolveBuildCommit()) {
+  return `<meta name="build-commit" content="${escapeHtml(commit)}">`
 }
 
 export function renderSeoHead(site = SITE, lang = SEO_DEFAULT_LANG) {
@@ -99,15 +128,16 @@ export function seoHtmlPlugin({ prerender = false } = {}) {
       }
     },
     transformIndexHtml(html) {
+      const versionedHtml = html.replace('<!-- build-meta -->', renderBuildMeta())
       if (command === 'build' && prerender) {
-        return html
+        return versionedHtml
           .replace(/\s*<meta\s+name=["']description["'][^>]*>/i, '')
           .replace(/\s*<meta\s+name=["']theme-color["'][^>]*>/i, '')
           .replace('<!-- seo-head -->', '')
       }
 
       const head = renderSeoHead()
-      return html
+      return versionedHtml
         .replace(/<title>[\s\S]*?<\/title>/i, head.title)
         .replace(/\s*<meta\s+name=["']description["'][^>]*>/i, '')
         .replace(/\s*<meta\s+name=["']theme-color["'][^>]*>/i, '')

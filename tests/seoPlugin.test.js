@@ -4,7 +4,9 @@ import { describe, it } from 'vitest'
 import {
   buildDiscoveryFiles,
   prerenderArtifactCleanupPlugin,
+  renderBuildMeta,
   renderSeoHead,
+  resolveBuildCommit,
 } from '../vite.config.js'
 
 const site = {
@@ -38,6 +40,14 @@ describe('SEO build plugin helpers', () => {
     assert.match(output.sitemap, /<loc>https:\/\/example\.com\/<\/loc>/)
     assert.match(output.sitemap, /<loc>https:\/\/example\.com\/en\/<\/loc>/)
     assert.match(output.sitemap, /<loc>https:\/\/example\.com\/zh\/<\/loc>/)
+  })
+
+  it('emits a build commit marker from hosting or CI metadata', () => {
+    const commit = 'a'.repeat(40)
+
+    assert.equal(resolveBuildCommit({ RENDER_GIT_COMMIT: commit }), commit)
+    assert.equal(resolveBuildCommit({ GITHUB_SHA: 'b'.repeat(40) }), 'b'.repeat(40))
+    assert.equal(renderBuildMeta(commit), `<meta name="build-commit" content="${commit}">`)
   })
 
   it('keeps empty-url discovery output valid without fake absolute URLs', () => {

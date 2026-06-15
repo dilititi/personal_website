@@ -166,6 +166,11 @@ async function run() {
       ].forEach(([route, html, languagePattern, bodyPattern]) => {
         assert.match(html, languagePattern, `${route} must contain its static language.`)
         assert.match(html, bodyPattern, `${route} must contain prerendered body copy.`)
+        assert.match(
+          html,
+          /<meta name="build-commit" content="[0-9a-f]{40}">/,
+          `${route} must expose the build commit marker.`,
+        )
         assert.doesNotMatch(html, /undefined/, `${route} must not emit undefined values.`)
       })
     }

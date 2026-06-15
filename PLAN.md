@@ -6,26 +6,26 @@
 
 ## 当前进度（2026-06-13）
 
-| 项目                      | 状态      | 当前证据 / 下一步                                                                                               |
-| ------------------------- | --------- | --------------------------------------------------------------------------------------------------------------- |
-| 1.1 Section 单一事实源    | ✅ 已完成 | `SECTION_KEYS` 已删除；编辑器清单来自 `EXPORTABLE_SECTIONS`，运行时数据由 `section-registry.js` 派生            |
-| 1.2 Provider / 持久化去重 | ✅ 已完成 | `persist.js`、`modules.js` 已共享；StrictMode、失败写入、reset 语义有单测和 UI smoke                            |
-| 1.3 测试 + CI             | ✅ 已完成 | Vitest 覆盖 27 个文件 / 135 项测试；CDP smoke 覆盖开发态与生产预渲染态                                          |
-| 1.4 ESLint + Prettier     | ✅ 已完成 | `lint`、`format:check` 已进入 package scripts 与 CI                                                             |
-| 1.5 迁移垫片退场策略      | ✅ 已确定 | 旧 key 只读迁移，成功进入统一状态后清理；代码标记 2026-12-31 后删除                                             |
-| 2.1a SEO 元数据           | ✅ 已完成 | 静态/运行时 head、`SITE.url`、OG/Twitter、robots/sitemap 与 SEO 测试已落地                                      |
-| 2.1b 预渲染 / SSG         | ✅ 已完成 | `/`、`/en/`、`/zh/` 静态正文、hydrate、hreflang 契约与 production CDP smoke 已落地                              |
-| 2.2 编辑器懒加载          | ✅ 已完成 | `ContentEditor` / `StyleEditor` 使用 `React.lazy`；构建产出两个编辑器独立 chunk                                 |
-| 首次载入滚动位置          | ✅ 已修复 | 无 hash 的载入 / 刷新禁用浏览器滚动恢复并回到 `landing-masthead`；浏览器 smoke 已覆盖                           |
-| GitHub Actions            | ✅ 已完成 | `.github/workflows/ci.yml` 已执行 install → lint → test → build → check:dist → format                           |
-| 2.4 部署上线              | 🟡 收尾中 | Render 已上线；独立 OG 图、缓存配置与 deploy checker 已落地，待部署后外部平台/GSC 验收                          |
-| 3A.1 内容 / 风格发布      | 🟡 待外验 | GitHub Contents API、精确 export 替换、token 安全边界、贯通 mock 与编辑器发布 UI 已落地；待真实 PAT commit 验收 |
-| 3A.2 生产媒体上传         | 🟡 待外验 | `FileField` 可在生产提交响应式媒体到仓库 `public/`；mock 已覆盖创建/冲突重试，待真实图片提交                    |
-| 4.P0 空白起点             | ✅ 已完成 | W0-a：保留 `data.js` 示例；Start 可原子应用完整空白 overrides，身份字段不再泄漏 Chen 默认值                     |
-| 4.P1 Goal Picker          | ✅ 已完成 | 四个目标复用既有内容/风格预设；内容、模块与风格同步应用，目标映射有纯函数单测                                   |
-| 4.P2 部署前审计           | ✅ 已完成 | Audit 面板定位错误/警告；占位符和大体积媒体阻断发布；public 路径与 production smoke 继续复用                    |
-| 4.UX1 首轮用户反馈        | ✅ 已收口 | 5 位用户反馈已转化为单页风格工作台、渐进引导、区块就地编辑、3 种结构模板与 3 套 Landing 构图                    |
-| 4.UX2 主题动作 / 移动收放 | ✅ 已实现 | 5 种 motif、实时预览桥、3 套差异化 Landing 及可记忆的移动端局部展开已落地，待用户复测                           |
+| 项目                      | 状态        | 当前证据 / 下一步                                                                                               |
+| ------------------------- | ----------- | --------------------------------------------------------------------------------------------------------------- |
+| 1.1 Section 单一事实源    | ✅ 已完成   | `SECTION_KEYS` 已删除；编辑器清单来自 `EXPORTABLE_SECTIONS`，运行时数据由 `section-registry.js` 派生            |
+| 1.2 Provider / 持久化去重 | ✅ 已完成   | `persist.js`、`modules.js` 已共享；StrictMode、失败写入、reset 语义有单测和 UI smoke                            |
+| 1.3 测试 + CI             | ✅ 已完成   | Vitest 覆盖 27 个文件 / 135 项测试；CDP smoke 覆盖开发态与生产预渲染态                                          |
+| 1.4 ESLint + Prettier     | ✅ 已完成   | `lint`、`format:check` 已进入 package scripts 与 CI                                                             |
+| 1.5 迁移垫片退场策略      | ✅ 已确定   | 旧 key 只读迁移，成功进入统一状态后清理；代码标记 2026-12-31 后删除                                             |
+| 2.1a SEO 元数据           | ✅ 已完成   | 静态/运行时 head、`SITE.url`、OG/Twitter、robots/sitemap 与 SEO 测试已落地                                      |
+| 2.1b 预渲染 / SSG         | ✅ 已完成   | `/`、`/en/`、`/zh/` 静态正文、hydrate、hreflang 契约与 production CDP smoke 已落地                              |
+| 2.2 编辑器懒加载          | ✅ 已完成   | `ContentEditor` / `StyleEditor` 使用 `React.lazy`；构建产出两个编辑器独立 chunk                                 |
+| 首次载入滚动位置          | ✅ 已修复   | 无 hash 的载入 / 刷新禁用浏览器滚动恢复并回到 `landing-masthead`；浏览器 smoke 已覆盖                           |
+| GitHub Actions            | ✅ 已完成   | `.github/workflows/ci.yml` 已执行 install → lint → test → build → check:dist → format                           |
+| 2.4 部署上线              | 🟡 阻塞外验 | PR #4 已合并，但线上仍是旧构建且 assets 未应用 immutable；需在 Render 同步 Headers、触发 main 部署后严格验收    |
+| 3A.1 内容 / 风格发布      | 🟡 待外验   | GitHub Contents API、精确 export 替换、token 安全边界、贯通 mock 与编辑器发布 UI 已落地；待真实 PAT commit 验收 |
+| 3A.2 生产媒体上传         | 🟡 待外验   | `FileField` 可在生产提交响应式媒体到仓库 `public/`；mock 已覆盖创建/冲突重试，待真实图片提交                    |
+| 4.P0 空白起点             | ✅ 已完成   | W0-a：保留 `data.js` 示例；Start 可原子应用完整空白 overrides，身份字段不再泄漏 Chen 默认值                     |
+| 4.P1 Goal Picker          | ✅ 已完成   | 四个目标复用既有内容/风格预设；内容、模块与风格同步应用，目标映射有纯函数单测                                   |
+| 4.P2 部署前审计           | ✅ 已完成   | Audit 面板定位错误/警告；占位符和大体积媒体阻断发布；public 路径与 production smoke 继续复用                    |
+| 4.UX1 首轮用户反馈        | ✅ 已收口   | 5 位用户反馈已转化为单页风格工作台、渐进引导、区块就地编辑、3 种结构模板与 3 套 Landing 构图                    |
+| 4.UX2 主题动作 / 移动收放 | ✅ 已实现   | 5 种 motif、实时预览桥、3 套差异化 Landing 及可记忆的移动端局部展开已落地，待用户复测                           |
 
 > **2026-06-08 · Phase 2 收口于 `codex/perf-font-a1`**：该分支是 `codex/perf-images-a11y`（图片 B3 + 无障碍）的线性超集，再叠加字体 A1，因此合并进单一 PR，旧 PR 关闭。
 >
@@ -145,7 +145,7 @@
 
 - ✅ **已上线**：<https://personal-website-x3u4.onrender.com>（Render **Static Site**，`base='/'` 根域）；三条预渲染路由、canonical、hreflang、robots 与 sitemap 已在线核对。
 - ✅ **仓库侧已完成**：`SITE.ogImage` 与 `portrait` 分离；原创 `public/og-cover.jpg` 为 1200×630；补齐社交图片尺寸/alt；`render.yaml` 固化缓存规则；`npm run check:deploy` 模拟四类 bot 并检查线上缓存。
-- ⏳ **待新版部署**：既有 Render 服务若非 Blueprint 管理，需在 Dashboard 同步 `render.yaml` 的 Headers，重新部署后让 `npm run check:deploy` 严格模式通过。
+- ⏳ **待新版部署（2026-06-13 实测）**：PR #4 已合并为 `556e931`，但线上 HTML 尚无 `build-commit` 标记，且 `/assets/*` 仍返回 `max-age=0` 而非一年 `immutable`。既有 Render 服务若非 Blueprint 管理，需在 Dashboard 同步 `render.yaml` 的 Headers，并手动触发 Clear build cache & deploy。新版 checker 默认与当前 Git HEAD 比较，旧部署不再可能误判通过。
 - ⏳ **账号侧待验收**：Facebook / X / LinkedIn 重新抓取；Search Console URL-prefix 验证并提交 sitemap。验证 token 可填 `SITE.googleSiteVerification`。
 - **关键约束**：保持 `base='/'`；避免 GitHub Pages 项目站子路径（会打断 `data.js` 里的 `/picture` 等绝对媒体路径，见 spec §4）。
 
@@ -238,7 +238,7 @@
 
 下一步建议顺序：
 
-1. **完成 Phase 2.4 外部验收**：部署独立 OG 图和缓存规则，跑 `check:deploy`，刷新三家社交平台卡片，完成 Search Console 验证与 sitemap 提交。
+1. **完成 Phase 2.4 外部验收**：在 Render 同步 `render.yaml` Headers 并部署 `main@556e931`（或更新提交），严格运行 `check:deploy`；通过后再刷新三家社交平台卡片并完成 Search Console 验证与 sitemap 提交。
 2. **Phase 3 外部验收**：用最小权限 PAT 提交一处测试文案和一张测试图片，确认 GitHub diff、Render 重建与线上资源。
 3. **Phase 4 任务制复测**：执行 [`PHASE4-USER-RETEST.md`](./PHASE4-USER-RETEST.md)，覆盖 5 人、3 种模板和至少 2 位移动端用户；重点验证 motif 辨识度与移动端展开入口。
 4. 根据复测证据决定是否启动 P3 Prompt Builder；不预做 iframe、后端代理或任意组件生成。
