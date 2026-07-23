@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 import { spawn } from 'node:child_process'
 import { existsSync } from 'node:fs'
-import { mkdtemp, readdir, rm } from 'node:fs/promises'
+import { mkdtemp, readFile, readdir, rm } from 'node:fs/promises'
 import net from 'node:net'
 import os from 'node:os'
 import path from 'node:path'
@@ -627,6 +627,14 @@ async function run() {
       'content unsaved status',
       5000,
     )
+    await click('.ce-header-actions button', 'data.js')
+    await waitForDownload('data.generated.js')
+    assert.match(
+      await readFile(path.join(downloadDir, 'data.generated.js'), 'utf8'),
+      /UI Smoke Unsaved/,
+      'Immediate data.js export must include the active unsaved working value.',
+    )
+    await rm(path.join(downloadDir, 'data.generated.js'))
     await evaluate(`(() => {
       Storage.prototype.setItem = window.__uiSmokeOriginalSetItem
       delete window.__uiSmokeOriginalSetItem

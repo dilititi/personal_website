@@ -1,4 +1,5 @@
 import { pick } from '../../data.js'
+import { MODULE_MANIFEST } from '../../lib/module-manifest.js'
 
 const journeyItem = [
   { key: 'id', type: 'num', label: 'ID' },
@@ -18,10 +19,15 @@ const journeyItem = [
 ]
 
 const workItem = [
-  { key: 'id', type: 'str', label: 'ID' },
-  { key: 'title', type: 'bi', label: '标题 Title' },
+  { key: 'id', type: 'str', label: 'ID', required: true },
+  { key: 'title', type: 'bi', label: '标题 Title', required: true },
   { key: 'subtitle', type: 'bi', label: '副标题 Subtitle' },
-  { key: 'medium', type: 'str', label: '媒介 Medium（要跟 Works.jsx 的 WORK_MEDIA 对得上）' },
+  {
+    key: 'medium',
+    type: 'str',
+    label: '媒介 Medium（要跟 Works.jsx 的 WORK_MEDIA 对得上）',
+    required: true,
+  },
   { key: 'role', type: 'bi', label: '角色 Role' },
   { key: 'year', type: 'str', label: '年份 Year' },
   { key: 'cover', type: 'str', label: 'CSS 封面 class（cover-1..4，作为图片缺失时的兜底）' },
@@ -32,11 +38,12 @@ const workItem = [
     label: '封面图片（点 📁 选本地图 → 一键写入 public/works/）',
   },
   { key: 'summary', type: 'bi-text', label: '简介 Summary' },
-  { key: 'tags', type: 'str-arr', label: '标签 Tags' },
+  { key: 'tags', type: 'str-arr', label: '标签 Tags', required: true },
   {
     key: 'field',
     type: 'obj',
     label: '元信息 Field',
+    required: true,
     fields: [
       { key: 'year', type: 'str', label: '年' },
       { key: 'format', type: 'bi', label: '格式' },
@@ -50,6 +57,7 @@ const workItem = [
     key: 'body',
     type: 'obj-arr',
     label: '正文段落 Body',
+    required: true,
     titleFor: (b, i) => `段落 ${i + 1}`,
     itemSchema: { type: 'bi-text-bare' }, // each item is itself a bilingual string
   },
@@ -178,18 +186,9 @@ const moduleField = (key, label) => ({
   fields: moduleConfigFields,
 })
 
-export const MODULES_SCHEMA = [
-  moduleField('about', 'About · 个人简介 + CV 入口'),
-  moduleField('journey', 'Journey · 时间线 / 自传影格'),
-  moduleField('works', 'Works · 作品集'),
-  moduleField('library', 'Library · 书 / 影 / 音 / Reading Log'),
-  moduleField('photography', 'Photography · 接触印相 + 灯箱'),
-  moduleField('travel', 'Travel · 地图 + 城市列表'),
-  moduleField('contact', 'Contact · 状态板 + 邮箱'),
-  moduleField('colophon', 'Colophon · 落款 / 字体说明'),
-  moduleField('cvButton', 'About sidebar · Full CV 按钮'),
-  moduleField('nowPlaying', 'NowPlaying · 右下角播放器'),
-]
+export const MODULES_SCHEMA = MODULE_MANIFEST.map(module =>
+  moduleField(module.id, module.editorLabel),
+)
 
 export const SECTIONS = [
   // ─── 顶部：自动填充入口 + 模块开关 ───
@@ -208,11 +207,12 @@ export const SECTIONS = [
   },
   {
     key: 'NAV',
-    label: 'NAV · 章节导航',
+    label: 'NAV · 首页导航',
     type: 'array',
     itemSchema: navItem,
     titleFor: (e, _, lang) => `${e.num} ${pick(e.label, lang)}`,
     group: '基础设置',
+    hint: '这里只编辑首页入口；其余章节名称、显示与排序统一由 MODULES 控制。',
   },
   {
     key: 'NOW_PLAYING',

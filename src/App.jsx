@@ -5,6 +5,7 @@ import { DataProvider, useData } from './data-context.jsx'
 import { StyleProvider } from './style-context.jsx'
 import { useReveal } from './hooks.jsx'
 import { useDocumentHead } from './lib/useDocumentHead.js'
+import { PAGE_MODULE_MANIFEST } from './lib/module-manifest.js'
 import NavShell from './components/NavShell.jsx'
 import Landing from './components/Landing.jsx'
 import About from './components/About.jsx'
@@ -121,68 +122,28 @@ function AppInner({ prerendered = false }) {
     setStyleEditorOpen(true)
   }, [])
 
-  const sections = useMemo(
-    () =>
-      [
-        {
-          key: 'about',
-          editorKey: 'ABOUT',
-          quickKey: 'ABOUT',
-          render: layout => <About layout={layout} onOpenCV={() => setCvOpen(true)} />,
-        },
-        {
-          key: 'journey',
-          editorKey: 'JOURNEY',
-          quickKey: 'JOURNEY',
-          render: layout => <Journey layout={layout} />,
-        },
-        {
-          key: 'works',
-          editorKey: 'WORKS',
-          quickKey: 'WORKS',
-          render: layout => <Works layout={layout} />,
-        },
-        {
-          key: 'library',
-          editorKey: 'BOOKS',
-          quickKey: 'BOOKS',
-          render: layout => <Library layout={layout} />,
-        },
-        {
-          key: 'photography',
-          editorKey: 'PHOTOS',
-          quickKey: 'PHOTOS',
-          render: layout => <Photography layout={layout} />,
-        },
-        {
-          key: 'travel',
-          editorKey: 'TRAVEL',
-          quickKey: 'TRAVEL',
-          render: layout => <Travel layout={layout} />,
-        },
-        {
-          key: 'contact',
-          editorKey: 'TEXTS',
-          quickKey: 'CONTACT',
-          render: layout => <Contact layout={layout} />,
-        },
-        {
-          key: 'colophon',
-          editorKey: 'TEXTS',
-          quickKey: 'COLOPHON',
-          render: layout => <Colophon layout={layout} />,
-        },
-        {
-          key: 'nowPlaying',
-          editorKey: 'NOW_PLAYING',
-          quickKey: 'NOW_PLAYING',
-          render: layout => <NowPlaying layout={layout} prerendered={prerendered} />,
-        },
-      ]
-        .filter(section => isModuleEnabled(section.key))
-        .sort((a, b) => (getModuleConfig(a.key).order ?? 0) - (getModuleConfig(b.key).order ?? 0)),
-    [getModuleConfig, isModuleEnabled, prerendered],
-  )
+  const sections = useMemo(() => {
+    const renderers = {
+      about: layout => <About layout={layout} onOpenCV={() => setCvOpen(true)} />,
+      journey: layout => <Journey layout={layout} />,
+      works: layout => <Works layout={layout} />,
+      library: layout => <Library layout={layout} />,
+      photography: layout => <Photography layout={layout} />,
+      travel: layout => <Travel layout={layout} />,
+      contact: layout => <Contact layout={layout} />,
+      colophon: layout => <Colophon layout={layout} />,
+      nowPlaying: layout => <NowPlaying layout={layout} prerendered={prerendered} />,
+    }
+
+    return PAGE_MODULE_MANIFEST.map(module => ({
+      key: module.id,
+      editorKey: module.editorKey,
+      quickKey: module.quickKey,
+      render: renderers[module.id],
+    }))
+      .filter(section => isModuleEnabled(section.key))
+      .sort((a, b) => (getModuleConfig(a.key).order ?? 0) - (getModuleConfig(b.key).order ?? 0))
+  }, [getModuleConfig, isModuleEnabled, prerendered])
   const renderedSections = prerendered && !hydrationComplete ? sections.slice(0, 1) : sections
 
   return (

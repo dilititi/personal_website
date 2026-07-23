@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useCallback, useEffect } from 'react'
-import { NOW_PLAYING } from './data.js'
+import { useData } from './data-context.jsx'
 
 const NPContext = createContext(null)
 const DEFAULT_SOURCE = 'spotify'
@@ -18,7 +18,14 @@ export function useNP() {
   return useContext(NPContext)
 }
 
+export function firstUploadTrackIndex(nowPlaying, uploads) {
+  const bundledCount = Array.isArray(nowPlaying?.html5) ? nowPlaying.html5.length : 0
+  const uploadCount = Array.isArray(uploads) ? uploads.length : 0
+  return bundledCount + uploadCount
+}
+
 export function NowPlayingProvider({ children, prerendered = false }) {
+  const { NOW_PLAYING } = useData()
   const [active, setActive] = useState(null)
   const [uploads, setUploads] = useState([])
   const [source, setSource] = useState(() => (prerendered ? DEFAULT_SOURCE : readSource()))
@@ -68,7 +75,7 @@ export function NowPlayingProvider({ children, prerendered = false }) {
         url: URL.createObjectURL(f),
       }))
       // Position of the first NEW upload in the merged list = bundled length + current uploads length.
-      const firstNewIdx = (NOW_PLAYING.html5?.length || 0) + uploads.length
+      const firstNewIdx = firstUploadTrackIndex(NOW_PLAYING, uploads)
       setUploads(prev => [...prev, ...items])
       setTrackIdx(prev => ({ ...prev, html5: firstNewIdx }))
       if (opts.autoplay !== false && items[0]) {
@@ -84,7 +91,7 @@ export function NowPlayingProvider({ children, prerendered = false }) {
       }
       return items
     },
-    [uploads],
+    [NOW_PLAYING, uploads],
   )
 
   const removeUpload = useCallback(

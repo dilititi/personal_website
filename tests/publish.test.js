@@ -66,7 +66,17 @@ ${CONTENT_END}`
   it('refuses a large inline data URL before making network checks', async () => {
     const data = {
       ...createSectionRegistry(dataExports),
-      WORKS: [{ coverImg: `data:image/png;base64,${'a'.repeat(160_000)}` }],
+      WORKS: [
+        {
+          id: 'inline-media',
+          title: { en: 'Inline media', zh: '内联媒体' },
+          medium: 'web',
+          tags: [],
+          field: {},
+          body: [],
+          coverImg: `data:image/png;base64,${'a'.repeat(160_000)}`,
+        },
+      ],
     }
     await assert.rejects(() => validateContentPublication(data, {}, 'main'), /embedded data URL/)
   })

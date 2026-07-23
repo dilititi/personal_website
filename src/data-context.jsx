@@ -19,7 +19,7 @@ export function useData() {
 }
 
 export function DataProvider({ children, prerendered = false }) {
-  const [overrides, setOverrides, { storageError, lastSaved, isDirty, reset }] =
+  const [overrides, setOverrides, { storageError, lastSaved, isDirty, isRestored, reset }] =
     useLocalStorageState(STORAGE_KEY, LAST_SAVED_KEY, {
       init: () => (prerendered ? {} : readJSON(STORAGE_KEY, {})),
       loadOnMount: prerendered ? () => readJSON(STORAGE_KEY, {}) : undefined,
@@ -87,6 +87,7 @@ export function DataProvider({ children, prerendered = false }) {
       storageError,
       lastSaved,
       isDirty,
+      isRestored,
 
       // Mutation methods used by the editor
       overrides,
@@ -111,6 +112,7 @@ export function DataProvider({ children, prerendered = false }) {
       storageError,
       lastSaved,
       isDirty,
+      isRestored,
       setSection,
       resetSection,
       resetAll,

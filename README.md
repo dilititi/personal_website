@@ -70,13 +70,14 @@ export const ABOUT = {
     ├── style-context.jsx     # 把风格应用到文档
     ├── lang.jsx              # 语言切换上下文
     ├── np-context.jsx        # Now Playing 播放器状态
+    ├── lib/                  # 持久化、模块 manifest、SEO、发布与图片工具
     ├── hooks.jsx  utils.js
     ├── styles.css  styles/   # 全局样式（base / layout / sections / style-runtime / editors）
     └── components/
         ├── NavShell  Landing  About  Journey  Works  Library
         ├── Photography  Travel  Contact  Colophon  NowPlaying  CVModal  Overlays
         ├── ContentEditor  StyleEditor
-        └── editor/           # goals · siteTemplates · inlineQuickEdit · audit · schema · export · validation · presets · fields/
+        └── editor/           # SectionEditor · contentDraft · files · goals · templates · audit · schema · validation · fields/
 ```
 
 ## 从编辑器发布
@@ -92,7 +93,7 @@ export const ABOUT = {
 
 `npm run build` 产出 `dist/`，是完整的静态站点，可部署到任意静态托管平台。
 
-构建会生成 `/`、`/en/`、`/zh/` 三份可索引 HTML，并在浏览器中 hydrate 为完整交互站点。部署平台需保留目录式静态路由（即 `en/index.html`、`zh/index.html`）；上线前可运行 `npm run test:ui:preview` 检查生产产物。
+构建会生成 `/`、`/en/`、`/zh/` 三份可索引 HTML，并在浏览器中 hydrate 为完整交互站点。部署平台需保留目录式静态路由（即 `en/index.html`、`zh/index.html`）；上线前运行 `npm run check:security`、`npm run build`、`npm run check:dist` 与 `npm run test:ui:preview`。
 
 部署前在内容编辑器的 SITE 中填写「站点 URL」与「社交分享图」，或直接设置 `src/data.js#SITE.url` / `SITE.ogImage`。canonical、Open Graph、`robots.txt` 与 `sitemap.xml` 都从这里生成；`portrait` 只负责页面肖像，不再兼任横版社交卡片。
 

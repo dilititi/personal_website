@@ -2,6 +2,7 @@ import React from 'react'
 import { useLang } from '../lang.jsx'
 import { useData } from '../data-context.jsx'
 import { useActiveSection } from '../hooks.jsx'
+import { buildNavigationItems } from '../lib/modules.js'
 
 function LangToggle() {
   const { lang, setLang } = useLang()
@@ -27,26 +28,8 @@ function isStylePreviewSurface() {
 
 function BottomStrip({ activeId, onJump }) {
   const { t } = useLang()
-  const { NAV, MODULES, getModuleConfig, isModuleInNav } = useData()
-  const home = NAV.find(n => n.id === 'home') || {
-    num: '00',
-    id: 'home',
-    label: { en: 'Home', zh: '首页' },
-  }
-  const visible = [
-    home,
-    ...Object.keys(MODULES || {})
-      .filter(id => isModuleInNav(id))
-      .sort((a, b) => (getModuleConfig(a).order ?? 0) - (getModuleConfig(b).order ?? 0))
-      .map(id => {
-        const config = getModuleConfig(id)
-        return {
-          id,
-          num: String(config.order ?? 0).padStart(2, '0'),
-          label: config.label,
-        }
-      }),
-  ]
+  const { NAV, MODULES } = useData()
+  const visible = buildNavigationItems(MODULES, NAV)
   return (
     <nav
       className="bottom-strip"
@@ -114,13 +97,8 @@ function TopBar({ onJump, onOpenEditor, onOpenStyleEditor }) {
 }
 
 export default function NavShell({ onJump, onOpenEditor, onOpenStyleEditor }) {
-  const { MODULES, getModuleConfig, isModuleInNav } = useData()
-  const navIds = [
-    'home',
-    ...Object.keys(MODULES || {})
-      .filter(id => isModuleInNav(id))
-      .sort((a, b) => (getModuleConfig(a).order ?? 0) - (getModuleConfig(b).order ?? 0)),
-  ]
+  const { NAV, MODULES } = useData()
+  const navIds = buildNavigationItems(MODULES, NAV).map(item => item.id)
   const active = useActiveSection(navIds)
   return (
     <>

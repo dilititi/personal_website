@@ -35,7 +35,7 @@
 - 只改一边 = 缺陷（编辑器与数据会静默漂移）。
 - 新增字段：先在 `schema.js` 的对应 itemSchema 里声明类型，再在 `data.js` 给出默认值；`validation.js` 若需要也要覆盖。
 
-### INV-3 · Section registry 与编辑器清单
+### INV-3 · Section registry、模块 manifest 与编辑器清单
 
 运行时数据 registry 由 `lib/section-registry.js#createSectionRegistry(data.js exports)` 自动派生；编辑器可导出章节的唯一权威是 `schema.js#EXPORTABLE_SECTIONS`。
 
@@ -44,6 +44,7 @@
 - **`data.js` 中「全大写 + 非函数」的 export 就是运行时数据段。** 不得用大写名称导出版本号、元信息或常量（例如 `VERSION`）；这类辅助 export 必须使用小写名称，或在同一次改动里有意修改 registry 契约。
 - `tests/sectionRegistry.test.js` 固定当前大写数据 export 清单，并覆盖 `SITE` / `WORKS` / `READING_LOG` / `MODULES` 的解析 parity。新增或删除数据段时必须有意更新该测试。
 - 编辑器、校验和代码导出需要章节列表时，从 `EXPORTABLE_SECTIONS.map(s => s.key)` 派生。
+- 页面模块 ID、编辑目标与快速编辑目标的唯一清单是 `lib/module-manifest.js#MODULE_MANIFEST`；`App.jsx` 与 `MODULES_SCHEMA` 必须从它派生。新增模块时同步补 `data.js#MODULES`，并由 `tests/moduleManifest.test.js` 验证 parity。
 
 ### INV-4 · 双语契约
 
@@ -67,6 +68,7 @@
 - 现有键（勿与之冲突）：`chen.content.overrides`、`chen.content.lastSaved`、`chen.style.overrides`、`chen.style.lastSaved`、`chen.lang`、`chen.np.source`、`chen.ce.{mode,sideWidth,autosave}`、`chen.se.{mode,sideWidth}`、`chen.ui.mobileDisclosures`、`chen.content.preImport`、`chen.github.config`、`chen.github.token`；遗留待清理：`chen.readingLog.userEntries`、`chen.photos.userEntries`。
 - `chen.github.token` 默认只写入 sessionStorage；只有用户显式选择“记住”时才写入 localStorage。存储不可用时必须退化为当前组件内存态，不得阻断本次发布。
 - 两个遗留读取垫片只用于迁入统一内容存储，代码已标记在 **2026-12-31 后移除**；不得再向旧 key 写入新数据。
+- 预渲染页面会延迟恢复 localStorage。任何读取旧 key 并写入统一存储的迁移 effect 必须先检查 `DataProvider.isRestored`，不得与 deferred restore 并发写入。
 
 ### INV-7 · Provider 链与数据读取
 
@@ -81,7 +83,7 @@ Provider 顺序固定：`LangProvider → DataProvider → StyleProvider → Now
 - 任何需要服务端的能力必须：① 在静态构建里优雅降级，② 用 `import.meta.env.DEV`/`PROD` 或功能旗标判定。
 - 生产发布与媒体上传只允许从浏览器直连 `api.github.com`；不得把 PAT 注入构建产物或新增常驻后端。没有 token 时，`FileField` 仍可手填 public 路径，Copy / 下载流程仍可用。
 - `npm run check:dist` 是本不变量的自动化护栏：它必须在 `npm run build` 后扫描完整 `dist`，并在发现 `server.browser`、`server.edge` 或 `react-dom/server` 时失败。
-- `.github/workflows/ci.yml` 必须在 build 后执行 `check:dist`；不得把该 step 当作普通清理项删除。若构建架构确需改变，必须先更新 INV-8、检查脚本与对应测试，再调整 CI。
+- `.github/workflows/ci.yml` 必须执行 `check:security`，并在 build 后执行 `check:dist` 与 `test:ui:preview`；这些 step 是安全、纯静态与 hydration 契约的自动化护栏，不得当作普通清理项删除。
 - 涉及预渲染 / SSR / hydration 的变更，绿色基线固定为：`npm run lint && npm test && npm run build && npm run check:dist && npm run format:check`，随后运行 production preview 的 CDP smoke，并记录一次移动端 Lighthouse 结果用于防回退。
 
 ### INV-9 · 持久化即草稿；data.js 是事实源
@@ -89,6 +91,7 @@ Provider 顺序固定：`LangProvider → DataProvider → StyleProvider → Now
 站内编辑先存浏览器草稿，**不是权威**。权威是 `src/data.js` / `src/style.js`；“发布到 GitHub”只是把草稿提升为这两个事实源中的 commit。
 
 - 「导出代码」的唯一序列化器是 `export.js#exportLine`（输出 `L(en,zh)`）。❌ 不得再写第二个序列化器或合并函数。
+- ContentEditor 的复制、备份、`data.generated.js`、`site-config.json`、审计与发布必须共同消费 `contentDraft.js#buildContentDraft`；当前输入框中的值即使尚未经过 400ms 自动保存，也必须进入所有导出结果。
 - 发布器只可修改 `// <<< EDITOR:* START >>>` 与对应 END 之间的目标 export 声明；哨兵外以及未选择的声明、注释、空白必须保持不变。
 - token 默认 sessionStorage、显式选择后才 localStorage；发布内容必须拒绝任何 GitHub token 字样和大体积 data URL。
 - GitHub Contents API 遇到 409 只自动重取 SHA 并重试一次；继续失败必须反馈给用户，不能覆盖远端新内容。
@@ -246,7 +249,7 @@ Phase 4 模板上手契约：
 一次改动「完成」当且仅当：
 
 - [ ] `npm run build` 通过（环境不可用时：逐文件复读改动区，标注「未 build 验证」）。
-- [ ] `npm run lint`、`npm test`、`npm run build`、`npm run check:dist`、`npm run format:check` 全绿；涉及浏览器行为时跑 `npm run test:ui`，涉及 SSR/hydration 时追加 `npm run test:ui:preview` 与一次移动端 Lighthouse。
+- [ ] `npm run check:security`、`npm run lint`、`npm test`、`npm run build`、`npm run check:dist`、`npm run format:check` 全绿；涉及浏览器行为时跑 `npm run test:ui`，涉及 SSR/hydration 时追加 `npm run test:ui:preview` 与一次移动端 Lighthouse。
 - [ ] 未违反 §1 任一不变量。
 - [ ] 任何跨文件契约（schema↔data、CSS 变量、section 列表、cross-ref）两侧都已同步。
 - [ ] 新增面向访客文案是双语；做了防御式渲染。

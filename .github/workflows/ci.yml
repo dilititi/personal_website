@@ -14,8 +14,10 @@ jobs:
           node-version: '22'
           cache: 'npm'
       - run: npm ci
+      - run: npm run check:security
       - run: npm run lint
       - run: npm test
       - run: npm run build
       - run: npm run check:dist
+      - run: npm run test:ui:preview
       - run: npm run format:check

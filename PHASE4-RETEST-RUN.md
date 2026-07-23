@@ -1,12 +1,12 @@
 # Phase 4 UX2 · 五人复测执行表
 
-> 候选版本：`556e9312dbfd35235ee193775e4458367bdaf56b`（PR #4 合并到 `main`）
+> 候选版本：测试开始前填写当前已部署的完整 commit SHA，禁止沿用历史候选。
 >
 > 完整主持协议与任务文本见 [`PHASE4-USER-RETEST.md`](./PHASE4-USER-RETEST.md)。本文件只记录本轮结果，不复制规则。
 
 ## 环境确认
 
-- [ ] `npm run check:deploy -- --expect-commit 556e9312dbfd35235ee193775e4458367bdaf56b` 已通过；若 Render 尚未部署，改用该 SHA 的本地 production preview，不得测试旧线上版本。
+- [ ] `npm run check:deploy -- --expect-commit <完整 SHA>` 已通过；若尚未部署，改用同一 SHA 的本地 production preview，不得测试旧线上版本。
 - [ ] 每位参与者使用新的无痕窗口或已清空站点存储。
 - [ ] 页面从 Landing 顶部载入。
 - [ ] 三种模板均至少分配一人。

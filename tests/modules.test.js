@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { describe, it } from 'vitest'
-import { normalizeModuleConfig, resolveModules } from '../src/lib/modules.js'
+import { buildNavigationItems, normalizeModuleConfig, resolveModules } from '../src/lib/modules.js'
 
 const base = {
   enabled: true,
@@ -41,9 +41,31 @@ describe('normalizeModuleConfig', () => {
 })
 
 describe('resolveModules', () => {
-  it('normalizes every id from base and override', () => {
+  it('normalizes base ids and ignores override-only modules with no renderer', () => {
     const out = resolveModules({ about: base }, { about: false, extra: true })
     assert.equal(out.about.enabled, false)
-    assert.equal(out.extra.enabled, true)
+    assert.equal(out.extra, undefined)
+  })
+})
+
+describe('buildNavigationItems', () => {
+  it('uses module order for sorting but sequential ranks for visible labels', () => {
+    const modules = {
+      works: { ...base, order: 30, label: { en: 'Works', zh: '作品' } },
+      about: { ...base, order: 10, label: { en: 'About', zh: '关于' } },
+      hidden: { ...base, order: 20, nav: false },
+    }
+    const items = buildNavigationItems(modules, [
+      { id: 'home', num: '00', label: { en: 'Home', zh: '首页' } },
+    ])
+
+    assert.deepEqual(
+      items.map(item => [item.id, item.num]),
+      [
+        ['home', '00'],
+        ['about', '01'],
+        ['works', '02'],
+      ],
+    )
   })
 })

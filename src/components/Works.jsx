@@ -137,7 +137,7 @@ export default function Works({ layout = 'default' }) {
             <p className="work-summary">{t(w.summary)}</p>
             <div className="work-footer">
               <div className="tags">
-                {w.tags.map(tag => (
+                {(Array.isArray(w.tags) ? w.tags : []).map(tag => (
                   <span key={tag} className="tag">
                     {tag}
                   </span>
@@ -222,19 +222,19 @@ export default function Works({ layout = 'default' }) {
                 </h1>
                 <p className="lead">{t(open.summary)}</p>
                 <div className="prose">
-                  {open.body.map((p, i) => (
+                  {(Array.isArray(open.body) ? open.body : []).map((p, i) => (
                     <p key={i}>{t(p)}</p>
                   ))}
                 </div>
               </div>
               <aside className="work-modal-side">
                 {Object.entries({
-                  [lang === 'zh' ? '年份' : 'Year']: open.field.year,
-                  [lang === 'zh' ? '格式' : 'Format']: t(open.field.format),
-                  [lang === 'zh' ? '角色' : 'Role']: t(open.field.role),
-                  [lang === 'zh' ? '团队' : 'Crew']: t(open.field.crew),
-                  [lang === 'zh' ? '展映' : 'Festivals']: t(open.field.festivals),
-                  [lang === 'zh' ? '状态' : 'Status']: t(open.field.status),
+                  [lang === 'zh' ? '年份' : 'Year']: open.field?.year,
+                  [lang === 'zh' ? '格式' : 'Format']: t(open.field?.format),
+                  [lang === 'zh' ? '角色' : 'Role']: t(open.field?.role),
+                  [lang === 'zh' ? '团队' : 'Crew']: t(open.field?.crew),
+                  [lang === 'zh' ? '展映' : 'Festivals']: t(open.field?.festivals),
+                  [lang === 'zh' ? '状态' : 'Status']: t(open.field?.status),
                 }).map(([k, v]) => (
                   <div className="field" key={k}>
                     <h6>{k}</h6>

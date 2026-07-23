@@ -1,15 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react'
 import { useLang } from '../lang.jsx'
 import { useData } from '../data-context.jsx'
-import { pick } from '../data.js'
 import { useStyle } from '../style-context.jsx'
-import {
-  ABOUT_SCHEMA,
-  EXPORTABLE_SECTIONS,
-  MODULES_SCHEMA,
-  SECTIONS,
-  SITE_SCHEMA,
-} from './editor/schema.js'
+import { EXPORTABLE_SECTIONS, SECTIONS } from './editor/schema.js'
 import {
   exportAllWarning,
   exportLine,
@@ -17,322 +10,13 @@ import {
   findMissingPublicPaths,
   pathWarning,
 } from './editor/export.js'
-import { JsonEditor, ObjectArrayField, ObjectField } from './editor/fields/index.jsx'
-import { FIELD_TEMPLATES } from './editor/contentPresets.js'
-import ImportPanel from './editor/ImportPanel.jsx'
-import AuditPanel from './editor/AuditPanel.jsx'
 import PreviewFrame from './editor/PreviewFrame.jsx'
 import PublishPanel from './editor/PublishPanel.jsx'
+import SectionEditor from './editor/SectionEditor.jsx'
+import { buildContentDraft } from './editor/contentDraft.js'
+import { downloadJson, downloadText, formatLocalTimestamp } from './editor/files.js'
 import { publishContent } from '../lib/publish.js'
 import { auditSiteData, formatAuditError } from './editor/audit.js'
-
-function SectionEditor({ section, value, onChange, onTemplateApply }) {
-  const data = useData()
-  const { lang } = useLang()
-
-  if (section.type === 'import') {
-    return <ImportPanel />
-  }
-  if (section.type === 'audit') {
-    return <AuditPanel />
-  }
-  if (section.key === 'SITE') {
-    return (
-      <>
-        <SectionTemplateStrip
-          templates={FIELD_TEMPLATES.SITE}
-          onApply={(next, label) => {
-            onTemplateApply?.(label)
-            onChange(next)
-          }}
-        />
-        <ObjectField
-          value={value}
-          onChange={onChange}
-          fields={SITE_SCHEMA}
-          onTemplateApply={onTemplateApply}
-        />
-      </>
-    )
-  }
-  if (section.key === 'MODULES') {
-    return (
-      <>
-        <ModuleOrderPanel value={value} onChange={onChange} />
-        <ObjectField
-          value={value}
-          onChange={onChange}
-          fields={MODULES_SCHEMA}
-          onTemplateApply={onTemplateApply}
-        />
-      </>
-    )
-  }
-  if (section.key === 'ABOUT') {
-    return (
-      <>
-        <SectionTemplateStrip
-          templates={FIELD_TEMPLATES.ABOUT}
-          onApply={(next, label) => {
-            onTemplateApply?.(label)
-            onChange(next)
-          }}
-        />
-        <ObjectField
-          value={value}
-          onChange={onChange}
-          fields={ABOUT_SCHEMA}
-          onTemplateApply={onTemplateApply}
-        />
-      </>
-    )
-  }
-  if (section.type === 'photos') {
-    const seriesLabels = {}
-    ;(data.PHOTO_SERIES || []).forEach(s => {
-      if (s.id !== 'all') seriesLabels[s.id] = pick(s.label, lang)
-    })
-    return (
-      <ObjectArrayField
-        value={value}
-        onChange={onChange}
-        itemSchema={section.itemSchema}
-        titleFor={section.titleFor}
-        groupBy="series"
-        groupLabels={seriesLabels}
-        itemTemplates={FIELD_TEMPLATES[section.key] || []}
-        onTemplateApply={onTemplateApply}
-      />
-    )
-  }
-  if (section.type === 'array') {
-    return (
-      <ObjectArrayField
-        value={value}
-        onChange={onChange}
-        itemSchema={section.itemSchema}
-        titleFor={section.titleFor}
-        itemTemplates={FIELD_TEMPLATES[section.key] || []}
-        onTemplateApply={onTemplateApply}
-      />
-    )
-  }
-  if (section.type === 'now-playing') {
-    const v = value || { spotify: [], netease: [], html5: [] }
-    return (
-      <div className="ce-np-editor">
-        {['spotify', 'netease', 'html5'].map(src => (
-          <div key={src} className="ce-np-group">
-            <h4 className="ce-np-group-title">{src.toUpperCase()}</h4>
-            <ObjectArrayField
-              value={v[src] || []}
-              onChange={arr => onChange({ ...v, [src]: arr })}
-              itemSchema={section.itemSchema}
-              titleFor={e => (typeof e.track === 'object' ? e.track?.en : e.track) || '(empty)'}
-              itemTemplates={src === 'html5' ? FIELD_TEMPLATES.MUSIC || [] : []}
-              onTemplateApply={onTemplateApply}
-            />
-          </div>
-        ))}
-      </div>
-    )
-  }
-  if (section.type === 'raw') {
-    return (
-      <>
-        {section.hint && <p className="ce-hint">{section.hint}</p>}
-        <JsonEditor value={value} onChange={onChange} />
-      </>
-    )
-  }
-  return <p>未实现的章节类型：{section.type}</p>
-}
-
-function SectionTemplateStrip({ templates = [], onApply }) {
-  if (!templates.length) return null
-  return (
-    <div className="ce-field-template-row ce-section-template-row">
-      <span className="ce-field-template-label">预制模板</span>
-      {templates.map(template => (
-        <button
-          key={template.id}
-          type="button"
-          className="ce-field-template-btn"
-          onClick={() => {
-            if (!window.confirm(`应用「${template.label}」会覆盖当前字段内容，继续吗？`)) return
-            onApply(deepClone(template.value), template.label)
-          }}
-        >
-          {template.label}
-        </button>
-      ))}
-    </div>
-  )
-}
-
-function ModuleOrderPanel({ value, onChange }) {
-  const [draggingKey, setDraggingKey] = useState('')
-  const [dropKey, setDropKey] = useState('')
-  if (!value || typeof value !== 'object') return null
-
-  const rows = MODULES_SCHEMA.map((field, index) => {
-    const raw = value[field.key]
-    const config = raw && typeof raw === 'object' ? raw : { enabled: raw !== false }
-    return {
-      key: field.key,
-      label: field.label,
-      index,
-      config,
-      order: Number.isFinite(Number(config.order)) ? Number(config.order) : index + 1,
-    }
-  }).sort((a, b) => a.order - b.order || a.index - b.index)
-
-  const applyOrder = nextRows => {
-    const next = { ...value }
-    nextRows.forEach((row, index) => {
-      next[row.key] = {
-        ...(row.config || {}),
-        order: (index + 1) * 10,
-      }
-    })
-    onChange(next)
-  }
-
-  const move = (key, delta) => {
-    const current = rows.findIndex(row => row.key === key)
-    const target = current + delta
-    if (current < 0 || target < 0 || target >= rows.length) return
-    const nextRows = rows.slice()
-    const [item] = nextRows.splice(current, 1)
-    nextRows.splice(target, 0, item)
-    applyOrder(nextRows)
-  }
-
-  const moveBefore = (sourceKey, targetKey) => {
-    if (!sourceKey || !targetKey || sourceKey === targetKey) return
-    const sourceIndex = rows.findIndex(row => row.key === sourceKey)
-    const targetIndex = rows.findIndex(row => row.key === targetKey)
-    if (sourceIndex < 0 || targetIndex < 0) return
-    const nextRows = rows.slice()
-    const [item] = nextRows.splice(sourceIndex, 1)
-    const adjustedTarget = sourceIndex < targetIndex ? targetIndex - 1 : targetIndex
-    nextRows.splice(adjustedTarget, 0, item)
-    applyOrder(nextRows)
-  }
-
-  const finishDrag = () => {
-    setDraggingKey('')
-    setDropKey('')
-  }
-
-  return (
-    <div className="ce-module-order-panel">
-      <div className="ce-module-order-head">
-        <span>模块顺序</span>
-        <small>拖动左侧手柄，页面与导航会同步排序</small>
-      </div>
-      <div className="ce-module-order-list">
-        {rows.map((row, index) => (
-          <div
-            className={[
-              'ce-module-order-row',
-              draggingKey === row.key ? 'is-dragging' : '',
-              dropKey === row.key && draggingKey !== row.key ? 'is-drop-target' : '',
-            ]
-              .filter(Boolean)
-              .join(' ')}
-            key={row.key}
-            data-module-key={row.key}
-            draggable
-            onDragStart={event => {
-              setDraggingKey(row.key)
-              event.dataTransfer.effectAllowed = 'move'
-              event.dataTransfer.setData('text/plain', row.key)
-            }}
-            onDragOver={event => {
-              event.preventDefault()
-              event.dataTransfer.dropEffect = 'move'
-              setDropKey(row.key)
-            }}
-            onDragLeave={event => {
-              if (!event.currentTarget.contains(event.relatedTarget)) setDropKey('')
-            }}
-            onDrop={event => {
-              event.preventDefault()
-              moveBefore(event.dataTransfer.getData('text/plain') || draggingKey, row.key)
-              finishDrag()
-            }}
-            onDragEnd={finishDrag}
-          >
-            <span className="ce-module-order-handle" aria-hidden="true" title="拖动排序">
-              ⠿
-            </span>
-            <span className="ce-module-order-rank">{String(index + 1).padStart(2, '0')}</span>
-            <span className="ce-module-order-name">{row.label}</span>
-            <span className="ce-module-order-meta">
-              {row.config.enabled === false ? 'hidden' : 'enabled'}
-              {' · '}
-              {row.config.nav === false ? 'no nav' : 'nav'}
-              {' · '}
-              {row.config.layout || 'default'}
-            </span>
-            <div className="ce-module-order-actions">
-              <button
-                type="button"
-                className="ce-field-template-btn"
-                disabled={index === 0}
-                onClick={() => move(row.key, -1)}
-              >
-                ↑
-              </button>
-              <button
-                type="button"
-                className="ce-field-template-btn"
-                disabled={index === rows.length - 1}
-                onClick={() => move(row.key, 1)}
-              >
-                ↓
-              </button>
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  )
-}
-
-function formatLocalTs(ts) {
-  if (!ts) return ''
-  const d = new Date(ts)
-  const pad = n => String(n).padStart(2, '0')
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`
-}
-
-function downloadJson(filenameStem, payload) {
-  const text = typeof payload === 'string' ? payload : JSON.stringify(payload, null, 2)
-  const blob = new Blob([text], { type: 'application/json' })
-  const url = URL.createObjectURL(blob)
-  const stamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19)
-  const a = document.createElement('a')
-  a.href = url
-  a.download = `${filenameStem}-${stamp}.json`
-  document.body.appendChild(a)
-  a.click()
-  document.body.removeChild(a)
-  setTimeout(() => URL.revokeObjectURL(url), 0)
-}
-
-function downloadText(filename, text, type = 'text/plain') {
-  const blob = new Blob([text], { type })
-  const url = URL.createObjectURL(blob)
-  const a = document.createElement('a')
-  a.href = url
-  a.download = filename
-  document.body.appendChild(a)
-  a.click()
-  document.body.removeChild(a)
-  setTimeout(() => URL.revokeObjectURL(url), 0)
-}
 
 export default function ContentEditor({ open, onClose, initialSection = 'SITE' }) {
   const { lang } = useLang()
@@ -473,16 +157,14 @@ export default function ContentEditor({ open, onClose, initialSection = 'SITE' }
   const sectionWarning =
     !isSpecial && workingValue != null ? exportWarning(activeKey, workingValue) : ''
   const showContentPreview = mode === 'modal' && !isSpecial
-  const hasPersistedPublishChanges = Object.keys(data.userOverrides || {}).some(
-    key =>
-      key in data.resolvedData &&
-      JSON.stringify(data.resolvedData[key]) !== JSON.stringify(data.baseData?.[key]),
-  )
-  const hasWorkingPublishChange =
-    !isSpecial &&
-    workingValue != null &&
-    JSON.stringify(workingValue) !== JSON.stringify(data[activeKey])
-  const hasPublishChanges = hasPersistedPublishChanges || hasWorkingPublishChange
+  const currentDraft = buildContentDraft({
+    baseData: data.baseData,
+    resolvedData: data.resolvedData,
+    userOverrides: data.userOverrides,
+    activeKey,
+    workingValue,
+  })
+  const hasPublishChanges = currentDraft.changedKeys.length > 0
 
   const handleSave = () => {
     data.setSection(activeKey, workingValue)
@@ -538,7 +220,7 @@ export default function ContentEditor({ open, onClose, initialSection = 'SITE' }
   const handleCheckPaths = async () => {
     setCheckingPaths(true)
     try {
-      const result = await findMissingPublicPaths(data.resolvedData || data, 'content')
+      const result = await findMissingPublicPaths(currentDraft.resolved, 'content')
       setPathAudit({ ...result, checkedAt: Date.now() })
       flash(
         setCopied,
@@ -565,8 +247,10 @@ export default function ContentEditor({ open, onClose, initialSection = 'SITE' }
   }
 
   const handleCopyAll = async () => {
-    const payload = EXPORTABLE_SECTIONS.map(s => exportLine(s.key, data[s.key])).join('\n\n')
-    const warning = await exportDataWarning(data.resolvedData || data)
+    const payload = EXPORTABLE_SECTIONS.map(s =>
+      exportLine(s.key, currentDraft.resolved[s.key]),
+    ).join('\n\n')
+    const warning = await exportDataWarning(currentDraft.resolved)
     navigator.clipboard.writeText(payload).then(
       () => {
         flash(setCopied, warning || '✓ 已复制全部 export 到剪贴板')
@@ -579,7 +263,7 @@ export default function ContentEditor({ open, onClose, initialSection = 'SITE' }
 
   const handleDownloadBackup = () => {
     try {
-      downloadJson('chen-content-backup', data.exportOverrides())
+      downloadJson('chen-content-backup', currentDraft.overrides)
       flash(setCopied, lang === 'zh' ? '✓ 已下载备份 JSON' : '✓ Backup JSON downloaded')
     } catch (e) {
       flash(
@@ -592,8 +276,10 @@ export default function ContentEditor({ open, onClose, initialSection = 'SITE' }
   }
 
   const handleDownloadGeneratedData = async () => {
-    const warning = await exportDataWarning(data.resolvedData || data)
-    const payload = EXPORTABLE_SECTIONS.map(s => exportLine(s.key, data[s.key])).join('\n\n')
+    const warning = await exportDataWarning(currentDraft.resolved)
+    const payload = EXPORTABLE_SECTIONS.map(s =>
+      exportLine(s.key, currentDraft.resolved[s.key]),
+    ).join('\n\n')
     downloadText('data.generated.js', payload, 'text/javascript')
     flash(
       setCopied,
@@ -605,10 +291,10 @@ export default function ContentEditor({ open, onClose, initialSection = 'SITE' }
     const payload = {
       version: 1,
       generatedAt: new Date().toISOString(),
-      content: data.resolvedData,
+      content: currentDraft.resolved,
       style,
     }
-    const contentWarning = await exportDataWarning(data.resolvedData || data)
+    const contentWarning = await exportDataWarning(currentDraft.resolved)
     const configPathWarning = pathWarning(await findMissingPublicPaths(payload, 'siteConfig'))
     const warning = contentWarning || configPathWarning
     downloadText('site-config.json', JSON.stringify(payload, null, 2), 'application/json')
@@ -618,30 +304,8 @@ export default function ContentEditor({ open, onClose, initialSection = 'SITE' }
     )
   }
 
-  const buildPublishDraft = () => {
-    const resolved = { ...data.resolvedData }
-    const changedKeys = new Set(
-      Object.keys(data.userOverrides || {}).filter(
-        key =>
-          key in resolved && JSON.stringify(resolved[key]) !== JSON.stringify(data.baseData?.[key]),
-      ),
-    )
-
-    let workingChanged = false
-    if (!isSpecial && workingValue != null) {
-      resolved[activeKey] = workingValue
-      if (JSON.stringify(workingValue) !== JSON.stringify(data[activeKey])) {
-        changedKeys.add(activeKey)
-        workingChanged = true
-      }
-    }
-
-    return { resolved, changedKeys: [...changedKeys], workingChanged }
-  }
-
   const handlePublishPreflight = () => {
-    const { resolved } = buildPublishDraft()
-    const report = auditSiteData(resolved)
+    const report = auditSiteData(currentDraft.resolved)
     if (report.errors.length) {
       throw new Error(formatAuditError(report.errors[0], lang))
     }
@@ -649,14 +313,13 @@ export default function ContentEditor({ open, onClose, initialSection = 'SITE' }
   }
 
   const handlePublish = async ({ github, config }) => {
-    const draft = buildPublishDraft()
-    if (draft.workingChanged) data.setSection(activeKey, workingValue)
+    if (currentDraft.workingChanged) data.setSection(activeKey, workingValue)
 
     return publishContent({
       github,
       branch: config.branch,
-      data: draft.resolved,
-      changedKeys: draft.changedKeys,
+      data: currentDraft.resolved,
+      changedKeys: currentDraft.changedKeys,
     })
   }
 
@@ -767,7 +430,7 @@ export default function ContentEditor({ open, onClose, initialSection = 'SITE' }
           ) : data.lastSaved ? (
             <div className="ce-banner-meta">
               {lang === 'zh' ? '上次本地保存：' : 'Last local save: '}
-              {formatLocalTs(data.lastSaved)}
+              {formatLocalTimestamp(data.lastSaved)}
             </div>
           ) : null}
         </div>
@@ -913,7 +576,7 @@ export default function ContentEditor({ open, onClose, initialSection = 'SITE' }
                   <button
                     className="ce-btn ce-btn-ghost"
                     onClick={handleUndoTemplate}
-                    title={formatLocalTs(templateUndo.ts)}
+                    title={formatLocalTimestamp(templateUndo.ts)}
                   >
                     ↶ 模板前
                   </button>

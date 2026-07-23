@@ -11,6 +11,7 @@
     "lint:fix": "eslint . --fix",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
+    "check:security": "npm audit --audit-level=high",
     "check:dist": "node scripts/assert-client-bundle.mjs",
     "check:deploy": "node scripts/check-deploy.mjs",
     "test": "vitest run",
@@ -25,19 +26,19 @@
     "node": "^20.19.0 || >=22.12.0"
   },
   "dependencies": {
-    "@vitejs/plugin-react": "^6.0.2",
     "react": "^19.2.6",
-    "react-dom": "^19.2.6",
-    "vite": "^8.0.14"
+    "react-dom": "^19.2.6"
   },
   "devDependencies": {
     "@eslint/js": "^9.13.0",
+    "@vitejs/plugin-react": "^6.0.4",
     "eslint": "^9.13.0",
     "eslint-config-prettier": "^9.1.0",
     "eslint-plugin-react-hooks": "^5.0.0",
     "eslint-plugin-react-refresh": "^0.4.14",
     "globals": "^15.11.0",
     "prettier": "^3.3.3",
+    "vite": "^8.1.5",
     "vite-prerender-plugin": "^0.5.13",
     "vitest": "^4.1.8"
   }

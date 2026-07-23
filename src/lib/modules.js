@@ -39,13 +39,30 @@ export function normalizeModuleConfig(id, base, override) {
 
 // Resolve the full MODULES map from base + override, normalizing every entry.
 export function resolveModules(baseModules, overrideModules) {
-  const ids = new Set([
-    ...Object.keys(baseModules || {}),
-    ...(isPlainObject(overrideModules) ? Object.keys(overrideModules) : []),
-  ])
   const next = {}
-  ids.forEach(id => {
+  Object.keys(baseModules || {}).forEach(id => {
     next[id] = normalizeModuleConfig(id, baseModules?.[id], overrideModules?.[id])
   })
   return next
+}
+
+export function buildNavigationItems(modules, legacyNav = []) {
+  const home = (Array.isArray(legacyNav) && legacyNav.find(item => item?.id === 'home')) || {
+    num: '00',
+    id: 'home',
+    label: { en: 'Home', zh: '首页' },
+  }
+  const visibleModules = Object.entries(modules || {})
+    .filter(([, config]) => config?.enabled !== false && config?.nav === true)
+    .sort(
+      ([leftId, left], [rightId, right]) =>
+        (left.order ?? 0) - (right.order ?? 0) || leftId.localeCompare(rightId),
+    )
+    .map(([id, config], index) => ({
+      id,
+      num: String(index + 1).padStart(2, '0'),
+      label: config.label,
+    }))
+
+  return [home, ...visibleModules]
 }

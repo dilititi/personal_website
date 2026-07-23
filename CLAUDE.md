@@ -16,11 +16,12 @@ npm run test:watch  # Vitest watch mode
 npm run test:ui     # headless Chrome/Edge CDP smoke test
 npm run test:ui:preview # same smoke against built/prerendered dist/
 npm run lint        # ESLint
+npm run check:security # fail on high-severity dependency advisories
 npm run check:dist  # reject React server renderer references in dist/
 npm run format:check # Prettier verification
 ```
 
-CI runs install → lint → Vitest → production build → `check:dist` → Prettier verification. The browser smoke test remains a local regression command because it requires Chrome or Edge.
+CI runs install → dependency audit → lint → Vitest → production build → `check:dist` → production CDP smoke → Prettier verification. The runner's Chrome executes the same prerender/hydration path used locally by `test:ui:preview`.
 
 ## Architecture
 
@@ -34,17 +35,17 @@ React 19 + Vite 8 statically prerendered, client-hydrated single-page site whose
 LangProvider → DataProvider → StyleProvider → NowPlayingProvider → AppInner
 ```
 
-`AppInner` renders `NavShell`, `Landing`, then iterates `sections` (About, Journey, Works, Library, Photography, Travel, Contact, Colophon, NowPlaying) — filtered by `isModuleEnabled` and sorted by `MODULES[id].order`. Each section receives a `layout` prop from `MODULES[id].layout`.
+`AppInner` renders `NavShell`, `Landing`, then derives page sections from `lib/module-manifest.js#PAGE_MODULE_MANIFEST` — filtered by `isModuleEnabled` and sorted by `MODULES[id].order`. The manifest is the shared module-ID/editor-target contract; each section receives a `layout` prop from `MODULES[id].layout`.
 
 `ContentEditor` and `StyleEditor` are loaded through `React.lazy` only after their toolbar action is opened, keeping editor code out of the visitor-facing initial JavaScript chunk.
 
 ### Data layer (`src/data.js` + `src/data-context.jsx`)
 
 - `src/data.js` exports `SITE`, `NAV`, `ABOUT`, `JOURNEY`, `WORKS`, `BOOKS`, `FILMS`, `MUSIC`, `PHOTOS`, `PHOTO_SERIES`, `TRAVEL`, `NOW_PLAYING`, `MODULES`, `TEXTS`, `READING_LOG`, `USER_READING_LOG`, plus helpers `L(en, zh)` and `pick(value, lang)`. **All site copy lives here** — components read from `useData()`, not by importing from `data.js` directly.
-- `DataProvider` reads `localStorage["chen.content.overrides"]`; during hydration it starts from defaults, then restores storage after mount so server and client first frames match. `createSectionRegistry` derives the runtime data registry from **uppercase, non-function** `data.js` exports, then `deepMerge` resolves overrides. This naming rule is a contract: auxiliary exports such as version metadata must remain lowercase. It exposes mutation methods (`setSection`, `resetSection`, `resetAll`, `exportOverrides`).
+- `DataProvider` reads `localStorage["chen.content.overrides"]`; during hydration it starts from defaults, then restores storage after mount so server and client first frames match. `createSectionRegistry` derives the runtime data registry from **uppercase, non-function** `data.js` exports, then `deepMerge` resolves overrides. This naming rule is a contract: auxiliary exports such as version metadata must remain lowercase. It exposes mutation methods (`setSection`, `resetSection`, `resetAll`, `exportOverrides`) plus `isRestored`; legacy migrations must wait for that flag before writing.
 - `useLocalStorageState` compares serialized persistence snapshots, so initial mount and React StrictMode effect replay do not rewrite data or advance `lastSaved`. Only successful writes update the timestamp; full reset atomically clears both the value and timestamp keys.
-- `MODULES` is special: each value is `{ enabled, nav, order, label, layout }`. Legacy boolean overrides get normalized into this shape by `normalizeModuleConfig`. Use the helpers `getModuleConfig(id)`, `isModuleEnabled(id)`, `isModuleInNav(id)` — don't read `MODULES[id]` directly when you need the resolved value.
-- The ContentEditor's export buttons (per-section "Copy", "📋 All", and the `data.js` download) serialize sections to pasteable `export const X = ...` JS via `exportLine` / `jsLiteral` in `src/components/editor/export.js`, which emits idiomatic `L(en, zh)` calls. The GitHub publisher reuses this same serializer; there is intentionally no second serialization path.
+- `MODULES` is special: each value is `{ enabled, nav, order, label, layout }`. Legacy boolean overrides get normalized into this shape by `normalizeModuleConfig`. `buildNavigationItems()` sorts by `order` but derives visible `01..NN` ranks from the sorted list. The Home entry remains in `NAV`; every other navigation label and visibility comes from `MODULES`.
+- The ContentEditor's export buttons serialize sections to pasteable `export const X = ...` JS via `exportLine` / `jsLiteral`. Before serialization, `contentDraft.js#buildContentDraft` overlays the active input value onto resolved data, so immediate Copy/backup/download/audit/publish cannot lag behind the 400ms autosave.
 - The editor's Start step is defined by `components/editor/goals.js`. `resolveGoalSelection()` maps a curated goal to one complete content override plus an existing style preset; `ImportPanel` applies content with `replaceOverrides()` and style with `StyleProvider.applyPreset()`. `data.js` remains the Chen demo fact source, while reset returns to that demo.
 - `STARTER_TEMPLATE` and every curated goal cover all `EXPORTABLE_SECTIONS`, including `READING_LOG` and `PHOTO_SERIES`. They fully override identity-bearing `SITE` and `TEXTS` fields so switching away from the demo does not inherit visitor-facing Chen copy.
 
@@ -81,7 +82,7 @@ LangProvider → DataProvider → StyleProvider → NowPlayingProvider → AppIn
 
 ### In-site editors and media upload
 
-- `ContentEditor.jsx` (opened from the "Content editor" / "内容编辑器" button in `NavShell`) is driven by `src/components/editor/schema.js`, which declares per-section field schemas (`bi`, `bi-text`, `obj-arr`, `file-image`, `file-audio`, etc.) and item title formatters. To add an editable field, update this schema **and** the matching default in `data.js` — they can drift silently.
+- `ContentEditor.jsx` owns draft state and export/publish orchestration. `editor/SectionEditor.jsx` owns section-type dispatch, field templates and module ordering; `schema.js` declares field schemas (`bi`, `bi-text`, `obj-arr`, `file-image`, `file-audio`, etc.) and item title formatters. To add an editable field, update the schema and matching default in `data.js`.
 - Its **Start** tab applies a blank or goal-oriented starting point and preserves one undo snapshot in `chen.content.preImport`; version-2 snapshots contain both content and style, while legacy content-only snapshots remain readable. Its **Audit** tab runs structural, placeholder, title, link, embedded-media, and public-path checks without requiring a GitHub token.
 - `editor/siteTemplates.js` is the single source for structural templates. A template may alter `MODULES.enabled/nav/order/layout` and select an existing style preset, but must preserve the user's content. `STYLE.layout.landing` selects the Landing composition (`minimal`, `journal`, or `gradient`).
 - `StyleEditor` is one workbench rather than dimension-by-dimension modals: Templates / Tune / Mood board share a persistent `PreviewFrame`. Desktop uses a left-control/right-preview split; mobile uses a control/preview vertical split.

@@ -1,4 +1,5 @@
 import { ABOUT_SCHEMA, EXPORTABLE_SECTIONS, SITE_SCHEMA, moduleConfigFields } from './schema.js'
+import { MODULE_IDS } from '../../lib/module-manifest.js'
 
 export function isRecord(v) {
   return v && typeof v === 'object' && !Array.isArray(v)
@@ -61,6 +62,7 @@ function validateArrayItem(schema, value, path) {
 function validateModulesValue(value) {
   if (!isRecord(value)) return 'MODULES 必须是对象'
   for (const [key, moduleValue] of Object.entries(value)) {
+    if (!MODULE_IDS.has(key)) return `MODULES.${key} 没有对应的页面模块`
     if (typeof moduleValue === 'boolean') continue
     if (!isRecord(moduleValue)) return `MODULES.${key} 必须是 true/false 或模块配置对象`
     const err = validateFields(moduleConfigFields, moduleValue, `MODULES.${key}`)
@@ -72,7 +74,13 @@ function validateModulesValue(value) {
 export function validateFields(fields, value, path) {
   if (!isRecord(value)) return `${path} 必须是对象`
   for (const field of fields) {
-    if (!(field.key in value)) continue
+    if (!(field.key in value)) {
+      if (field.required) return `${path}.${field.key} 为必填字段`
+      continue
+    }
+    if (field.required && (value[field.key] === undefined || value[field.key] === null)) {
+      return `${path}.${field.key} 为必填字段`
+    }
     const err = validateFieldValue(field, value[field.key], `${path}.${field.key}`)
     if (err) return err
   }

@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react'
+import { downloadJson, downloadText, formatLocalTimestamp } from './editor/files.js'
 import { useLang } from '../lang.jsx'
 import { useData } from '../data-context.jsx'
 import { useStyle } from '../style-context.jsx'
@@ -171,39 +172,6 @@ function SelectControl({ label, value, options, onChange, lang }) {
       </select>
     </Field>
   )
-}
-
-function formatLocalTs(ts) {
-  if (!ts) return ''
-  const d = new Date(ts)
-  const pad = n => String(n).padStart(2, '0')
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`
-}
-
-function downloadJson(filenameStem, payload) {
-  const text = typeof payload === 'string' ? payload : JSON.stringify(payload, null, 2)
-  const blob = new Blob([text], { type: 'application/json' })
-  const url = URL.createObjectURL(blob)
-  const stamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19)
-  const a = document.createElement('a')
-  a.href = url
-  a.download = `${filenameStem}-${stamp}.json`
-  document.body.appendChild(a)
-  a.click()
-  document.body.removeChild(a)
-  setTimeout(() => URL.revokeObjectURL(url), 0)
-}
-
-function downloadText(filename, text, type = 'text/plain') {
-  const blob = new Blob([text], { type })
-  const url = URL.createObjectURL(blob)
-  const a = document.createElement('a')
-  a.href = url
-  a.download = filename
-  document.body.appendChild(a)
-  a.click()
-  document.body.removeChild(a)
-  setTimeout(() => URL.revokeObjectURL(url), 0)
 }
 
 function PresetPanel({ lang, activePreset, onApply }) {
@@ -1360,7 +1328,7 @@ export default function StyleEditor({ open, onClose, initialView = 'templates' }
           ) : lastSaved ? (
             <div className="ce-banner-meta">
               {lang === 'zh' ? '上次本地保存：' : 'Last local save: '}
-              {formatLocalTs(lastSaved)}
+              {formatLocalTimestamp(lastSaved)}
             </div>
           ) : null}
         </div>

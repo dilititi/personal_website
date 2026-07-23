@@ -308,7 +308,7 @@ function Playlist() {
 // ─── Reading log — magazine layout + add-entry form ───
 function ReadingLog() {
   const { lang, t } = useLang()
-  const { READING_LOG, USER_READING_LOG, setSection } = useData()
+  const { READING_LOG, USER_READING_LOG, setSection, isRestored } = useData()
   const userEntries = useMemo(
     () => (Array.isArray(USER_READING_LOG) ? USER_READING_LOG : []),
     [USER_READING_LOG],
@@ -317,6 +317,7 @@ function ReadingLog() {
   const [editing, setEditing] = useState(null) // id of entry being edited, or null
 
   useEffect(() => {
+    if (!isRestored) return
     try {
       const raw = localStorage.getItem(LEGACY_LOG_STORAGE_KEY)
       if (!raw) return
@@ -333,7 +334,7 @@ function ReadingLog() {
 
       localStorage.removeItem(LEGACY_LOG_STORAGE_KEY)
     } catch {}
-  }, [setSection, userEntries.length])
+  }, [isRestored, setSection, userEntries.length])
 
   useEffect(() => {
     if (userEntries.some(e => !e.id)) {

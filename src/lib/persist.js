@@ -248,6 +248,7 @@ export function useLocalStorageState(key, lastSavedKey, options = {}) {
       storageError,
       lastSaved,
       isDirty,
+      isRestored: restoreComplete,
       reset,
     },
   ]

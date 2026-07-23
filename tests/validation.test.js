@@ -18,4 +18,23 @@ describe('validation', () => {
     assert.ok(validateSectionValue(works, {})) // truthy error string
     assert.equal(validateSectionValue(works, []), '')
   })
+  it('rejects work items that omit render-critical collections', () => {
+    const res = validateImportData({
+      WORKS: [
+        {
+          id: 'incomplete',
+          title: { en: 'Incomplete', zh: '不完整' },
+          medium: 'web',
+        },
+      ],
+    })
+
+    assert.equal(res.valid, false)
+    assert.match(res.error, /WORKS\[0\]\.(tags|field|body)/)
+  })
+  it('rejects module ids that have no renderer manifest entry', () => {
+    const res = validateImportData({ MODULES: { inventedSection: true } })
+    assert.equal(res.valid, false)
+    assert.match(res.error, /inventedSection/)
+  })
 })

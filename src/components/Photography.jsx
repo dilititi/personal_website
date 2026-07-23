@@ -10,7 +10,7 @@ const LEGACY_PHOTO_STORAGE_KEY = 'chen.photos.userEntries'
 
 export default function Photography({ layout = 'default' }) {
   const { lang, t } = useLang()
-  const { PHOTOS, PHOTO_SERIES, setSection } = useData()
+  const { PHOTOS, PHOTO_SERIES, setSection, isRestored } = useData()
   const [series, setSeries] = useState('all')
   const [openId, setOpenId] = useState(null)
   const [showForm, setShowForm] = useState(false)
@@ -18,6 +18,7 @@ export default function Photography({ layout = 'default' }) {
   const lightboxRef = useRef(null)
 
   useEffect(() => {
+    if (!isRestored) return
     try {
       const raw = localStorage.getItem(LEGACY_PHOTO_STORAGE_KEY)
       const parsed = raw ? JSON.parse(raw) : []
@@ -28,7 +29,7 @@ export default function Photography({ layout = 'default' }) {
         localStorage.removeItem(LEGACY_PHOTO_STORAGE_KEY)
       }
     } catch {}
-  }, [PHOTOS, setSection])
+  }, [PHOTOS, isRestored, setSection])
 
   const allPhotos = PHOTOS
   const filtered = allPhotos.filter(p => series === 'all' || p.series === series)
