@@ -9,16 +9,10 @@ describe('SEO data', () => {
     const zh = buildSeo(SITE, 'zh')
 
     assert.equal(SEO_DEFAULT_LANG, 'en')
-    assert.equal(en.title, 'CHEN · Film student in Hangzhou.')
-    assert.equal(
-      en.description,
-      'Film student in Hangzhou. A slow notebook of frames, sounds, and things I am still learning to see.',
-    )
-    assert.equal(zh.title, '陈 · 电影方向的学生，在杭州。')
-    assert.equal(
-      zh.description,
-      '电影方向的学生，在杭州。这是一本慢慢生长的笔记本——影像、声音，以及还在学着「看见」的事物。',
-    )
+    assert.match(en.title, /^Xie Jingcheng · Zhejiang University/)
+    assert.equal(en.description, SITE.tagline.en)
+    assert.equal(zh.title, '谢靖程 · 浙江大学传播学视听方向本科生。')
+    assert.equal(zh.description, SITE.tagline.zh)
     assert.equal(typeof en.title, 'string')
     assert.equal(typeof zh.description, 'string')
   })

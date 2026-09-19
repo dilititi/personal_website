@@ -59,9 +59,7 @@ function TopBar({ onJump, onOpenEditor, onOpenStyleEditor }) {
     <div className="top-bar">
       <button className="nav-mark" onClick={() => onJump('home')}>
         <span className="dot"></span>
-        <span>
-          {t(SITE.name)} · {t(SITE.location)}
-        </span>
+        <span>{[t(SITE.name), t(SITE.location)].filter(Boolean).join(' · ')}</span>
       </button>
       <div className="top-bar-right">
         {!previewSurface && (onOpenEditor || onOpenStyleEditor) && (

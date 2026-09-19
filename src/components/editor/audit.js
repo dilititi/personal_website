@@ -128,16 +128,6 @@ export function auditSiteData(data) {
     )
   })
 
-  if (!String(data?.SITE?.portrait || '').trim()) {
-    items.push(
-      item(
-        'error',
-        'missing-portrait',
-        'SITE.portrait',
-        message('Add a portrait image path.', '请填写头像图片路径。'),
-      ),
-    )
-  }
   if (!String(data?.SITE?.ogImage || '').trim()) {
     items.push(
       item(

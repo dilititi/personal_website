@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 import { spawn } from 'node:child_process'
 import { existsSync } from 'node:fs'
-import { mkdtemp, readFile, readdir, rm } from 'node:fs/promises'
+import { mkdir, mkdtemp, readFile, readdir, rm, writeFile } from 'node:fs/promises'
 import net from 'node:net'
 import os from 'node:os'
 import path from 'node:path'
@@ -179,6 +179,7 @@ async function run() {
       browserPath,
       [
         '--headless=new',
+        '--window-size=1440,1000',
         '--disable-gpu',
         '--disable-extensions',
         '--no-first-run',
@@ -281,6 +282,9 @@ async function run() {
 
     await evaluate(`(() => {
       localStorage.clear()
+      localStorage.setItem(${JSON.stringify(CONTENT_KEY)}, JSON.stringify({
+        MODULES: { library: { enabled: true }, photography: { enabled: true } }
+      }))
       localStorage.setItem(${JSON.stringify(LEGACY_READING_KEY)}, JSON.stringify([{
         id: 'legacy-reading',
         date: '2025.01',
@@ -329,7 +333,7 @@ async function run() {
     assert(
       await evaluate(`(() => {
         const description = document.querySelector('meta[name="description"]')?.content || ''
-        return document.title.includes('CHEN')
+        return document.title.includes('Xie Jingcheng')
           && description.length > 20
           && !description.includes('*')
           && document.querySelectorAll('meta[name="description"]').length === 1
@@ -368,7 +372,7 @@ async function run() {
     assert(
       await evaluate(`(() => {
         const description = document.querySelector('meta[name="description"]')?.content || ''
-        return description.includes('电影')
+        return description.includes('浙江大学')
           && document.querySelectorAll('meta[name="description"]').length === 1
           && document.querySelectorAll('meta[property="og:title"]').length === 1
           && document.querySelectorAll('meta[property="og:locale"]').length === 1
@@ -433,7 +437,31 @@ async function run() {
       'Journey must remain available as an optional module instead of rendering by default.',
     )
 
-    await click('#works .medium-pill', 'Docs')
+    assert(
+      await evaluate(`(() => {
+        const text = document.querySelector('#main-content')?.textContent || ''
+        return text.includes('Xie Jingcheng') && text.includes('jinchen9707@gmail.com')
+          && !/Chen A[.]|Late Bus|Tarkovsky|Replies within a week|Student · open/.test(text)
+          && !document.querySelector('#library, #photography, #travel, #journey')
+          && document.querySelectorAll('#works .work-card').length === 4
+          && !document.querySelector('#works .work-cover')
+          && !document.querySelector('#home img, #about .portrait');
+      })()`),
+      'The published profile must contain resume facts without demo sections or fake project media.',
+    )
+    if (process.env.UI_SCREENSHOTS_DIR) {
+      await mkdir(process.env.UI_SCREENSHOTS_DIR, { recursive: true })
+      await evaluate(`document.fonts.ready`)
+      await evaluate(`window.scrollTo({ top: 0, behavior: 'instant' })`)
+      await new Promise(resolve => setTimeout(resolve, 300))
+      const capture = await cdp.send('Page.captureScreenshot', { format: 'png' })
+      await writeFile(
+        path.join(process.env.UI_SCREENSHOTS_DIR, 'resume-desktop.png'),
+        Buffer.from(capture.data, 'base64'),
+      )
+    }
+
+    await click('#works .medium-pill', 'Shorts')
     await waitForExpression(
       `document.querySelectorAll('#works .work-card').length === 1 && document.querySelector('#works .works-grid')?.classList.contains('is-single')`,
       'single-result work filter',
@@ -442,7 +470,7 @@ async function run() {
       await evaluate(`(() => {
         const grid = document.querySelector('#works .works-grid')
         const card = grid?.querySelector('.work-card')
-        if (!grid || !card || !card.textContent.includes('Late Bus')) return false
+        if (!grid || !card || !card.textContent.includes('Choice')) return false
         return card.getBoundingClientRect().width >= grid.getBoundingClientRect().width - 4
       })()`),
       'A single filtered work must fill the grid instead of leaving a blank color column.',
@@ -463,6 +491,15 @@ async function run() {
       screenHeight: 844,
     })
     await waitForExpression(`window.innerWidth === 390`, 'mobile viewport emulation')
+    if (process.env.UI_SCREENSHOTS_DIR) {
+      await evaluate(`window.scrollTo({ top: 0, behavior: 'instant' })`)
+      await new Promise(resolve => setTimeout(resolve, 300))
+      const capture = await cdp.send('Page.captureScreenshot', { format: 'png' })
+      await writeFile(
+        path.join(process.env.UI_SCREENSHOTS_DIR, 'resume-mobile.png'),
+        Buffer.from(capture.data, 'base64'),
+      )
+    }
     assert(
       await evaluate(`(() => {
         const grid = document.querySelector('#about .about-grid')
@@ -472,7 +509,7 @@ async function run() {
         return document.body.scrollWidth <= window.innerWidth
           && document.documentElement.scrollWidth <= window.innerWidth
           && columns.length === 1
-          && disclosures.length >= 3
+          && disclosures.length >= 1
           && disclosures.every(button => button.getAttribute('aria-expanded') === 'false')
       })()`),
       'The mobile layout must use one About column without horizontal overflow.',

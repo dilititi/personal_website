@@ -57,8 +57,8 @@ function MinimalLanding({ SITE, TL, WORKS, t, onJump, isModuleEnabled, now }) {
       <div className="landing-template-content">
         <div className="landing-template-meta">
           <span>{t(TL.metaRole)}</span>
-          <span>{t(SITE.location)}</span>
-          <span>{now ? formatTime(now, resolveTz(SITE)) : '--:--'}</span>
+          {t(SITE.location) && <span>{t(SITE.location)}</span>}
+          {SITE.timezone && <span>{now ? formatTime(now, resolveTz(SITE)) : '--:--'}</span>}
         </div>
         <h1>{t(SITE.nameFull) || t(SITE.name)}</h1>
         <p>{t(SITE.tagline) || t(SITE.role)}</p>
@@ -92,15 +92,17 @@ function JournalLanding({ SITE, TL, lang, t, onJump, isModuleEnabled, now }) {
       <div className="landing-template-content">
         <div className="landing-journal-date">
           <span>{t(SITE.nowDate)}</span>
-          <span>{now ? formatTime(now, resolveTz(SITE)) : '--:--'}</span>
+          {SITE.timezone && <span>{now ? formatTime(now, resolveTz(SITE)) : '--:--'}</span>}
         </div>
         <p className="landing-journal-kicker">{t(TL.metaRole)}</p>
         <h1>{t(SITE.nameFull) || t(SITE.name)}</h1>
         <blockquote>{t(SITE.tagline) || t(SITE.now)}</blockquote>
-        <div className="landing-journal-current">
-          <span>{lang === 'zh' ? '此刻' : 'Current note'}</span>
-          <p>{t(SITE.now)}</p>
-        </div>
+        {t(SITE.now) && (
+          <div className="landing-journal-current">
+            <span>{lang === 'zh' ? '此刻' : 'Current note'}</span>
+            <p>{t(SITE.now)}</p>
+          </div>
+        )}
         <LandingActions TL={TL} t={t} onJump={onJump} isModuleEnabled={isModuleEnabled} />
       </div>
       <span className="landing-next-cue" aria-hidden="true">
@@ -119,8 +121,8 @@ function GradientLanding({ SITE, TL, WORKS, t, onJump, isModuleEnabled, now }) {
       <div className="landing-template-content">
         <div className="landing-template-meta">
           <span>{t(SITE.role)}</span>
-          <span>{t(SITE.location)}</span>
-          <span>{now ? formatTime(now, resolveTz(SITE)) : '--:--'}</span>
+          {t(SITE.location) && <span>{t(SITE.location)}</span>}
+          {SITE.timezone && <span>{now ? formatTime(now, resolveTz(SITE)) : '--:--'}</span>}
         </div>
         <h1>
           <span>{t(SITE.name)}</span>
@@ -186,7 +188,7 @@ export default function Landing({ onJump, prerendered = false }) {
             {t(TL.metaEmailLbl)}
           </a>
           <span className="mh-meta-c right">
-            {displayCity} {now ? formatTime(now, resolveTz(SITE)) : '--:--:--'}
+            {displayCity} {SITE.timezone && (now ? formatTime(now, resolveTz(SITE)) : '--:--:--')}
           </span>
         </div>
 

@@ -19,15 +19,19 @@ describe('prerender entry', () => {
     assert.match(en.html, /class="landing-minimal-projects"/)
     assert.match(en.html, /class="theme-motif-layer motif-film/)
     assert.match(en.html, /id="about"/)
-    assert.match(en.html, />CHEN</)
+    assert.match(en.html, />Xie Jingcheng</)
     assert.match(zh.html, /class="landing landing-template landing-minimal"/)
     assert.match(zh.html, /id="about"/)
-    assert.match(zh.html, />陈</)
+    assert.match(zh.html, />谢靖程</)
     assert.equal(en.head.lang, 'en')
     assert.equal(zh.head.lang, 'zh')
-    assert.match(en.head.title, /^CHEN/)
-    assert.match(zh.head.title, /^陈/)
+    assert.match(en.head.title, /^Xie Jingcheng/)
+    assert.match(zh.head.title, /^谢靖程/)
     assert.deepEqual([...en.links], ['/en', '/zh'])
     assert.doesNotMatch(`${en.html}${zh.html}`, /undefined/)
+    assert.doesNotMatch(
+      `${en.html}${zh.html}`,
+      /resume-portrait|class="portrait"|class="landing-template-media"/,
+    )
   })
 })

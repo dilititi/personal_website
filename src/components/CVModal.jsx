@@ -5,7 +5,7 @@ import { emph, useFocusTrap } from '../hooks.jsx'
 
 export default function CVModal({ open, onClose }) {
   const { lang, t } = useLang()
-  const { SITE, ABOUT, TEXTS } = useData()
+  const { SITE, ABOUT, TEXTS, WORKS } = useData()
   const TC = TEXTS.cvModal
   const dialogRef = useRef(null)
 
@@ -45,17 +45,19 @@ export default function CVModal({ open, onClose }) {
             <h1 id="cv-dialog-title">{t(SITE.nameFull)}</h1>
             <p className="cv-role">{t(SITE.role)}</p>
             <p className="cv-contact">
-              {t(SITE.location)} · {SITE.timezone} · {SITE.email}
+              {[t(SITE.location), SITE.timezone, SITE.email].filter(Boolean).join(' · ')}
             </p>
           </div>
           <div className="cv-doc-seal">
             <div className="seal-stamp" style={{ transform: 'rotate(-3deg)' }}>
               {TC.sealChar}
             </div>
-            <span className="cv-doc-stamp">
-              {t(TC.lastUpdated)}
-              {t(SITE.nowDate)}
-            </span>
+            {t(SITE.nowDate) && (
+              <span className="cv-doc-stamp">
+                {t(TC.lastUpdated)}
+                {t(SITE.nowDate)}
+              </span>
+            )}
           </div>
         </header>
 
@@ -105,6 +107,24 @@ export default function CVModal({ open, onClose }) {
                 ))}
               </section>
             ))}
+            {WORKS.length > 0 && (
+              <section className="cv-section">
+                <h2>{lang === 'zh' ? '项目经历' : 'Projects'}</h2>
+                {WORKS.map(work => (
+                  <div className="cv-section-entry" key={work.id}>
+                    <div className="cv-section-year">{work.year}</div>
+                    <div className="cv-section-body">
+                      <h4>{t(work.title)}</h4>
+                      <p>{t(work.role)}</p>
+                      <p>{t(work.summary)}</p>
+                      {(work.body || []).map((paragraph, index) => (
+                        <p key={index}>{t(paragraph)}</p>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </section>
+            )}
           </main>
         </div>
 
@@ -129,9 +149,7 @@ export default function CVModal({ open, onClose }) {
             )}
           </div>
           <div className="cv-doc-stamp-line">
-            <span>
-              {t(SITE.nameFull)} · {t(SITE.location)}
-            </span>
+            <span>{[t(SITE.nameFull), t(SITE.location)].filter(Boolean).join(' · ')}</span>
             <span>{t(SITE.nowDate)}</span>
           </div>
         </footer>

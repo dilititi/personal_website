@@ -35,9 +35,9 @@ export default function About({ layout = 'default', onOpenCV }) {
 
       <div className="about-grid">
         <aside className="about-sidebar">
-          <div>
-            <div className="portrait">
-              {SITE.portrait && (
+          {SITE.portrait && (
+            <div>
+              <div className="portrait">
                 <img
                   {...responsiveImageAttributes(SITE.portrait, '(max-width: 720px) 82vw, 320px')}
                   alt={
@@ -54,13 +54,13 @@ export default function About({ layout = 'default', onOpenCV }) {
                     e.currentTarget.style.display = 'none'
                   }}
                 />
-              )}
+              </div>
+              <div className="portrait-tag">
+                <span>{t(TA.portraitTagL)}</span>
+                <span>{TA.portraitTagR}</span>
+              </div>
             </div>
-            <div className="portrait-tag">
-              <span>{t(TA.portraitTagL)}</span>
-              <span>{TA.portraitTagR}</span>
-            </div>
-          </div>
+          )}
 
           <div className="about-stats">
             {ABOUT.stats.map((s, i) => (

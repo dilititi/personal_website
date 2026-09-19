@@ -24,14 +24,11 @@ export default function Contact({ layout = 'default' }) {
     <section id="contact" data-layout={layout} style={{ minHeight: 'auto' }}>
       <div className="section-header">
         <div>
-          <div className="section-num">07 / {lang === 'zh' ? '联络' : 'Signal'}</div>
+          <div className="section-num">03 / {lang === 'zh' ? '联系' : 'Contact'}</div>
           <h2 className="section-title">
-            {lang === 'zh' ? '把信号发出去' : 'Send a signal'}
+            {lang === 'zh' ? '联系方式' : 'Contact'}
             <em>{lang === 'zh' ? 'contact' : '联络'}</em>
           </h2>
-        </div>
-        <div className="section-meta">
-          {lang === 'zh' ? '通常一周内回复' : 'Replies within a week'}
         </div>
       </div>
 
@@ -57,35 +54,32 @@ export default function Contact({ layout = 'default' }) {
               </span>
               <span className="arrow">↗</span>
             </a>
-            <a className="btn ghost" href={TC.secondaryUrl || '#'}>
-              <span>{t(TC.secondaryLbl)}</span>
-            </a>
+            {TC.secondaryUrl && t(TC.secondaryLbl) && (
+              <a className="btn ghost" href={TC.secondaryUrl}>
+                <span>{t(TC.secondaryLbl)}</span>
+              </a>
+            )}
           </div>
         </div>
 
         <div className="contact-status-box">
-          <div className="contact-status-label">
-            {lang === 'zh' ? '当前状态 · LIVE' : 'STATUS · LIVE'}
-          </div>
+          <div className="contact-status-label">{lang === 'zh' ? '个人信息' : 'Profile'}</div>
           <table>
             <tbody>
               {[
                 [lang === 'zh' ? '位置' : 'Location', t(SITE.location), 'var(--cream)'],
                 [lang === 'zh' ? '时区' : 'Time', SITE.timezone, 'var(--cream-soft)'],
-                [
-                  lang === 'zh' ? '状态' : 'Status',
-                  lang === 'zh' ? '在读・开放合作' : 'Student · open',
-                  'var(--ember)',
-                ],
-                [lang === 'zh' ? '在看' : 'Watching', t(SITE.statusObject), 'var(--cream-soft)'],
-              ].map(([k, v, c]) => (
-                <tr key={k}>
-                  <td className="status-key">{k}</td>
-                  <td className="status-val" style={{ color: c }}>
-                    {v}
-                  </td>
-                </tr>
-              ))}
+                [t(SITE.status), t(SITE.statusObject), 'var(--ember)'],
+              ]
+                .filter(([k, v]) => k && v)
+                .map(([k, v, c]) => (
+                  <tr key={k}>
+                    <td className="status-key">{k}</td>
+                    <td className="status-val" style={{ color: c }}>
+                      {v}
+                    </td>
+                  </tr>
+                ))}
             </tbody>
           </table>
         </div>

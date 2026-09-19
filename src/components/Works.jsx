@@ -11,6 +11,7 @@ const WORK_MEDIA_LABELS = {
   mv: { en: 'MV', zh: 'MV' },
   visual: { en: 'Visual', zh: '视觉' },
   design: { en: 'Design', zh: '设计' },
+  automation: { en: 'Automation', zh: '自动化' },
   mission: { en: 'Missions', zh: '任务' },
   sticker: { en: 'Stickers', zh: '贴纸' },
 }
@@ -58,14 +59,14 @@ export default function Works({ layout = 'default' }) {
     <section id="works" data-layout={layout}>
       <div className="section-header">
         <div>
-          <div className="section-num">03 / {lang === 'zh' ? '作品集' : 'Works'}</div>
+          <div className="section-num">02 / {lang === 'zh' ? '项目' : 'Projects'}</div>
           <h2 className="section-title">
-            {lang === 'zh' ? '作品集' : 'Things I have made'}
-            <em>{lang === 'zh' ? 'portfolio · by medium' : '作品集 · 按媒介分类'}</em>
+            {lang === 'zh' ? '项目经历' : 'Projects'}
+            <em>{lang === 'zh' ? 'projects' : '项目'}</em>
           </h2>
         </div>
         <div className="section-meta">
-          {filtered.length} / {WORKS.length} · 2024 – {lang === 'zh' ? '至今' : 'present'}
+          {filtered.length} / {WORKS.length}
         </div>
       </div>
 
@@ -95,8 +96,8 @@ export default function Works({ layout = 'default' }) {
             onClick={() => setOpenId(w.id)}
             data-reveal
           >
-            <div className={`work-cover ${w.cover}`}>
-              {w.coverImg ? (
+            {w.coverImg && (
+              <div className={`work-cover ${w.cover || ''}`}>
                 <img
                   {...responsiveImageAttributes(
                     w.coverImg,
@@ -112,20 +113,15 @@ export default function Works({ layout = 'default' }) {
                     e.currentTarget.style.display = 'none'
                   }}
                 />
-              ) : (
-                <div className="placeholder">
-                  [ {t(w.title).toUpperCase()} — {lang === 'zh' ? '主图' : 'primary image'} ]
+                <div className="work-cover-meta">
+                  {w.year && <span>{w.year} · </span>}
+                  <span>{t(w.subtitle)}</span>
                 </div>
-              )}
-              <div className="work-cover-meta">
-                <span>{w.year}</span>
-                <span>·</span>
-                <span>{t(w.subtitle)}</span>
+                <div className="work-cover-badge">
+                  {t(mediaOptions.find(m => m.id === w.medium)?.label || mediaLabel(w.medium))}
+                </div>
               </div>
-              <div className="work-cover-badge">
-                {t(mediaOptions.find(m => m.id === w.medium)?.label || mediaLabel(w.medium))}
-              </div>
-            </div>
+            )}
             <div className="work-meta">
               <span className="role">{t(w.role)}</span>
               <span>{w.year}</span>
@@ -175,8 +171,8 @@ export default function Works({ layout = 'default' }) {
             >
               ✕
             </button>
-            <div className={`work-modal-hero ${open.cover}`}>
-              {open.coverImg ? (
+            {open.coverImg && (
+              <div className={`work-modal-hero ${open.cover || ''}`}>
                 <img
                   {...responsiveImageAttributes(open.coverImg, 'min(92vw, 1200px)')}
                   alt={t(open.title)}
@@ -189,32 +185,23 @@ export default function Works({ layout = 'default' }) {
                     e.currentTarget.style.display = 'none'
                   }}
                 />
-              ) : (
                 <div
                   style={{
                     position: 'absolute',
-                    inset: 0,
-                    backgroundImage:
-                      'repeating-linear-gradient(-25deg, transparent 0 8px, rgba(255,255,255,0.04) 8px 9px)',
+                    bottom: 24,
+                    left: 40,
+                    fontFamily: 'var(--font-mono)',
+                    fontSize: 11,
+                    letterSpacing: '0.2em',
+                    color: 'var(--cream-mute)',
+                    textTransform: 'uppercase',
+                    zIndex: 2,
                   }}
-                ></div>
-              )}
-              <div
-                style={{
-                  position: 'absolute',
-                  bottom: 24,
-                  left: 40,
-                  fontFamily: 'var(--font-mono)',
-                  fontSize: 11,
-                  letterSpacing: '0.2em',
-                  color: 'var(--cream-mute)',
-                  textTransform: 'uppercase',
-                  zIndex: 2,
-                }}
-              >
-                {open.year} · {t(open.subtitle)}
+                >
+                  {[open.year, t(open.subtitle)].filter(Boolean).join(' · ')}
+                </div>
               </div>
-            </div>
+            )}
             <div className="work-modal-body">
               <div>
                 <h1 id="work-dialog-title">
@@ -235,12 +222,14 @@ export default function Works({ layout = 'default' }) {
                   [lang === 'zh' ? '团队' : 'Crew']: t(open.field?.crew),
                   [lang === 'zh' ? '展映' : 'Festivals']: t(open.field?.festivals),
                   [lang === 'zh' ? '状态' : 'Status']: t(open.field?.status),
-                }).map(([k, v]) => (
-                  <div className="field" key={k}>
-                    <h6>{k}</h6>
-                    <p>{v}</p>
-                  </div>
-                ))}
+                })
+                  .filter(([, v]) => v)
+                  .map(([k, v]) => (
+                    <div className="field" key={k}>
+                      <h6>{k}</h6>
+                      <p>{v}</p>
+                    </div>
+                  ))}
               </aside>
             </div>
           </div>

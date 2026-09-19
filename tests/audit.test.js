@@ -14,11 +14,14 @@ function baseData() {
 }
 
 describe('site audit', () => {
-  it('keeps the source demo publishable while reporting placeholder links as warnings', () => {
+  it('keeps the resume data publishable without placeholder links', () => {
     const report = auditSiteData(baseData())
 
     assert.equal(report.errors.length, 0)
-    assert.ok(report.warnings.some(entry => entry.code === 'empty-link'))
+    assert.equal(
+      report.warnings.some(entry => entry.code === 'empty-link'),
+      false,
+    )
   })
 
   it('finds unresolved template placeholders but ignores supported inline markup', () => {

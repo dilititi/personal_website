@@ -140,6 +140,19 @@
   object-position: center 24%;
 }
 
+.landing-minimal:not(:has(.landing-template-media)) .landing-template-shade {
+  background: #181b1a;
+}
+
+.landing-minimal:not(:has(.landing-template-media)) button {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.landing-minimal:not(:has(.landing-template-media)) button:hover {
+  background: rgba(255, 255, 255, 0.12);
+  color: var(--landing-fg);
+}
+
 .landing-minimal-projects {
   border-top: 1px solid var(--landing-muted);
   display: grid;
@@ -875,9 +888,14 @@ html[lang='zh'] .polaroid-cap {
   pointer-events: auto;
 }
 .top-bar .nav-mark {
+  background: transparent;
+  border: 0;
+  padding: 0;
+  min-width: 0;
+  text-align: left;
   font-family: var(--font-mono);
   font-size: 11px;
-  letter-spacing: 0.2em;
+  letter-spacing: 0;
   text-transform: uppercase;
   color: var(--cream);
   display: flex;
