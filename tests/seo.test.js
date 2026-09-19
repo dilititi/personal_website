@@ -8,7 +8,7 @@ describe('SEO data', () => {
     const en = buildSeo(SITE, 'en')
     const zh = buildSeo(SITE, 'zh')
 
-    assert.equal(SEO_DEFAULT_LANG, 'en')
+    assert.equal(SEO_DEFAULT_LANG, 'zh')
     assert.match(en.title, /^Xie Jingcheng · Zhejiang University/)
     assert.equal(en.description, SITE.tagline.en)
     assert.equal(zh.title, '谢靖程 · 浙江大学传播学视听方向本科生。')
@@ -91,7 +91,7 @@ describe('SEO data', () => {
     assert.deepEqual(buildLanguageLinks(site), [
       { hreflang: 'en', href: 'https://example.com/en/' },
       { hreflang: 'zh', href: 'https://example.com/zh/' },
-      { hreflang: 'x-default', href: 'https://example.com/en/' },
+      { hreflang: 'x-default', href: 'https://example.com/' },
     ])
     assert.deepEqual(buildLanguageLinks({ url: '' }), [])
   })

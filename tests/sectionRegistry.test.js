@@ -2,7 +2,11 @@ import assert from 'node:assert/strict'
 import { describe, it } from 'vitest'
 import * as dataExports from '../src/data.js'
 import { resolveModules } from '../src/lib/modules.js'
-import { createSectionRegistry, resolveSectionRegistry } from '../src/lib/section-registry.js'
+import {
+  createSectionRegistry,
+  resolveSectionRegistry,
+  resolveWorks,
+} from '../src/lib/section-registry.js'
 
 const EXPECTED_DATA_EXPORTS = [
   'ABOUT',
@@ -93,5 +97,21 @@ describe('section registry', () => {
     assert.equal(resolved.READING_LOG, readingOverride)
     assert.equal(resolved.MODULES.works.enabled, false)
     assert.equal(resolved.MODULES.works.nav, dataExports.MODULES.works.nav)
+  })
+
+  it('restores published work images when an older override omits them', () => {
+    const baseWorks = [
+      { id: 'choice', title: { en: 'Choice' }, coverImg: '/works/choice-liuye.jpg' },
+      { id: 'kurt-fox', title: { en: 'Fox' }, coverImg: '/works/kurt-fox.png' },
+      { id: 'text-only', title: { en: 'Text only' }, coverImg: '' },
+    ]
+    const resolved = resolveWorks(baseWorks, [
+      { id: 'choice', title: { en: 'Edited Choice' }, coverImg: '' },
+    ])
+
+    assert.deepEqual(resolved, [
+      { id: 'choice', title: { en: 'Edited Choice' }, coverImg: '/works/choice-liuye.jpg' },
+      { id: 'kurt-fox', title: { en: 'Fox' }, coverImg: '/works/kurt-fox.png' },
+    ])
   })
 })

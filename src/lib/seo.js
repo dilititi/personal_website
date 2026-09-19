@@ -1,6 +1,6 @@
 import { pick } from '../data.js'
 
-export const SEO_DEFAULT_LANG = 'en'
+export const SEO_DEFAULT_LANG = 'zh'
 export const SEO_THEME_COLOR = '#ebe2c8'
 
 const LOCALES = {
@@ -11,7 +11,8 @@ const LOCALES = {
 export function languageFromUrl(url = '/') {
   try {
     const pathname = new URL(url, 'http://localhost').pathname
-    return pathname.split('/').filter(Boolean)[0] === 'zh' ? 'zh' : SEO_DEFAULT_LANG
+    const route = pathname.split('/').filter(Boolean)[0]
+    return route === 'en' || route === 'zh' ? route : SEO_DEFAULT_LANG
   } catch {
     return SEO_DEFAULT_LANG
   }
@@ -51,7 +52,7 @@ function absoluteImage(siteUrl, imagePath) {
 }
 
 export function buildSeo(site = {}, lang = SEO_DEFAULT_LANG) {
-  const activeLang = lang === 'zh' ? 'zh' : SEO_DEFAULT_LANG
+  const activeLang = lang === 'en' ? 'en' : 'zh'
   const alternateLang = activeLang === 'en' ? 'zh' : 'en'
   const siteName = plainText(pick(site?.name, activeLang))
   const tagline = plainText(pick(site?.tagline, activeLang))
@@ -96,6 +97,6 @@ export function buildLanguageLinks(site = {}) {
   return [
     { hreflang: 'en', href: `${siteRoot}/en/` },
     { hreflang: 'zh', href: `${siteRoot}/zh/` },
-    { hreflang: 'x-default', href: `${siteRoot}/en/` },
+    { hreflang: 'x-default', href: `${siteRoot}/` },
   ]
 }

@@ -5,10 +5,10 @@ import { prerender } from '../src/prerender.jsx'
 
 describe('prerender entry', () => {
   it('maps root and language routes to stable initial languages', () => {
-    assert.equal(languageFromUrl('/'), 'en')
+    assert.equal(languageFromUrl('/'), 'zh')
     assert.equal(languageFromUrl('/en/'), 'en')
     assert.equal(languageFromUrl('/zh/'), 'zh')
-    assert.equal(languageFromUrl('not a valid absolute URL'), 'en')
+    assert.equal(languageFromUrl('not a valid absolute URL'), 'zh')
   })
 
   it('renders complete English and Chinese application shells', async () => {

@@ -160,7 +160,7 @@ async function run() {
         }),
       )
       ;[
-        ['/', rootHtml, /<html lang="en">/, /class="landing landing-template landing-minimal"/],
+        ['/', rootHtml, /<html lang="zh">/, /class="landing landing-template landing-minimal"/],
         ['/en/', enHtml, /<html lang="en">/, /id="about"/],
         ['/zh/', zhHtml, /<html lang="zh">/, /id="about"/],
       ].forEach(([route, html, languagePattern, bodyPattern]) => {
@@ -268,7 +268,7 @@ async function run() {
       )
 
     await waitForExpression(
-      `document.readyState === 'complete' && !!document.querySelector('[title="Content editor"]')`,
+      `document.readyState === 'complete' && !!document.querySelector('[title="Content editor"], [title="内容编辑器"]')`,
       'application shell',
       30000,
     )
@@ -327,13 +327,13 @@ async function run() {
 
     await evaluate(`localStorage.clear(); location.reload()`)
     await waitForExpression(
-      `document.readyState === 'complete' && !!document.querySelector('[title="Content editor"]')`,
+      `document.readyState === 'complete' && !!document.querySelector('[title="Content editor"], [title="内容编辑器"]')`,
       'clean application shell',
     )
     assert(
       await evaluate(`(() => {
         const description = document.querySelector('meta[name="description"]')?.content || ''
-        return document.title.includes('Xie Jingcheng')
+        return document.title.includes('谢靖程')
           && description.length > 20
           && !description.includes('*')
           && document.querySelectorAll('meta[name="description"]').length === 1
@@ -351,7 +351,22 @@ async function run() {
       })()`),
       'The default theme motif must render without intercepting page interaction.',
     )
+    const defaultChineseTitle = await evaluate(`document.title`)
+    await click('.lang-toggle button', 'EN')
+    await waitForExpression(`document.documentElement.lang === 'en'`, 'English document language')
+    if (PREVIEW_MODE) {
+      await waitForExpression(
+        `location.pathname === '/en/' && document.readyState === 'complete'`,
+        'English prerendered route',
+      )
+      assert.deepEqual(
+        await evaluate(`window.__CHEN_HYDRATION_ERRORS__ || []`),
+        [],
+        'English prerender must hydrate without recoverable errors.',
+      )
+    }
     const englishTitle = await evaluate(`document.title`)
+    assert.notEqual(englishTitle, defaultChineseTitle, 'Root route must default to Chinese.')
     await click('.lang-toggle button', '中')
     await waitForExpression(`document.documentElement.lang === 'zh'`, 'Chinese document language')
     if (PREVIEW_MODE) {
@@ -627,7 +642,7 @@ async function run() {
       'Initial StrictMode mount must not create a save timestamp.',
     )
 
-    await click('[title="Content editor"]')
+    await click('[title="Content editor"], [title="内容编辑器"]')
     await waitForExpression(
       `!!document.querySelector('.ce-overlay .ce-shell')`,
       'content editor open',
@@ -700,7 +715,7 @@ async function run() {
     )
     await evaluate(`location.reload()`)
     await waitForExpression(
-      `document.readyState === 'complete' && !!document.querySelector('[title="Content editor"]')`,
+      `document.readyState === 'complete' && !!document.querySelector('[title="Content editor"], [title="内容编辑器"]')`,
       'application shell after content refresh',
     )
     await new Promise(resolve => setTimeout(resolve, 300))
@@ -709,7 +724,7 @@ async function run() {
       contentSavedAt,
       'Refreshing must not change the content lastSaved timestamp.',
     )
-    await click('[title="Content editor"]')
+    await click('[title="Content editor"], [title="内容编辑器"]')
     await waitForExpression(
       `!!document.querySelector('.ce-overlay .ce-shell')`,
       'content editor reopened',

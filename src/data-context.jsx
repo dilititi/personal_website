@@ -2,7 +2,11 @@ import React, { createContext, useCallback, useContext, useMemo } from 'react'
 import * as defaults from './data.js'
 import { isPlainObject, readJSON, useLocalStorageState } from './lib/persist.js'
 import { normalizeModuleConfig, resolveModules } from './lib/modules.js'
-import { createSectionRegistry, resolveSectionRegistry } from './lib/section-registry.js'
+import {
+  createSectionRegistry,
+  resolveSectionRegistry,
+  resolveWorks,
+} from './lib/section-registry.js'
 
 const STORAGE_KEY = 'chen.content.overrides'
 const LAST_SAVED_KEY = 'chen.content.lastSaved'
@@ -32,6 +36,7 @@ export function DataProvider({ children, prerendered = false }) {
     () =>
       resolveSectionRegistry(baseData, overrides, {
         MODULES: resolveModules,
+        WORKS: resolveWorks,
       }),
     [baseData, overrides],
   )

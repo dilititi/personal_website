@@ -1,7 +1,8 @@
 import React, { createContext, useContext, useState, useCallback, useEffect } from 'react'
 import { pick } from './data.js'
 
-export const LangContext = createContext({ lang: 'en', setLang: () => {} })
+export const DEFAULT_LANG = 'zh'
+export const LangContext = createContext({ lang: DEFAULT_LANG, setLang: () => {} })
 const SUPPORTED_LANGS = new Set(['en', 'zh'])
 
 function normalizeLang(value) {
@@ -30,8 +31,8 @@ export function resolveInitialLang({
   if (routed) return routed
 
   const initial = normalizeLang(initialLang)
-  if (prerendered) return initial || 'en'
-  return normalizeLang(stored) || initial || 'en'
+  if (prerendered) return initial || DEFAULT_LANG
+  return normalizeLang(stored) || initial || DEFAULT_LANG
 }
 
 export function useLang() {
