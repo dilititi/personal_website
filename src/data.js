@@ -27,7 +27,7 @@ export const SITE = {
     zh: '谢靖程',
   },
   glyph: '谢',
-  cvPdf: '',
+  cvPdf: '/docs/resume-video-2026.pdf',
   tagline: {
     en: 'Zhejiang University undergraduate in Communication Studies, audiovisual track. Film and visual storytelling, AIGC image/video production and editing.',
     zh: '浙江大学传播学视听方向本科生。影视编导与视觉叙事、AIGC 图像 / 视频制作与剪辑。',
@@ -294,7 +294,7 @@ export const ABOUT = {
 
 export const JOURNEY = []
 
-export const WORKS = [
+const WORKS_SOURCE = [
   {
     id: 'cold-dew',
     title: {
@@ -360,7 +360,7 @@ export const WORKS = [
     },
     year: '',
     cover: '',
-    coverImg: '',
+    coverImg: '/works/choice-liuye.jpg',
     summary: {
       en: 'Independently completed an approximately five-minute AI campus narrative short, from script and character design to storyboards, image/video generation, material selection and editing.',
       zh: '一人独立完成约 5 分钟 AI 校园叙事短片，负责剧本、人物设定、场景选择、视觉设计、分镜、AI 图像/视频生成、素材筛选及后期成片。',
@@ -487,6 +487,30 @@ export const WORKS = [
       },
     },
   },
+]
+
+const KURT_FOX_WORK = {
+  id: 'kurt-fox',
+  title: { en: 'Kurt老师的小狐狸', zh: 'Kurt老师的小狐狸' },
+  subtitle: { en: '', zh: '' },
+  medium: 'blend',
+  role: { en: '', zh: '' },
+  year: '',
+  cover: '',
+  coverImg: '/works/kurt-fox.png',
+  summary: { en: '', zh: '' },
+  body: [],
+  tags: [],
+  field: {},
+}
+
+// Keep the order visible in Projects aligned with the user's current upload plan.
+export const WORKS = [
+  WORKS_SOURCE[1],
+  KURT_FOX_WORK,
+  WORKS_SOURCE[2],
+  WORKS_SOURCE[0],
+  WORKS_SOURCE[3],
 ]
 
 export const BOOKS = []

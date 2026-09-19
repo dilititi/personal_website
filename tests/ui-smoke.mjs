@@ -443,12 +443,21 @@ async function run() {
         return text.includes('Xie Jingcheng') && text.includes('jinchen9707@gmail.com')
           && !/Chen A[.]|Late Bus|Tarkovsky|Replies within a week|Student · open/.test(text)
           && !document.querySelector('#library, #photography, #travel, #journey')
-          && document.querySelectorAll('#works .work-card').length === 4
-          && !document.querySelector('#works .work-cover')
+          && document.querySelectorAll('#works .work-card').length === 5
+          && !!document.querySelector('#works img[src="/works/choice-liuye.jpg"]')
+          && !!document.querySelector('#works img[src="/works/kurt-fox.png"]')
           && !document.querySelector('#home img, #about .portrait');
       })()`),
-      'The published profile must contain resume facts without demo sections or fake project media.',
+      'The published profile must contain resume facts, the two uploaded project images, and no demo sections.',
     )
+
+    await click('#about .about-sidebar .btn')
+    await waitForExpression(
+      `!!document.querySelector('.cv-pdf-frame[src="/docs/resume-video-2026.pdf"]')`,
+      'uploaded resume PDF modal',
+    )
+    await click('.cv-close')
+    await waitForExpression(`!document.querySelector('.cv-modal.open')`, 'resume modal close')
     if (process.env.UI_SCREENSHOTS_DIR) {
       await mkdir(process.env.UI_SCREENSHOTS_DIR, { recursive: true })
       await evaluate(`document.fonts.ready`)

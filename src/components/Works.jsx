@@ -12,6 +12,7 @@ const WORK_MEDIA_LABELS = {
   visual: { en: 'Visual', zh: '视觉' },
   design: { en: 'Design', zh: '设计' },
   automation: { en: 'Automation', zh: '自动化' },
+  blend: { en: '.blend', zh: '.blend' },
   mission: { en: 'Missions', zh: '任务' },
   sticker: { en: 'Stickers', zh: '贴纸' },
 }
