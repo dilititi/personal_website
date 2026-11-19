@@ -109,4 +109,4 @@ React 19 · Vite 8 · 原生 CSS（无第三方 UI 库）· 自定义双语 Cont
 
 ## 许可
 
-MIT © 你的名字
+MIT ©
