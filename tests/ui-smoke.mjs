@@ -6,9 +6,11 @@ import net from 'node:net'
 import os from 'node:os'
 import path from 'node:path'
 import process from 'node:process'
+import { mediaUploadEndpoint, PROJECT_VIDEO_PART_BYTES } from '../src/lib/project-video-upload.js'
 
 const ROOT = path.resolve(import.meta.dirname, '..')
 const PREVIEW_MODE = process.argv.includes('--preview')
+const MEDIA_UPLOAD_SERVICE = mediaUploadEndpoint(process.env.VITE_WORK_MEDIA_UPLOAD_URL)
 const CONTENT_KEY = 'chen.content.overrides'
 const CONTENT_SAVED_KEY = 'chen.content.lastSaved'
 const STYLE_KEY = 'chen.style.overrides'
@@ -206,6 +208,12 @@ async function run() {
     await cdp.connect()
     await cdp.send('Page.enable')
     await cdp.send('Runtime.enable')
+    if (process.env.UI_SMOKE_OFFLINE_FONTS === '1') {
+      await cdp.send('Network.enable')
+      await cdp.send('Network.setBlockedURLs', {
+        urls: ['https://fonts.googleapis.com/*', 'https://fonts.gstatic.com/*'],
+      })
+    }
     await cdp.send('Page.setDownloadBehavior', { behavior: 'allow', downloadPath: downloadDir })
     cdp.on('Page.javascriptDialogOpening', () => {
       cdp.send('Page.handleJavaScriptDialog', { accept: true }).catch(() => {})
@@ -512,14 +520,31 @@ async function run() {
       const expected = await evaluate(`(() => {
         const card = document.querySelector(${JSON.stringify(selector)})
         const title = card.querySelector('.work-title').firstChild.textContent.trim()
-        return { title, cover: card.querySelector('.work-cover-img')?.getAttribute('src') || '' }
+        return {
+          title,
+          cover: card.querySelector('.work-cover-img')?.getAttribute('src') || '',
+          hasVideo: !!card.querySelector('.work-cover-play'),
+        }
       })()`)
       await click(selector)
       await waitForExpression(
         `document.querySelector('#work-dialog-title')?.firstChild.textContent.trim() === ${JSON.stringify(expected.title)}
-          && (document.querySelector('.work-modal-hero-img')?.getAttribute('src') || '') === ${JSON.stringify(expected.cover)}`,
+          && (document.querySelector('.work-modal-hero-img')?.getAttribute('src')
+            || document.querySelector('.work-modal.open video')?.getAttribute('poster')
+            || '') === ${JSON.stringify(expected.cover)}`,
         `matching details for ${expected.title}`,
       )
+      if (expected.hasVideo && process.env.PROJECT_VIDEO_SMOKE_FIXTURE) {
+        await cdp.send('Runtime.evaluate', {
+          expression: 'document.querySelector(".work-modal.open video").play()',
+          userGesture: true,
+        })
+        await waitForExpression(
+          `document.querySelector('.work-modal.open video')?.currentTime > 0
+            && document.querySelector('.work-modal.open video')?.videoWidth > 0`,
+          `video playback for ${expected.title}`,
+        )
+      }
       await click('.work-modal-close')
     }
 
@@ -1035,7 +1060,7 @@ async function run() {
       'style reset clears data and timestamp',
     )
 
-    if (PREVIEW_MODE) {
+    if (PREVIEW_MODE && !MEDIA_UPLOAD_SERVICE) {
       await click('.se-overlay .ce-close')
       await click('[data-edit-scope="WORKS"] .inline-edit-tools button', 'Edit')
       await click(
@@ -1086,6 +1111,11 @@ async function run() {
           if (!String(url).startsWith('https://api.github.com/')) return fetchOriginal(url, options)
           if (String(url).includes('/contents/')) {
             if (options.method !== 'PUT') return Promise.resolve(new Response(null, { status: 404 }))
+            if (options.headers.Authorization === 'Bearer smoke-read-only') {
+              return Promise.resolve(Response.json({
+                message: 'Resource not accessible by personal access token',
+              }, { status: 403 }))
+            }
             window.__videoUploadBody = JSON.parse(options.body)
             return Promise.resolve(Response.json({ commit: {}, content: {} }))
           }
@@ -1096,6 +1126,14 @@ async function run() {
           }))
         }
       })()`)
+      await setValue('.ce-publish-panel input[type="password"]', 'smoke-read-only')
+      await click('.ce-publish-actions button', 'Verify and upload MP4')
+      await waitForExpression(
+        `document.querySelector('.ce-publish-status.is-error')?.textContent.includes('Contents to Read and write')
+          && !!document.querySelector('.ce-field-file-video .ce-file-stage video')
+          && !window.__videoUploadBody`,
+        'permission error explains repository access and retains the selected MP4',
+      )
       await setValue('.ce-publish-panel input[type="password"]', 'smoke-test-token')
       await click('.ce-publish-actions button', 'Verify and upload MP4')
       await waitForExpression(
@@ -1126,6 +1164,67 @@ async function run() {
           'uploaded MP4 plays in the project dialog before deployment',
         )
       }
+      await click('.work-modal-close')
+    }
+
+    if (PREVIEW_MODE && MEDIA_UPLOAD_SERVICE) {
+      await click('.se-overlay .ce-close')
+      await click('[data-edit-scope="WORKS"] .inline-edit-tools button', 'Edit')
+      await click(
+        '[data-edit-scope="WORKS"] .inline-quick-editor footer button',
+        'Open full editor',
+      )
+      await waitForExpression(`!!document.querySelector('.ce-arr-card-toggle')`, 'project editor')
+      await click('.ce-arr-card-toggle', 'Choice')
+      const playback = 'https://media.example.test/works/choice.mp4'
+      await evaluate(`(() => {
+        const service = ${JSON.stringify(MEDIA_UPLOAD_SERVICE)}
+        const partUrl = 'https://storage.example.test/part/1'
+        const fetchOriginal = window.fetch.bind(window)
+        const actions = []
+        window.__mediaSmokeActions = actions
+        window.fetch = async (url, options) => {
+          if (url === partUrl) {
+            if (options.method !== 'PUT' || await options.body.text() !== 'video-smoke') {
+              throw new Error('Incorrect video part request')
+            }
+            actions.push('put')
+            return new Response(null, { headers: { ETag: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' } })
+          }
+          if (url !== service) return fetchOriginal(url, options)
+          if (options.headers.Authorization !== 'Bearer media-smoke-key') throw new Error('Missing key')
+          const body = JSON.parse(options.body)
+          actions.push(body.action)
+          if (body.action === 'start') return Response.json({ session: 'smoke', partBytes: ${PROJECT_VIDEO_PART_BYTES} })
+          if (body.action === 'part') return Response.json({ url: partUrl })
+          if (body.action === 'complete' && body.parts[0]?.partNumber === 1) {
+            return Response.json({ url: ${JSON.stringify(playback)} })
+          }
+          throw new Error('Unexpected media control request')
+        }
+        const input = document.querySelector('.ce-field-file-video input[type="file"]')
+        const data = new DataTransfer()
+        data.items.add(new File(['video-smoke'], 'choice.mp4', { type: 'video/mp4' }))
+        input.files = data.files
+        input.dispatchEvent(new Event('change', { bubbles: true }))
+      })()`)
+      await setValue('.ce-file-media-key input', 'media-smoke-key')
+      await click('.ce-field-file-video .ce-file-stage-actions button', 'Upload video')
+      await waitForExpression(
+        `document.querySelector('.ce-field-file-video .ce-file-row input').value === ${JSON.stringify(playback)}
+          && window.__mediaSmokeActions.join(',') === 'start,part,put,complete'`,
+        'the configured editor uploads video bytes and fills the playback address',
+      )
+      await click('.ce-close')
+      await waitForExpression(
+        `!!document.querySelector('#works .work-card .work-cover-play')`,
+        'the automatically linked video appears on the project card',
+      )
+      await click('#works .work-card', 'Choice')
+      await waitForExpression(
+        `document.querySelector('.work-modal.open video')?.src === ${JSON.stringify(playback)}`,
+        'project details play the storage URL',
+      )
       await click('.work-modal-close')
     }
 

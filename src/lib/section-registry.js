@@ -1,6 +1,10 @@
 import { deepMerge, isPlainObject } from './persist.js'
 
 const DATA_EXPORT_NAME = /^[A-Z][A-Z0-9_]*$/
+const LEGACY_WORK_VIDEO_PATHS = new Map([
+  ['/works/.mp4', '/works/princess-of-discarded-things.mp4'],
+  ['/works/remotion.mp4', '/works/spiral-of-silence.mp4'],
+])
 
 export function createSectionRegistry(moduleExports) {
   return Object.fromEntries(
@@ -71,6 +75,8 @@ function withUniqueWorkIds(works) {
       reserved.add(id)
     }
     seen.add(id)
+    const video = LEGACY_WORK_VIDEO_PATHS.get(work.videoSrc)
+    if (video) return { ...work, id, videoSrc: video }
     return work.id === id ? work : { ...work, id }
   })
 }

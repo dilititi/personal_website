@@ -158,6 +158,29 @@ npm run dev
 
 生产上传和内容发布使用同一份 owner / repository / branch 配置。图片会先在浏览器生成响应式尺寸，再逐个写入仓库；提交后需等待静态托管重新部署才能从线上 URL 访问。
 
+### 项目视频最高 1 GB（R2 直传）
+
+作品集可配置独立的视频上传服务。配置后，在「内容 → 作品集 → 项目视频」选择 MP4，输入媒体上传密钥并点「上传视频」。编辑器自动填入播放地址，点「发布内容」后访客即可在作品弹窗中播放。GitHub 只提交作品数据和播放 URL。单文件上限为 1,000,000,000 字节，超限请先用达芬奇或 FFmpeg 压缩。保持编辑器开启时，「继续上传」会跳过已完成的分片。
+
+1. 在 Cloudflare 创建 R2 bucket，为公开视频配置可访问的 HTTPS 域名。编辑 `workers/wrangler.video.toml`，在绑定与 `R2_BUCKET_NAME` 中填写同一个 bucket，设置账户 ID、播放域名与允许上传的站点 origin（不含路径或尾部斜杠，多个用逗号分隔）。
+2. 在 R2 bucket 设置 CORS，允许来自作品集站点的 `PUT`、`Content-Type`，并暴露 `ETag`。播放域名应可匿名 GET 视频并支持 Range 请求。保留中断的分片上传清理规则。
+3. 将仅对此 bucket 有对象读写权限的 R2 `R2_ACCESS_KEY_ID`、`R2_SECRET_ACCESS_KEY` 设置为 Worker secrets。另生成至少 32 字符的随机 `MEDIA_UPLOAD_KEY`，也放入 Worker secrets。这个密钥只授权编辑器上传媒体，别填写到任何 `VITE_` 变量。
+4. 在项目根目录用 `npx wrangler deploy --config workers/wrangler.video.toml` 部署 Worker，并使用 `npx wrangler secret put <SECRET_NAME> --config workers/wrangler.video.toml` 设置上述 secrets。把 Worker 的 HTTPS 地址设置为 Render 构建环境变量 `VITE_WORK_MEDIA_UPLOAD_URL`，随后重新部署网站。未配置此变量时沿用原有的 50 MiB 上传方式。
+
+Bucket CORS 示例：
+
+```json
+[
+  {
+    "AllowedOrigins": ["https://personal-website-x3u4.onrender.com"],
+    "AllowedMethods": ["PUT", "GET", "HEAD"],
+    "AllowedHeaders": ["Content-Type", "Range"],
+    "ExposeHeaders": ["ETag", "Accept-Ranges", "Content-Range"],
+    "MaxAgeSeconds": 3600
+  }
+]
+```
+
 ---
 
 ## 用 AI 生成全部内容

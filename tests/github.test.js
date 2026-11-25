@@ -5,6 +5,7 @@ import {
   containsGitHubToken,
   createGitHubClient,
   dataUrlBase64,
+  githubTokenPermissionHelp,
   utf8ToBase64,
 } from '../src/lib/github.js'
 
@@ -213,6 +214,37 @@ describe('GitHub REST client', () => {
     assert.equal(result.commit.html_url, 'https://github.test/commit/asset')
     assert.equal(metadataCount, 2)
     assert.equal(putCount, 2)
+  })
+
+  it('identifies a denied asset write after the repository can be read', async () => {
+    const config = { owner: 'owner', repo: 'site', branch: 'main' }
+    const client = createGitHubClient({
+      ...config,
+      token: 'test-token',
+      fetchImpl: async (url, options) => {
+        if (options.method === 'PUT') {
+          return jsonResponse({ message: 'Resource not accessible by personal access token' }, 403)
+        }
+        if (url.includes('/contents/')) return jsonResponse({ message: 'Not Found' }, 404)
+        return jsonResponse({ full_name: 'owner/site', permissions: { push: true } })
+      },
+    })
+    assert.equal((await client.validateRepository()).canPush, true)
+    await assert.rejects(
+      () => client.upsertBase64File({ path: 'public/works/test.mp4', base64Content: 'YWJj' }),
+      error => {
+        const help = githubTokenPermissionHelp(error, config, 'zh')
+        assert.match(help.message, /拒绝写入 owner\/site@main/)
+        assert.match(help.message, /Contents 为 Read and write/)
+        assert.equal(new URL(help.url).searchParams.get('contents'), 'write')
+        assert.equal(new URL(help.url).searchParams.get('target_name'), config.owner)
+        assert.equal(
+          githubTokenPermissionHelp({ status: 403, message: 'Rate limit' }, config, 'zh'),
+          null,
+        )
+        return true
+      },
+    )
   })
 
   it('preserves an explicitly empty base64 asset payload', async () => {

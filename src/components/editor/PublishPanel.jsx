@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { createGitHubClient } from '../../lib/github.js'
+import { createGitHubClient, githubTokenPermissionHelp } from '../../lib/github.js'
 import {
   clearGitHubToken,
   isGitHubTokenRemembered,
@@ -73,6 +73,15 @@ export default function PublishPanel({
 
   const updateConfig = (key, value) => setConfig(current => ({ ...current, [key]: value }))
 
+  const reportError = error => {
+    const help = githubTokenPermissionHelp(error, normalizePublishConfig(config), lang)
+    setStatus({
+      type: 'error',
+      message: help?.message || error?.message || String(error),
+      tokenSetupUrl: help?.url,
+    })
+  }
+
   const verifiedClient = async () => {
     const normalizedConfig = normalizePublishConfig(config)
     const configError = validatePublishConfig(normalizedConfig)
@@ -109,11 +118,11 @@ export default function PublishPanel({
         type: 'success',
         message:
           lang === 'zh'
-            ? `连接成功：${repository.fullName} · ${savedConfig.branch}`
-            : `Connected: ${repository.fullName} · ${savedConfig.branch}`,
+            ? `已连接 ${repository.fullName}@${savedConfig.branch}。提交时由 GitHub 核验写入权限。`
+            : `Connected to ${repository.fullName}@${savedConfig.branch}. GitHub checks write permissions on submission.`,
       })
     } catch (error) {
-      setStatus({ type: 'error', message: error?.message || String(error) })
+      reportError(error)
     } finally {
       setBusy('')
     }
@@ -152,7 +161,7 @@ export default function PublishPanel({
         commitUrl,
       })
     } catch (error) {
-      setStatus({ type: 'error', message: error?.message || String(error) })
+      reportError(error)
     } finally {
       setBusy('')
     }
@@ -240,6 +249,11 @@ export default function PublishPanel({
       {status && (
         <div className={`ce-publish-status is-${status.type}`} role="status">
           <span>{status.message}</span>
+          {status.tokenSetupUrl && (
+            <a href={status.tokenSetupUrl} target="_blank" rel="noreferrer">
+              {lang === 'zh' ? '新建有写入权限的 Token' : 'Create a token with write access'}
+            </a>
+          )}
           {status.commitUrl && (
             <a href={status.commitUrl} target="_blank" rel="noreferrer">
               {lang === 'zh' ? '查看 commit' : 'View commit'}

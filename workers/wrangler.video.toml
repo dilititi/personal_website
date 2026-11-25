@@ -1,0 +1,13 @@
+name = "portfolio-video-upload"
+main = "project-video-upload.js"
+compatibility_date = "2026-11-25"
+
+[[r2_buckets]]
+binding = "VIDEO_BUCKET"
+bucket_name = "portfolio-videos"
+
+[vars]
+R2_BUCKET_NAME = "portfolio-videos"
+R2_ACCOUNT_ID = "replace-with-cloudflare-account-id"
+MEDIA_PUBLIC_BASE_URL = "https://media.example.com"
+MEDIA_ALLOWED_ORIGINS = "https://personal-website-x3u4.onrender.com"

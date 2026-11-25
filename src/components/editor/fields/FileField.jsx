@@ -2,8 +2,19 @@ import React, { useContext, useEffect, useRef, useState } from 'react'
 import { useLang } from '../../../lang.jsx'
 import { createResponsiveImageVariants, fileToDataUrl, resizeImage } from '../../../utils.js'
 import { RESPONSIVE_IMAGE_WIDTHS, responsiveUploadFilename } from '../../../lib/images.js'
-import { createGitHubClient, dataUrlBase64 } from '../../../lib/github.js'
+import {
+  createGitHubClient,
+  dataUrlBase64,
+  githubTokenPermissionHelp,
+} from '../../../lib/github.js'
 import { readGitHubToken, readPublishConfig } from '../../../lib/publish-config.js'
+import {
+  abortProjectVideoUpload,
+  MAX_PROJECT_VIDEO_BYTES,
+  mediaUploadEndpoint,
+  newProjectVideoUpload,
+  uploadProjectVideo,
+} from '../../../lib/project-video-upload.js'
 import {
   getUploadedVideoPreview,
   setUploadedVideoPreview,
@@ -14,6 +25,9 @@ import { OpenPublishPanelContext } from '../publish-panel-context.js'
 import PublishPanel from '../PublishPanel.jsx'
 
 const DEV_UPLOAD = import.meta.env.DEV
+const VIDEO_UPLOAD_ENDPOINT = mediaUploadEndpoint(import.meta.env.VITE_WORK_MEDIA_UPLOAD_URL)
+const REPO_VIDEO_LIMIT = 50 * 1024 * 1024
+const VIDEO_FILENAME = /^[a-z\d][a-z\d._-]*\.mp4$/i
 
 export function FileField({
   value,
@@ -34,9 +48,14 @@ export function FileField({
   const [statusMsg, setStatusMsg] = useState('')
   const [pendingFile, setPendingFile] = useState(null)
   const [showVideoConnection, setShowVideoConnection] = useState(false)
+  const [mediaKey, setMediaKey] = useState('')
+  const [mediaProgress, setMediaProgress] = useState(null)
   const fileRef = useRef(null)
   const fieldRef = useRef(null)
+  const mediaJob = useRef(null)
+  const mediaRequest = useRef(null)
   const uploadedPathRef = useRef('')
+  const uploadToMedia = isVideo && Boolean(VIDEO_UPLOAD_ENDPOINT)
   const uploadedPreview = isVideo && !pendingFile ? getUploadedVideoPreview(value) : ''
   const imageTemplates =
     !isAudio && accept.includes('image') ? FILE_IMAGE_TEMPLATES[subfolder] || [] : []
@@ -92,26 +111,97 @@ export function FileField({
     return () => URL.revokeObjectURL(url)
   }, [pendingFile, isVideo])
 
+  useEffect(() => () => mediaRequest.current?.abort(), [])
+
+  const clearSelection = () => {
+    setPendingFile(null)
+    setFilename('')
+    setFileSize(0)
+    setMediaProgress(null)
+  }
+
+  const cancelMediaUpload = () => {
+    mediaRequest.current?.abort()
+    mediaRequest.current = null
+    if (mediaJob.current) {
+      abortProjectVideoUpload(mediaJob.current, {
+        endpoint: VIDEO_UPLOAD_ENDPOINT,
+        key: mediaKey.trim(),
+      }).catch(() => {})
+      mediaJob.current = null
+    }
+    setBusy(false)
+    setStatus('')
+    clearSelection()
+  }
+
   const onPick = e => {
     const f = e.target.files?.[0]
     e.target.value = ''
     if (!f) return
-    if (isVideo && (!/\.mp4$/i.test(f.name) || f.size > 50 * 1024 * 1024 || f.size === 0)) {
-      setPendingFile(null)
+    const limit = uploadToMedia ? MAX_PROJECT_VIDEO_BYTES : REPO_VIDEO_LIMIT
+    if (isVideo && (!/\.mp4$/i.test(f.name) || f.size > limit || f.size === 0)) {
+      clearSelection()
       setStatus('error')
-      setStatusMsg('请选择非空且不超过 50 MiB 的 MP4，较大的视频请填写直链')
+      const sizeLabel = uploadToMedia ? '1 GB' : '50 MiB'
+      setStatusMsg(
+        lang === 'zh'
+          ? `请选择非空且不超过 ${sizeLabel} 的 MP4。超过上限请用达芬奇或 FFmpeg 压缩后重选。`
+          : `Choose a non-empty MP4 up to ${sizeLabel}. Compress larger videos before selecting them again.`,
+      )
       return
     }
+    setStatus('')
     setPendingFile(f)
-    setFilename(sanitizeFilename(f.name))
+    const name = sanitizeFilename(f.name)
+    setFilename(
+      isVideo && !VIDEO_FILENAME.test(name) ? `project-video-${crypto.randomUUID()}.mp4` : name,
+    )
     setFileSize(f.size)
+  }
+
+  const saveToMedia = async () => {
+    if (!pendingFile || !mediaKey.trim() || mediaRequest.current) return
+    const controller = new AbortController()
+    mediaRequest.current = controller
+    mediaJob.current ||= newProjectVideoUpload(pendingFile)
+    setBusy(true)
+    setStatus('')
+    try {
+      const url = await uploadProjectVideo(mediaJob.current, {
+        endpoint: VIDEO_UPLOAD_ENDPOINT,
+        key: mediaKey.trim(),
+        signal: controller.signal,
+        onProgress: (uploaded, total) => setMediaProgress({ uploaded, total }),
+      })
+      if (controller.signal.aborted || !fieldRef.current) return
+      onChange(url)
+      mediaJob.current = null
+      clearSelection()
+      setStatus('ok')
+      setStatusMsg(
+        lang === 'zh'
+          ? '视频已上传，可以预览。请发布内容，将视频公开关联到项目。'
+          : 'Video uploaded and ready to preview. Publish the project content to make it visible to visitors.',
+      )
+    } catch (error) {
+      if (!controller.signal.aborted) {
+        setStatus('error')
+        setStatusMsg(error.message)
+      }
+    } finally {
+      if (mediaRequest.current === controller) {
+        mediaRequest.current = null
+        setBusy(false)
+      }
+    }
   }
 
   const saveToPublic = async (target = null) => {
     if (!fieldRef.current || !pendingFile || !filename) return
-    if (isVideo && !/\.mp4$/i.test(filename)) {
+    if (isVideo && !VIDEO_FILENAME.test(filename)) {
       setStatus('error')
-      setStatusMsg('视频文件名必须以 .mp4 结尾')
+      setStatusMsg('视频文件名必须以字母或数字开头，并以 .mp4 结尾')
       return
     }
     const token = DEV_UPLOAD ? '' : readGitHubToken()
@@ -214,9 +304,10 @@ export function FileField({
       setFilename('')
       setFileSize(0)
     } catch (e) {
-      setStatus('error')
-      setStatusMsg(`错误：${e.message}`)
       if (target) throw e
+      const help = !DEV_UPLOAD && githubTokenPermissionHelp(e, readPublishConfig(), lang)
+      setStatus('error')
+      setStatusMsg(help?.message || e.message)
       if (isVideo && !DEV_UPLOAD && (e.status === 401 || e.status === 403)) {
         openPublish?.(false)
         setShowVideoConnection(true)
@@ -234,6 +325,7 @@ export function FileField({
           type="text"
           value={value ?? ''}
           onChange={e => onChange(e.target.value)}
+          disabled={uploadToMedia && busy}
           aria-label={isVideo ? '项目视频路径或直链' : undefined}
           placeholder={`/${subfolder}/example.${isVideo ? 'mp4' : isAudio ? 'mp3' : 'jpg'}`}
         />
@@ -241,12 +333,14 @@ export function FileField({
           type="button"
           className="ce-icon-btn"
           onClick={() => fileRef.current?.click()}
-          disabled={busy || showVideoConnection}
+          disabled={busy || showVideoConnection || (uploadToMedia && Boolean(pendingFile))}
           aria-label={isVideo ? '选择 MP4 文件' : undefined}
           title={
-            DEV_UPLOAD
-              ? '选择文件并写入本地 public/'
-              : '选择文件；提交时需要编辑器「发布」面板中的 GitHub token'
+            uploadToMedia
+              ? '选择不超过 1 GB 的 MP4'
+              : DEV_UPLOAD
+                ? '选择文件并写入本地 public/'
+                : '选择文件；提交时需要编辑器「发布」面板中的 GitHub token'
           }
         >
           📁
@@ -259,11 +353,15 @@ export function FileField({
           style={{ display: 'none' }}
         />
       </div>
-      {!DEV_UPLOAD && (
+      {(!DEV_UPLOAD || uploadToMedia) && (
         <div className="ce-file-status ce-file-status-missing">
-          {isVideo
-            ? '可直接粘贴视频直链。上传本地 MP4 到网站需要连接 GitHub。'
-            : '上传本地文件需要连接 GitHub。也可以直接填写已有资源的路径。'}
+          {uploadToMedia
+            ? lang === 'zh'
+              ? 'MP4 · 最大 1 GB'
+              : 'MP4 · max 1 GB'
+            : isVideo
+              ? '可直接粘贴视频直链。上传本地 MP4 到网站需要连接 GitHub。'
+              : '上传本地文件需要连接 GitHub。也可以直接填写已有资源的路径。'}
         </div>
       )}
       {status && (
@@ -271,10 +369,10 @@ export function FileField({
           {status === 'ok' ? '✓' : status === 'missing' ? '⚠' : '✗'} {statusMsg}
         </div>
       )}
-      {uploadedPreview && (
+      {(uploadedPreview || (uploadToMedia && !pendingFile && workVideoSource(value))) && (
         <video
           className="ce-file-video-preview"
-          src={uploadedPreview}
+          src={uploadedPreview || workVideoSource(value)}
           aria-label="已上传视频的本地预览"
           controls
           playsInline
@@ -306,17 +404,19 @@ export function FileField({
       {pendingFile && (
         <div className="ce-file-stage">
           <div className="ce-file-stage-info">
-            <strong>{pendingFile.name}</strong> · {(fileSize / 1024).toFixed(1)} KB
-            <span className="ce-file-target">
-              → public/{subfolder}/
-              <input
-                type="text"
-                className="ce-input ce-file-name-input"
-                value={filename}
-                disabled={busy || showVideoConnection}
-                onChange={e => setFilename(sanitizeFilename(e.target.value))}
-              />
-            </span>
+            <strong>{pendingFile.name}</strong> · {(fileSize / (1024 * 1024)).toFixed(2)} MiB
+            {!uploadToMedia && (
+              <span className="ce-file-target">
+                → public/{subfolder}/
+                <input
+                  type="text"
+                  className="ce-input ce-file-name-input"
+                  value={filename}
+                  disabled={busy || showVideoConnection}
+                  onChange={e => setFilename(sanitizeFilename(e.target.value))}
+                />
+              </span>
+            )}
           </div>
           {previewUrl && isVideo && (
             <video
@@ -339,34 +439,79 @@ export function FileField({
               decoding="async"
             />
           )}
-          <div className="ce-file-stage-actions">
-            <button
-              type="button"
-              className="ce-btn ce-btn-ghost"
-              disabled={busy || showVideoConnection}
-              onClick={() => {
-                setPendingFile(null)
-                setFilename('')
-                setFileSize(0)
-              }}
-            >
-              取消
-            </button>
-            <button
-              type="button"
-              className="ce-btn"
-              onClick={() => saveToPublic()}
-              disabled={busy || showVideoConnection || !filename}
-            >
-              {busy
-                ? DEV_UPLOAD
-                  ? '保存中...'
-                  : '提交中...'
-                : isVideo && !DEV_UPLOAD
-                  ? '上传到 GitHub'
-                  : `${DEV_UPLOAD ? '写入' : '提交'} public/${subfolder}/`}
-            </button>
-          </div>
+          {uploadToMedia ? (
+            <>
+              <label className="ce-file-media-key">
+                <span>{lang === 'zh' ? '媒体上传密钥' : 'Media upload key'}</span>
+                <input
+                  className="ce-input"
+                  type="password"
+                  autoComplete="off"
+                  value={mediaKey}
+                  disabled={busy}
+                  onChange={event => setMediaKey(event.target.value)}
+                />
+              </label>
+              {mediaProgress && (
+                <progress
+                  className="ce-file-upload-progress"
+                  aria-label={lang === 'zh' ? '视频上传进度' : 'Video upload progress'}
+                  max={mediaProgress.total}
+                  value={mediaProgress.uploaded}
+                />
+              )}
+              <div className="ce-file-stage-actions">
+                <button className="ce-btn ce-btn-ghost" type="button" onClick={cancelMediaUpload}>
+                  {lang === 'zh' ? '取消' : 'Cancel'}
+                </button>
+                <button
+                  className="ce-btn"
+                  type="button"
+                  onClick={saveToMedia}
+                  disabled={busy || !mediaKey.trim()}
+                >
+                  {busy
+                    ? lang === 'zh'
+                      ? '上传中…'
+                      : 'Uploading…'
+                    : mediaProgress
+                      ? lang === 'zh'
+                        ? '继续上传'
+                        : 'Resume upload'
+                      : lang === 'zh'
+                        ? '上传视频'
+                        : 'Upload video'}
+                </button>
+              </div>
+            </>
+          ) : (
+            <div className="ce-file-stage-actions">
+              <button
+                type="button"
+                className="ce-btn ce-btn-ghost"
+                disabled={busy || showVideoConnection}
+                onClick={() => {
+                  clearSelection()
+                }}
+              >
+                取消
+              </button>
+              <button
+                type="button"
+                className="ce-btn"
+                onClick={() => saveToPublic()}
+                disabled={busy || showVideoConnection || !filename}
+              >
+                {busy
+                  ? DEV_UPLOAD
+                    ? '保存中...'
+                    : '提交中...'
+                  : isVideo && !DEV_UPLOAD
+                    ? '上传到 GitHub'
+                    : `${DEV_UPLOAD ? '写入' : '提交'} public/${subfolder}/`}
+              </button>
+            </div>
+          )}
           {showVideoConnection && (
             <PublishPanel
               lang={lang}

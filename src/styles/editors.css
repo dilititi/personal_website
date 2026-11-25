@@ -1058,6 +1058,15 @@ html[lang='zh'] .ce-arr-card-title {
   object-fit: contain;
   background: #181818;
 }
+.ce-file-media-key {
+  display: grid;
+  gap: 6px;
+  max-width: 420px;
+}
+.ce-file-upload-progress {
+  width: 100%;
+  accent-color: var(--ember);
+}
 .ce-file-stage-actions {
   display: flex;
   gap: 8px;

@@ -2,11 +2,37 @@ const API_ROOT = 'https://api.github.com'
 const TOKEN_PATTERN = /\b(?:github_pat_[A-Za-z0-9_]+|gh[pousr]_[A-Za-z0-9]+)\b/
 
 class GitHubApiError extends Error {
-  constructor(message, status, data = null) {
+  constructor(message, status, data = null, method = 'GET') {
     super(message)
     this.name = 'GitHubApiError'
     this.status = status
     this.data = data
+    this.method = method
+  }
+}
+
+export function githubTokenPermissionHelp(error, config, lang) {
+  if (
+    error?.status !== 403 ||
+    !/resource not accessible by personal access token/i.test(error.message)
+  )
+    return null
+
+  const { owner, repo, branch } = config
+  const repository = `${owner}/${repo}`
+  const target = `${repository}@${branch}`
+  const writing = error.method === 'PUT'
+  const url = new URL('https://github.com/settings/personal-access-tokens/new')
+  url.searchParams.set('name', 'Portfolio editor')
+  url.searchParams.set('target_name', owner)
+  url.searchParams.set('contents', 'write')
+
+  return {
+    message:
+      lang === 'zh'
+        ? `${writing ? 'GitHub 拒绝写入' : 'Token 无法访问'} ${target}。请确认 Token 的 Resource owner 是 ${owner}，已选中仓库 ${repo}，且 Contents 为 Read and write。`
+        : `${writing ? 'GitHub denied the write to' : 'The token cannot access'} ${target}. Select ${owner} as the resource owner, grant access to ${repo}, and set Contents to Read and write.`,
+    url: url.href,
   }
 }
 
@@ -73,6 +99,7 @@ export function createGitHubClient({ token, owner, repo, fetchImpl = fetch }) {
         data?.message || `GitHub request failed with HTTP ${response.status}`,
         response.status,
         data,
+        options.method,
       )
     }
     return data

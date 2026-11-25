@@ -189,4 +189,15 @@ describe('section registry', () => {
     assert.equal(works[0].videoSrc, '/works/sound-map.mp4')
     assert.deepEqual(resolveWorks(base, works), works)
   })
+
+  it('keeps legacy video references playable after the web copies are published', () => {
+    const base = dataExports.WORKS.filter(work =>
+      ['princess-of-discarded-things', 'spiral-of-silence'].includes(work.id),
+    )
+    const draft = [
+      { ...base[0], videoSrc: '/works/.mp4' },
+      { ...base[1], videoSrc: '/works/remotion.mp4' },
+    ]
+    assert.deepEqual(resolveWorks(base, draft), base)
+  })
 })
