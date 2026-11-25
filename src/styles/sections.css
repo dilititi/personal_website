@@ -2113,6 +2113,20 @@ footer.colophon[data-layout='feature'] .colophon-grid {
 html[lang='zh'] .work-cover-badge {
   letter-spacing: 0.1em;
 }
+.work-cover-play {
+  position: absolute;
+  inset: 50% auto auto 50%;
+  transform: translate(-50%, -50%);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: #181818;
+  color: #fff;
+  border-radius: 4px;
+  font-size: 13px;
+  z-index: 2;
+}
 
 /* ============ MEDIUM FILTER ============ */
 .medium-filter {
@@ -2280,7 +2294,7 @@ html[lang='zh'] .medium-pill {
   cursor: pointer;
   font-family: var(--font-mono);
   transition: all 0.3s;
-  z-index: 1;
+  z-index: 3;
 }
 .work-modal-close:hover {
   border-color: var(--ember);
@@ -2290,6 +2304,17 @@ html[lang='zh'] .medium-pill {
   height: 320px;
   position: relative;
   overflow: hidden;
+}
+.work-video {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  max-height: 65vh;
+  background: #181818;
+  object-fit: contain;
+}
+.work-video-error {
+  padding: 24px 60px 0 24px;
 }
 .work-modal-body {
   padding: 60px;

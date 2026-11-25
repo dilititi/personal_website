@@ -3,6 +3,7 @@ import { useLang } from '../lang.jsx'
 import { useData } from '../data-context.jsx'
 import { useFocusTrap } from '../hooks.jsx'
 import { responsiveImageAttributes } from '../lib/images.js'
+import { workVideoSource } from '../lib/work-video.js'
 
 const WORK_MEDIA_LABELS = {
   short: { en: 'Shorts', zh: '短片' },
@@ -23,12 +24,52 @@ function mediaLabel(id) {
   return { en: text.replace(/\b\w/g, m => m.toUpperCase()), zh: text }
 }
 
+function WorkVideo({ src, poster, title, lang }) {
+  const [failed, setFailed] = useState(false)
+  const videoRef = useRef(null)
+  useEffect(() => {
+    const video = videoRef.current
+    return () => video?.pause()
+  }, [])
+
+  if (failed) {
+    return (
+      <>
+        {poster && (
+          <div className="work-modal-hero">
+            <img src={poster} alt={title} className="work-modal-hero-img" />
+          </div>
+        )}
+        <p className="work-video-error" role="status">
+          {lang === 'zh' ? '视频无法播放。' : 'This video could not be played.'}
+        </p>
+      </>
+    )
+  }
+
+  return (
+    <video
+      ref={videoRef}
+      className="work-video"
+      src={src}
+      poster={poster || undefined}
+      aria-label={title}
+      tabIndex={0}
+      controls
+      playsInline
+      preload="none"
+      onError={() => setFailed(true)}
+    />
+  )
+}
+
 export default function Works({ layout = 'default' }) {
   const { lang, t } = useLang()
   const { WORKS } = useData()
   const [openId, setOpenId] = useState(null)
   const [medium, setMedium] = useState('all')
   const open = WORKS.find(w => w.id === openId)
+  const openVideo = workVideoSource(open?.videoSrc)
   const dialogRef = useRef(null)
   const mediaOptions = useMemo(() => {
     const ids = [...new Set(WORKS.map(w => w.medium).filter(Boolean))]
@@ -97,23 +138,31 @@ export default function Works({ layout = 'default' }) {
             onClick={() => setOpenId(w.id)}
             data-reveal
           >
-            {w.coverImg && (
+            {(w.coverImg || workVideoSource(w.videoSrc)) && (
               <div className={`work-cover ${w.cover || ''}`}>
-                <img
-                  {...responsiveImageAttributes(
-                    w.coverImg,
-                    '(max-width: 720px) 100vw, (max-width: 1100px) 50vw, 33vw',
-                  )}
-                  alt={t(w.title)}
-                  className="work-cover-img"
-                  width="1600"
-                  height="1000"
-                  loading="lazy"
-                  decoding="async"
-                  onError={e => {
-                    e.currentTarget.style.display = 'none'
-                  }}
-                />
+                {w.coverImg && (
+                  <img
+                    {...responsiveImageAttributes(
+                      w.coverImg,
+                      '(max-width: 720px) 100vw, (max-width: 1100px) 50vw, 33vw',
+                    )}
+                    alt={t(w.title)}
+                    className="work-cover-img"
+                    width="1600"
+                    height="1000"
+                    loading="lazy"
+                    decoding="async"
+                    onError={e => {
+                      e.currentTarget.style.display = 'none'
+                    }}
+                  />
+                )}
+                {workVideoSource(w.videoSrc) && (
+                  <span className="work-cover-play">
+                    <span aria-hidden="true">▶</span>
+                    {lang === 'zh' ? '视频' : 'Video'}
+                  </span>
+                )}
                 <div className="work-cover-meta">
                   {w.year && <span>{w.year} · </span>}
                   <span>{t(w.subtitle)}</span>
@@ -172,36 +221,46 @@ export default function Works({ layout = 'default' }) {
             >
               ✕
             </button>
-            {open.coverImg && (
-              <div className={`work-modal-hero ${open.cover || ''}`}>
-                <img
-                  {...responsiveImageAttributes(open.coverImg, 'min(92vw, 1200px)')}
-                  alt={t(open.title)}
-                  className="work-modal-hero-img"
-                  width="1600"
-                  height="900"
-                  loading="lazy"
-                  decoding="async"
-                  onError={e => {
-                    e.currentTarget.style.display = 'none'
-                  }}
-                />
-                <div
-                  style={{
-                    position: 'absolute',
-                    bottom: 24,
-                    left: 40,
-                    fontFamily: 'var(--font-mono)',
-                    fontSize: 11,
-                    letterSpacing: '0.2em',
-                    color: 'var(--cream-mute)',
-                    textTransform: 'uppercase',
-                    zIndex: 2,
-                  }}
-                >
-                  {[open.year, t(open.subtitle)].filter(Boolean).join(' · ')}
+            {openVideo ? (
+              <WorkVideo
+                key={openVideo}
+                src={openVideo}
+                poster={open.coverImg}
+                title={t(open.title)}
+                lang={lang}
+              />
+            ) : (
+              open.coverImg && (
+                <div className={`work-modal-hero ${open.cover || ''}`}>
+                  <img
+                    {...responsiveImageAttributes(open.coverImg, 'min(92vw, 1200px)')}
+                    alt={t(open.title)}
+                    className="work-modal-hero-img"
+                    width="1600"
+                    height="900"
+                    loading="lazy"
+                    decoding="async"
+                    onError={e => {
+                      e.currentTarget.style.display = 'none'
+                    }}
+                  />
+                  <div
+                    style={{
+                      position: 'absolute',
+                      bottom: 24,
+                      left: 40,
+                      fontFamily: 'var(--font-mono)',
+                      fontSize: 11,
+                      letterSpacing: '0.2em',
+                      color: 'var(--cream-mute)',
+                      textTransform: 'uppercase',
+                      zIndex: 2,
+                    }}
+                  >
+                    {[open.year, t(open.subtitle)].filter(Boolean).join(' · ')}
+                  </div>
                 </div>
-              </div>
+              )
             )}
             <div className="work-modal-body">
               <div>

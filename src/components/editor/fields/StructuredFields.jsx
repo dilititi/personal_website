@@ -313,6 +313,17 @@ function FieldRow({ field, value, onChange, hideLabel, onTemplateApply }) {
         />
       )
       break
+    case 'file-video':
+      body = (
+        <FileField
+          value={value}
+          onChange={onChange}
+          subfolder={field.subfolder || 'works'}
+          accept="video/mp4,.mp4"
+          isVideo
+        />
+      )
+      break
     case 'file-pdf':
       body = (
         <FileField

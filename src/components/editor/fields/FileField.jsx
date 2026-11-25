@@ -3,6 +3,7 @@ import { createResponsiveImageVariants, fileToDataUrl, resizeImage } from '../..
 import { RESPONSIVE_IMAGE_WIDTHS, responsiveUploadFilename } from '../../../lib/images.js'
 import { createGitHubClient, dataUrlBase64 } from '../../../lib/github.js'
 import { readGitHubToken, readPublishConfig } from '../../../lib/publish-config.js'
+import { workVideoSource } from '../../../lib/work-video.js'
 import { FILE_IMAGE_TEMPLATES } from '../contentPresets.js'
 
 const DEV_UPLOAD = import.meta.env.DEV
@@ -13,6 +14,7 @@ export function FileField({
   subfolder = 'picture',
   accept = 'image/*',
   isAudio = false,
+  isVideo = false,
   onTemplateApply,
 }) {
   const [filename, setFilename] = useState('')
@@ -27,43 +29,53 @@ export function FileField({
   const imageTemplates =
     !isAudio && accept.includes('image') ? FILE_IMAGE_TEMPLATES[subfolder] || [] : []
 
-  // Verify whether the current path actually points to an existing file in public/
-  const checkPath = async p => {
-    if (!p) {
-      setStatus('')
-      setStatusMsg('')
-      return
-    }
-    if (uploadedPathRef.current === p) {
-      setStatus('ok')
-      setStatusMsg('已提交到 GitHub，等待静态站重新部署')
-      return
-    }
-    try {
-      const r = await fetch(p, { method: 'HEAD' })
-      if (r.ok) {
-        setStatus('ok')
-        setStatusMsg('文件存在')
-      } else {
-        setStatus('missing')
-        setStatusMsg(`未找到（${r.status}）`)
-      }
-    } catch {
-      setStatus('missing')
-      setStatusMsg('未找到')
-    }
-  }
-
-  // When path text changes, debounce-check existence
   useEffect(() => {
-    const id = setTimeout(() => checkPath(value), 250)
-    return () => clearTimeout(id)
-  }, [value])
+    const controller = new AbortController()
+    const id = setTimeout(async () => {
+      const path = isVideo ? workVideoSource(value) : value
+      if (isVideo && value && !path) {
+        setStatus('error')
+        setStatusMsg('请输入站内视频路径或 HTTP(S) 视频直链')
+        return
+      }
+      // A playable external video does not need to allow cross-origin HEAD requests.
+      if (!path || (isVideo && !path.startsWith('/'))) {
+        setStatus('')
+        setStatusMsg('')
+        return
+      }
+      if (uploadedPathRef.current === path) {
+        setStatus('ok')
+        setStatusMsg('已提交到 GitHub，等待静态站重新部署')
+        return
+      }
+      try {
+        const response = await fetch(path, { method: 'HEAD', signal: controller.signal })
+        if (controller.signal.aborted) return
+        setStatus(response.ok ? 'ok' : 'missing')
+        setStatusMsg(response.ok ? '文件存在' : `未找到（${response.status}）`)
+      } catch {
+        if (controller.signal.aborted) return
+        setStatus('missing')
+        setStatusMsg('未找到')
+      }
+    }, 250)
+    return () => {
+      clearTimeout(id)
+      controller.abort()
+    }
+  }, [value, isVideo])
 
   const onPick = e => {
     const f = e.target.files?.[0]
     e.target.value = ''
     if (!f) return
+    if (isVideo && (!/\.mp4$/i.test(f.name) || f.size > 50 * 1024 * 1024 || f.size === 0)) {
+      setPendingFile(null)
+      setStatus('error')
+      setStatusMsg('请选择非空且不超过 50 MiB 的 MP4，较大的视频请填写直链')
+      return
+    }
     setPendingFile(f)
     setFilename(sanitizeFilename(f.name))
     setFileSize(f.size)
@@ -77,6 +89,11 @@ export function FileField({
 
   const saveToPublic = async () => {
     if (!pendingFile || !filename) return
+    if (isVideo && !/\.mp4$/i.test(filename)) {
+      setStatus('error')
+      setStatusMsg('视频文件名必须以 .mp4 结尾')
+      return
+    }
     setBusy(true)
     const isImage = pendingFile.type.startsWith('image/')
     setStatusMsg(isImage ? '生成响应式图片 + 上传中...' : '上传中...')
@@ -185,12 +202,14 @@ export function FileField({
           type="text"
           value={value ?? ''}
           onChange={e => onChange(e.target.value)}
-          placeholder={`/${subfolder}/example.${isAudio ? 'mp3' : 'jpg'}`}
+          aria-label={isVideo ? '项目视频路径或直链' : undefined}
+          placeholder={`/${subfolder}/example.${isVideo ? 'mp4' : isAudio ? 'mp3' : 'jpg'}`}
         />
         <button
           type="button"
           className="ce-icon-btn"
           onClick={() => fileRef.current?.click()}
+          aria-label={isVideo ? '选择 MP4 文件' : undefined}
           title={
             DEV_UPLOAD
               ? '选择文件并写入本地 public/'

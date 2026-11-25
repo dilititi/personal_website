@@ -58,7 +58,7 @@ export function collectDataUrls(value, path = 'data') {
   return found
 }
 
-const PUBLIC_ASSET_RE = /\.(avif|gif|jpe?g|m4a|mp3|ogg|pdf|png|svg|wav|webp)([?#].*)?$/i
+const PUBLIC_ASSET_RE = /\.(avif|gif|jpe?g|m4a|mp3|mp4|ogg|pdf|png|svg|wav|webm|webp)([?#].*)?$/i
 
 export function collectPublicPathRefs(value, path = 'data') {
   const found = []

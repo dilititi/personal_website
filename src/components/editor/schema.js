@@ -37,6 +37,12 @@ const workItem = [
     subfolder: 'works',
     label: '封面图片（点 📁 选本地图 → 一键写入 public/works/）',
   },
+  {
+    key: 'videoSrc',
+    type: 'file-video',
+    subfolder: 'works',
+    label: '项目视频（可选，上传 MP4 或填写视频直链）',
+  },
   { key: 'summary', type: 'bi-text', label: '简介 Summary' },
   { key: 'tags', type: 'str-arr', label: '标签 Tags', required: true },
   {

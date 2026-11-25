@@ -1,5 +1,6 @@
 import { ABOUT_SCHEMA, EXPORTABLE_SECTIONS, SITE_SCHEMA, moduleConfigFields } from './schema.js'
 import { MODULE_IDS } from '../../lib/module-manifest.js'
+import { workVideoSource } from '../../lib/work-video.js'
 
 export function isRecord(v) {
   return v && typeof v === 'object' && !Array.isArray(v)
@@ -90,6 +91,10 @@ export function validateFields(fields, value, path) {
 function validateFieldValue(field, value, path) {
   if (value === undefined || value === null) return ''
   switch (field.type) {
+    case 'file-video':
+      return value === '' || workVideoSource(value)
+        ? ''
+        : `${path} 必须是站内视频路径或 HTTP(S) 视频直链`
     case 'str':
     case 'text':
     case 'file-image':
