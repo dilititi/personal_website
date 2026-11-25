@@ -1018,6 +1018,72 @@ async function run() {
     )
 
     if (PREVIEW_MODE) {
+      await click('.se-overlay .ce-close')
+      await click('[data-edit-scope="WORKS"] .inline-edit-tools button', 'Edit')
+      await click(
+        '[data-edit-scope="WORKS"] .inline-quick-editor footer button',
+        'Open full editor',
+      )
+      await waitForExpression(
+        `!!document.querySelector('.ce-arr-card-toggle')`,
+        'project content editor',
+      )
+      await click('.ce-arr-card-toggle', 'Choice')
+      await evaluate(`(() => {
+        const input = document.querySelector('.ce-field-file-video input[type="file"]')
+        const data = new DataTransfer()
+        data.items.add(new File(['test'], 'preview.mp4', { type: 'video/mp4' }))
+        input.files = data.files
+        input.dispatchEvent(new Event('change', { bubbles: true }))
+      })()`)
+      await waitForExpression(
+        `document.querySelector('.ce-field-file-video video')?.src.startsWith('blob:')`,
+        'temporary video preview without GitHub credentials',
+      )
+      await click('.ce-field-file-video .ce-file-stage-actions button', '上传到 GitHub')
+      await waitForExpression(
+        `!!document.querySelector('.ce-publish-panel input[type="password"]')
+          && !!document.querySelector('.ce-field-file-video video')`,
+        'upload opens GitHub settings and keeps the selected video',
+      )
+      assert.equal(
+        await evaluate(`document.querySelector('.ce-field-file-video .ce-file-row input').value`),
+        '',
+        'Previewing a local video must not change the saved project URL.',
+      )
+      await evaluate(`(() => {
+        const fetchOriginal = window.fetch.bind(window)
+        window.fetch = (url, options) => {
+          if (!String(url).startsWith('https://api.github.com/')) return fetchOriginal(url, options)
+          if (String(url).includes('/contents/')) {
+            if (options.method !== 'PUT') return Promise.resolve(new Response(null, { status: 404 }))
+            window.__videoUploadBody = JSON.parse(options.body)
+            return Promise.resolve(Response.json({ commit: {}, content: {} }))
+          }
+          return Promise.resolve(Response.json({
+            full_name: 'dilititi/personal_website',
+            default_branch: 'main',
+            permissions: { push: true },
+          }))
+        }
+      })()`)
+      await setValue('.ce-publish-panel input[type="password"]', 'smoke-test-token')
+      await click('.ce-publish-actions button', 'Verify')
+      await waitForExpression(
+        `!!document.querySelector('.ce-publish-status.is-success')`,
+        'GitHub connection verified with a mocked API',
+      )
+      await click('.ce-field-file-video .ce-file-stage-actions button', '上传到 GitHub')
+      await waitForExpression(
+        `document.querySelector('.ce-field-file-video .ce-file-row input').value === '/works/preview.mp4'
+          && window.__videoUploadBody?.content === btoa('test')
+          && !document.querySelector('.ce-field-file-video video')`,
+        'retry publishes the original file and stores its site path',
+      )
+      await click('.ce-close')
+    }
+
+    if (PREVIEW_MODE) {
       assert.deepEqual(
         await evaluate(`window.__CHEN_HYDRATION_ERRORS__ || []`),
         [],

@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { useLang } from '../lang.jsx'
 import { useData } from '../data-context.jsx'
 import { useStyle } from '../style-context.jsx'
@@ -12,6 +12,7 @@ import {
 } from './editor/export.js'
 import PreviewFrame from './editor/PreviewFrame.jsx'
 import PublishPanel from './editor/PublishPanel.jsx'
+import { OpenPublishPanelContext } from './editor/publish-panel-context.js'
 import SectionEditor from './editor/SectionEditor.jsx'
 import { buildContentDraft } from './editor/contentDraft.js'
 import { downloadJson, downloadText, formatLocalTimestamp } from './editor/files.js'
@@ -36,6 +37,7 @@ export default function ContentEditor({ open, onClose, initialSection = 'SITE' }
   const [pathAudit, setPathAudit] = useState(null)
   const [checkingPaths, setCheckingPaths] = useState(false)
   const [showPublish, setShowPublish] = useState(false)
+  const openPublish = useCallback(() => setShowPublish(true), [])
   const [mode, setMode] = useState(() => {
     try {
       return localStorage.getItem('chen.ce.mode') === 'side' ? 'side' : 'modal'
@@ -526,12 +528,14 @@ export default function ContentEditor({ open, onClose, initialSection = 'SITE' }
             ) : (
               workingValue !== null && (
                 <div className="ce-section-body">
-                  <SectionEditor
-                    section={section}
-                    value={workingValue}
-                    onChange={setWorkingValue}
-                    onTemplateApply={rememberTemplateUndo}
-                  />
+                  <OpenPublishPanelContext.Provider value={openPublish}>
+                    <SectionEditor
+                      section={section}
+                      value={workingValue}
+                      onChange={setWorkingValue}
+                      onTemplateApply={rememberTemplateUndo}
+                    />
+                  </OpenPublishPanelContext.Provider>
                 </div>
               )
             )}

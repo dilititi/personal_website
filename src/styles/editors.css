@@ -1051,6 +1051,13 @@ html[lang='zh'] .ce-arr-card-title {
   border: 1px solid var(--ink-line);
   align-self: flex-start;
 }
+.ce-file-video-preview {
+  width: min(100%, 420px);
+  max-height: 240px;
+  aspect-ratio: 16 / 9;
+  object-fit: contain;
+  background: #181818;
+}
 .ce-file-stage-actions {
   display: flex;
   gap: 8px;

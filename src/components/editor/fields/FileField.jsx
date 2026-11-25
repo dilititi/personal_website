@@ -1,10 +1,11 @@
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useContext, useEffect, useRef, useState } from 'react'
 import { createResponsiveImageVariants, fileToDataUrl, resizeImage } from '../../../utils.js'
 import { RESPONSIVE_IMAGE_WIDTHS, responsiveUploadFilename } from '../../../lib/images.js'
 import { createGitHubClient, dataUrlBase64 } from '../../../lib/github.js'
 import { readGitHubToken, readPublishConfig } from '../../../lib/publish-config.js'
 import { workVideoSource } from '../../../lib/work-video.js'
 import { FILE_IMAGE_TEMPLATES } from '../contentPresets.js'
+import { OpenPublishPanelContext } from '../publish-panel-context.js'
 
 const DEV_UPLOAD = import.meta.env.DEV
 
@@ -17,6 +18,7 @@ export function FileField({
   isVideo = false,
   onTemplateApply,
 }) {
+  const openPublish = useContext(OpenPublishPanelContext)
   const [filename, setFilename] = useState('')
   const [previewUrl, setPreviewUrl] = useState('')
   const [fileSize, setFileSize] = useState(0)
@@ -46,7 +48,11 @@ export function FileField({
       }
       if (uploadedPathRef.current === path) {
         setStatus('ok')
-        setStatusMsg('已提交到 GitHub，等待静态站重新部署')
+        setStatusMsg(
+          isVideo
+            ? '视频文件已上传。请发布内容，将视频关联到项目。'
+            : '已提交到 GitHub，等待静态站重新部署',
+        )
         return
       }
       try {
@@ -66,6 +72,16 @@ export function FileField({
     }
   }, [value, isVideo])
 
+  useEffect(() => {
+    if (!pendingFile || (!isVideo && !pendingFile.type.startsWith('image/'))) {
+      setPreviewUrl('')
+      return
+    }
+    const url = URL.createObjectURL(pendingFile)
+    setPreviewUrl(url)
+    return () => URL.revokeObjectURL(url)
+  }, [pendingFile, isVideo])
+
   const onPick = e => {
     const f = e.target.files?.[0]
     e.target.value = ''
@@ -79,12 +95,6 @@ export function FileField({
     setPendingFile(f)
     setFilename(sanitizeFilename(f.name))
     setFileSize(f.size)
-    if (previewUrl) URL.revokeObjectURL(previewUrl)
-    if (f.type.startsWith('image/')) {
-      setPreviewUrl(URL.createObjectURL(f))
-    } else {
-      setPreviewUrl('')
-    }
   }
 
   const saveToPublic = async () => {
@@ -94,17 +104,20 @@ export function FileField({
       setStatusMsg('视频文件名必须以 .mp4 结尾')
       return
     }
+    const token = DEV_UPLOAD ? '' : readGitHubToken()
+    if (!DEV_UPLOAD && !token) {
+      setStatus('missing')
+      setStatusMsg('请在「发布」面板验证 GitHub 连接后，再点击上传。已保留所选文件。')
+      openPublish?.()
+      return
+    }
     setBusy(true)
-    const isImage = pendingFile.type.startsWith('image/')
+    const isImage = !isVideo && pendingFile.type.startsWith('image/')
     setStatusMsg(isImage ? '生成响应式图片 + 上传中...' : '上传中...')
     try {
       let github = null
       let publishConfig = null
       if (!DEV_UPLOAD) {
-        const token = readGitHubToken()
-        if (!token) {
-          throw new Error('请先在编辑器的「发布」面板验证 GitHub token')
-        }
         publishConfig = readPublishConfig()
         github = createGitHubClient({
           token,
@@ -181,10 +194,6 @@ export function FileField({
       )
       // Clear staged file
       setPendingFile(null)
-      if (previewUrl) {
-        URL.revokeObjectURL(previewUrl)
-        setPreviewUrl('')
-      }
       setFilename('')
       setFileSize(0)
     } catch (e) {
@@ -228,8 +237,9 @@ export function FileField({
       </div>
       {!DEV_UPLOAD && (
         <div className="ce-file-status ce-file-status-missing">
-          生产上传使用编辑器「发布」面板中的 GitHub
-          配置；提交后需等待静态站重新部署。未配置时仍可直接填写 public 路径。
+          {isVideo
+            ? '可直接粘贴视频直链。上传本地 MP4 到网站需要连接 GitHub。'
+            : '上传本地文件需要连接 GitHub。也可以直接填写已有资源的路径。'}
         </div>
       )}
       {status && (
@@ -273,7 +283,17 @@ export function FileField({
               />
             </span>
           </div>
-          {previewUrl && !isAudio && (
+          {previewUrl && isVideo && (
+            <video
+              className="ce-file-video-preview"
+              src={previewUrl}
+              aria-label="待上传视频预览"
+              controls
+              playsInline
+              preload="metadata"
+            />
+          )}
+          {previewUrl && !isAudio && !isVideo && (
             <img
               className="ce-file-preview"
               src={previewUrl}
@@ -289,9 +309,7 @@ export function FileField({
               type="button"
               className="ce-btn ce-btn-ghost"
               onClick={() => {
-                if (previewUrl) URL.revokeObjectURL(previewUrl)
                 setPendingFile(null)
-                setPreviewUrl('')
                 setFilename('')
                 setFileSize(0)
               }}
@@ -308,7 +326,9 @@ export function FileField({
                 ? DEV_UPLOAD
                   ? '保存中...'
                   : '提交中...'
-                : `${DEV_UPLOAD ? '写入' : '提交'} public/${subfolder}/`}
+                : isVideo && !DEV_UPLOAD
+                  ? '上传到 GitHub'
+                  : `${DEV_UPLOAD ? '写入' : '提交'} public/${subfolder}/`}
             </button>
           </div>
         </div>
