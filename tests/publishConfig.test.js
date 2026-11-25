@@ -31,6 +31,7 @@ function installWindow() {
 }
 
 afterEach(() => {
+  clearGitHubToken()
   delete globalThis.window
 })
 
@@ -88,13 +89,14 @@ describe('publish configuration storage', () => {
         },
       },
     })
-    assert.deepEqual(readPublishConfig(), DEFAULT_PUBLISH_CONFIG)
+    assert.deepEqual(readPublishConfig(), saved)
     assert.equal(readGitHubToken(), '')
     assert.equal(saveGitHubToken('memory-only'), 'memory-only')
-    assert.deepEqual(savePublishConfig({ owner: 'alice', repo: 'site', branch: 'main' }), {
-      owner: 'alice',
-      repo: 'site',
-      branch: 'main',
-    })
+    assert.equal(readGitHubToken(), 'memory-only')
+    assert.equal(isGitHubTokenRemembered(), false)
+    const next = savePublishConfig({ ...DEFAULT_PUBLISH_CONFIG, branch: 'videos' })
+    assert.deepEqual(readPublishConfig(), next)
+    clearGitHubToken()
+    assert.equal(readGitHubToken(), '')
   })
 })

@@ -1047,10 +1047,14 @@ async function run() {
         'project content editor',
       )
       await click('.ce-arr-card-toggle', 'Choice')
+      const videoFixture = process.env.PROJECT_VIDEO_SMOKE_FIXTURE
+      const videoBytes = videoFixture ? await readFile(videoFixture) : Buffer.from('test')
+      const encodedVideo = videoBytes.toString('base64')
       await evaluate(`(() => {
         const input = document.querySelector('.ce-field-file-video input[type="file"]')
         const data = new DataTransfer()
-        data.items.add(new File(['test'], 'preview.mp4', { type: 'video/mp4' }))
+        const video = Uint8Array.from(atob(${JSON.stringify(encodedVideo)}), char => char.charCodeAt(0))
+        data.items.add(new File([video], 'preview.mp4', { type: 'video/mp4' }))
         input.files = data.files
         input.dispatchEvent(new Event('change', { bubbles: true }))
       })()`)
@@ -1070,6 +1074,13 @@ async function run() {
         'Previewing a local video must not change the saved project URL.',
       )
       await evaluate(`(() => {
+        const setItem = Storage.prototype.setItem
+        Storage.prototype.setItem = function (key, value) {
+          if (key === 'chen.github.token' || key === 'chen.github.config') {
+            throw new DOMException('GitHub credential storage blocked', 'SecurityError')
+          }
+          return setItem.call(this, key, value)
+        }
         const fetchOriginal = window.fetch.bind(window)
         window.fetch = (url, options) => {
           if (!String(url).startsWith('https://api.github.com/')) return fetchOriginal(url, options)
@@ -1086,19 +1097,74 @@ async function run() {
         }
       })()`)
       await setValue('.ce-publish-panel input[type="password"]', 'smoke-test-token')
-      await click('.ce-publish-actions button', 'Verify')
-      await waitForExpression(
-        `!!document.querySelector('.ce-publish-status.is-success')`,
-        'GitHub connection verified with a mocked API',
-      )
-      await click('.ce-field-file-video .ce-file-stage-actions button', '上传到 GitHub')
+      await click('.ce-publish-actions button', 'Verify and upload MP4')
       await waitForExpression(
         `document.querySelector('.ce-field-file-video .ce-file-row input').value === '/works/preview.mp4'
-          && window.__videoUploadBody?.content === btoa('test')
-          && !document.querySelector('.ce-field-file-video video')`,
-        'retry publishes the original file and stores its site path',
+          && window.__videoUploadBody?.content === ${JSON.stringify(encodedVideo)}
+          && document.querySelector('.ce-field-file-video video')?.src.startsWith('blob:')
+          && !document.querySelector('.ce-field-file-video .ce-publish-panel')`,
+        'one action uploads the original file even with blocked credential storage',
       )
       await click('.ce-close')
+      await waitForExpression(
+        `!!document.querySelector('#works .work-card .work-cover-play')`,
+        'uploaded video is attached to the current browser draft',
+      )
+      await click('#works .work-card', 'Choice')
+      await waitForExpression(
+        `document.querySelector('.work-modal.open video')?.src.startsWith('blob:')`,
+        'uploaded video is previewable in project details before deployment',
+      )
+      if (videoFixture) {
+        await cdp.send('Runtime.evaluate', {
+          expression: 'document.querySelector(".work-modal.open video").play()',
+          userGesture: true,
+        })
+        await waitForExpression(
+          `document.querySelector('.work-modal.open video')?.currentTime > 0
+            && document.querySelector('.work-modal.open video')?.videoWidth > 0`,
+          'uploaded MP4 plays in the project dialog before deployment',
+        )
+      }
+      await click('.work-modal-close')
+    }
+
+    await evaluate(`(() => {
+      const key = ${JSON.stringify(CONTENT_KEY)}
+      const draft = JSON.parse(localStorage.getItem(key) || '{}')
+      draft.WORKS = [
+        {
+          id: 'older-princess',
+          title: { zh: '《废弃物的公主》' },
+          coverImg: location.origin + '/works/废弃物的公主封面.png',
+          summary: { en: 'Original princess description' },
+        },
+        {
+          id: 'older-map',
+          title: { zh: '浙大声音地图' },
+          summary: { en: 'Original map description' },
+        },
+        { id: 'zju-sound-map', title: { zh: '浙大声音地图' }, coverImg: '/works/声音地图交互网站封面.png' },
+      ]
+      localStorage.setItem(key, JSON.stringify(draft))
+      location.reload()
+    })()`)
+    await waitForExpression(
+      `(() => {
+        const titles = [...document.querySelectorAll('#works .work-title')].map(title => title.textContent)
+        return document.querySelector('#works').textContent.includes('Original map description')
+          && titles.filter(title => title.includes('The Princess of Discarded Things')).length === 1
+          && titles.filter(title => title.includes('Zhejiang University Sound Map')).length === 1
+      })()`,
+      'published works do not duplicate older drafts after refresh',
+    )
+    for (const summary of ['Original princess description', 'Original map description']) {
+      await click('#works .work-card', summary)
+      await waitForExpression(
+        `document.querySelector('.work-modal.open .lead')?.textContent === ${JSON.stringify(summary)}`,
+        'merged card opens original project details',
+      )
+      await click('.work-modal-close')
     }
 
     if (PREVIEW_MODE) {

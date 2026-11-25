@@ -1,3 +1,15 @@
+const uploadedVideoPreviews = new Map()
+
+export function setUploadedVideoPreview(path, file) {
+  const previous = uploadedVideoPreviews.get(path)
+  if (previous) URL.revokeObjectURL(previous)
+  uploadedVideoPreviews.set(path, URL.createObjectURL(file))
+}
+
+export function getUploadedVideoPreview(path) {
+  return uploadedVideoPreviews.get(path) || ''
+}
+
 export function workVideoSource(value) {
   if (typeof value !== 'string') return ''
   const source = value.trim()

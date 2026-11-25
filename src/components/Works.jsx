@@ -3,7 +3,7 @@ import { useLang } from '../lang.jsx'
 import { useData } from '../data-context.jsx'
 import { useFocusTrap } from '../hooks.jsx'
 import { responsiveImageAttributes } from '../lib/images.js'
-import { workVideoSource } from '../lib/work-video.js'
+import { getUploadedVideoPreview, workVideoSource } from '../lib/work-video.js'
 
 const WORK_MEDIA_LABELS = {
   short: { en: 'Shorts', zh: '短片' },
@@ -74,7 +74,8 @@ export default function Works({ layout = 'default' }) {
   const [openId, setOpenId] = useState(null)
   const [medium, setMedium] = useState('all')
   const open = WORKS.find(w => w.id === openId)
-  const openVideo = workVideoSource(open?.videoSrc)
+  const videoPath = workVideoSource(open?.videoSrc)
+  const openVideo = getUploadedVideoPreview(videoPath) || videoPath
   const dialogRef = useRef(null)
   const mediaOptions = useMemo(() => {
     const ids = [...new Set(WORKS.map(w => w.medium).filter(Boolean))]

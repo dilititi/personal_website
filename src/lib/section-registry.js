@@ -24,9 +24,38 @@ function coverPath(work) {
   }
 }
 
-function hasTitle(title) {
+function workTitles(title) {
   const values = typeof title === 'string' ? [title] : [title?.zh, title?.en]
-  return values.some(value => typeof value === 'string' && value.trim())
+  return values
+    .filter(value => typeof value === 'string')
+    .map(value =>
+      value
+        .normalize('NFKC')
+        .trim()
+        .replace(/^《(.+)》$/, '$1')
+        .trim()
+        .replace(/\s+/g, ' ')
+        .toLowerCase(),
+    )
+    .filter(Boolean)
+}
+
+function fillWorkFields(original, fallback) {
+  if (isPlainObject(original) && isPlainObject(fallback)) {
+    return {
+      ...fallback,
+      ...Object.fromEntries(
+        Object.entries(original).map(([key, value]) => [
+          key,
+          fillWorkFields(value, Object.hasOwn(fallback, key) ? fallback[key] : undefined),
+        ]),
+      ),
+    }
+  }
+  if (original == null || original === '' || (Array.isArray(original) && !original.length)) {
+    return fallback ?? original
+  }
+  return original
 }
 
 function withUniqueWorkIds(works) {
@@ -52,6 +81,12 @@ export function resolveWorks(baseWorks, overrideWorks) {
 
   const baseById = new Map(base.map(work => [workId(work), work]))
   const baseByCover = new Map(base.filter(coverPath).map(work => [coverPath(work), work]))
+  const baseByTitle = new Map()
+  for (const work of base) {
+    for (const title of new Set(workTitles(work.title))) {
+      baseByTitle.set(title, baseByTitle.has(title) ? null : work)
+    }
+  }
   const draft = overrideWorks.filter(isPlainObject)
   const idCounts = new Map()
   draft.forEach(work => {
@@ -59,20 +94,46 @@ export function resolveWorks(baseWorks, overrideWorks) {
     idCounts.set(id, (idCounts.get(id) || 0) + 1)
   })
 
-  const covers = draft.map(work => baseByCover.get(coverPath(work)))
-  const covered = new Set(covers.filter(Boolean))
-  const matched = new Set()
-  const resolved = draft.map((work, index) => {
+  const draftTitles = draft.map(work => {
+    const matches = new Set(
+      workTitles(work.title)
+        .map(title => baseByTitle.get(title))
+        .filter(Boolean),
+    )
+    return matches.size === 1 ? matches.values().next().value : null
+  })
+  const identified = draft.map(
+    (work, index) => baseByCover.get(coverPath(work)) || draftTitles[index],
+  )
+  const identifiedSources = new Set(identified.filter(Boolean))
+  const matched = new Map()
+  const rows = []
+  draft.forEach((work, index) => {
     const id = workId(work)
     const byId = baseById.get(id)
     // Don't borrow another project's published fields when an old draft reused its ID.
     const source =
-      covers[index] || (id && idCounts.get(id) === 1 && !covered.has(byId) ? byId : null)
-    if (!source || matched.has(source)) return byId ? { ...work, id: '' } : work
-    matched.add(source)
+      identified[index] ||
+      (id && idCounts.get(id) === 1 && !identifiedSources.has(byId) ? byId : null)
+    const earlier = source && matched.get(source)
+    if (earlier && earlier.titleMatch === source && draftTitles[index] === source) {
+      earlier.work = fillWorkFields(earlier.work, work)
+      return
+    }
+    if (!source || earlier) {
+      rows.push({ work: byId ? { ...work, id: '' } : work })
+      return
+    }
+    const row = { work, source, titleMatch: draftTitles[index] }
+    rows.push(row)
+    matched.set(source, row)
+  })
+
+  const resolved = rows.map(({ work, source }) => {
+    if (!source) return work
     const next = { ...deepMerge(source, work), id: source.id }
     if (!next.coverImg && source.coverImg) next.coverImg = source.coverImg
-    if (!hasTitle(next.title)) next.title = source.title
+    if (!workTitles(next.title).length) next.title = source.title
     return next
   })
 

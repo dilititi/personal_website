@@ -24,11 +24,12 @@ export default function PublishPanel({
   const [config, setConfig] = useState(readPublishConfig)
   const [busy, setBusy] = useState('')
   const [status, setStatus] = useState(null)
+  const isVideoUpload = kind === 'video'
 
   const text =
     lang === 'zh'
       ? {
-          title: '发布到 GitHub',
+          title: isVideoUpload ? '连接 GitHub 上传视频' : '发布到 GitHub',
           token: '细粒度 PAT',
           owner: 'Owner',
           repo: 'Repository',
@@ -36,7 +37,7 @@ export default function PublishPanel({
           remember: '记住 token（写入 localStorage）',
           risk: '默认只在当前标签页保存。长期记住 token 会增加 XSS 风险；请仅授予本仓库 Contents 读写权限。',
           verify: '验证连接',
-          publish: kind === 'style' ? '发布风格' : '发布内容',
+          publish: isVideoUpload ? '验证并上传 MP4' : kind === 'style' ? '发布风格' : '发布内容',
           verifying: '验证中…',
           publishing: '提交中…',
           clear: '清除 token',
@@ -47,7 +48,7 @@ export default function PublishPanel({
               : '当前没有需要发布的内容变化。',
         }
       : {
-          title: 'Publish to GitHub',
+          title: isVideoUpload ? 'Connect GitHub to upload video' : 'Publish to GitHub',
           token: 'Fine-grained PAT',
           owner: 'Owner',
           repo: 'Repository',
@@ -55,7 +56,11 @@ export default function PublishPanel({
           remember: 'Remember token in localStorage',
           risk: 'The token stays in this tab by default. Remembering it increases XSS exposure; grant only Contents read/write access to this repository.',
           verify: 'Verify',
-          publish: kind === 'style' ? 'Publish style' : 'Publish content',
+          publish: isVideoUpload
+            ? 'Verify and upload MP4'
+            : kind === 'style'
+              ? 'Publish style'
+              : 'Publish content',
           verifying: 'Verifying…',
           publishing: 'Publishing…',
           clear: 'Clear token',
@@ -120,13 +125,20 @@ export default function PublishPanel({
     try {
       await onPreflight?.()
       const { client, config: savedConfig, repository } = await verifiedClient()
-      const confirmed = window.confirm(
-        lang === 'zh'
-          ? `将直接提交到 ${repository.fullName}@${savedConfig.branch}，继续吗？`
-          : `Commit directly to ${repository.fullName}@${savedConfig.branch}?`,
+      if (
+        !isVideoUpload &&
+        !window.confirm(
+          lang === 'zh'
+            ? `将直接提交到 ${repository.fullName}@${savedConfig.branch}，继续吗？`
+            : `Commit directly to ${repository.fullName}@${savedConfig.branch}?`,
+        )
       )
-      if (!confirmed) return
+        return
       const result = await onPublish({ github: client, config: savedConfig })
+      if (isVideoUpload) {
+        onClose()
+        return
+      }
       const commitUrl = result?.commit?.html_url || ''
       setStatus({
         type: 'success',
@@ -165,7 +177,12 @@ export default function PublishPanel({
             {config.owner}/{config.repo}@{config.branch}
           </span>
         </div>
-        <button className="ce-icon-btn" type="button" onClick={onClose}>
+        <button
+          className="ce-icon-btn"
+          type="button"
+          onClick={onClose}
+          disabled={!!busy && isVideoUpload}
+        >
           {text.close}
         </button>
       </div>
@@ -235,9 +252,11 @@ export default function PublishPanel({
         <button className="ce-btn ce-btn-ghost" type="button" onClick={clear} disabled={!!busy}>
           {text.clear}
         </button>
-        <button className="ce-btn ce-btn-ghost" type="button" onClick={verify} disabled={!!busy}>
-          {busy === 'verify' ? text.verifying : text.verify}
-        </button>
+        {!isVideoUpload && (
+          <button className="ce-btn ce-btn-ghost" type="button" onClick={verify} disabled={!!busy}>
+            {busy === 'verify' ? text.verifying : text.verify}
+          </button>
+        )}
         <button
           className="ce-btn"
           type="button"

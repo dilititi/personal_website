@@ -145,4 +145,48 @@ describe('section registry', () => {
     assert.equal(works[2].videoSrc, '/my-rain.mp4')
     assert.deepEqual(resolveWorks(base, works), works)
   })
+
+  it('keeps one card when a published work has a draft with another ID and cover', () => {
+    const base = dataExports.WORKS.filter(work =>
+      ['princess-of-discarded-things', 'zju-sound-map'].includes(work.id),
+    )
+    const draft = [
+      {
+        id: 'draft-princess',
+        title: { zh: '《废弃物的公主》' },
+        coverImg: '/works/princess-custom.jpg',
+        videoSrc: '/works/princess.mp4',
+      },
+      {
+        id: '',
+        title: { zh: '浙大声音地图' },
+        coverImg: '/works/map-custom.jpg',
+        summary: { zh: 'A draft description.' },
+      },
+    ]
+
+    const works = resolveWorks(base, draft)
+    assert.deepEqual(
+      works.map(work => work.id),
+      base.map(work => work.id),
+    )
+    assert.equal(works[0].coverImg, '/works/princess-custom.jpg')
+    assert.equal(works[0].videoSrc, '/works/princess.mp4')
+    assert.equal(works[1].summary.zh, 'A draft description.')
+  })
+
+  it('collapses two saved versions of a known card without losing their filled fields', () => {
+    const base = dataExports.WORKS.filter(work => work.id === 'zju-sound-map')
+    const draft = [
+      { id: 'original-map', title: { zh: '浙大声音地图' }, summary: { zh: 'My original text.' } },
+      { ...base[0], videoSrc: '/works/sound-map.mp4' },
+    ]
+
+    const works = resolveWorks(base, draft)
+    assert.equal(works.length, 1)
+    assert.equal(works[0].summary.zh, 'My original text.')
+    assert.equal(works[0].coverImg, base[0].coverImg)
+    assert.equal(works[0].videoSrc, '/works/sound-map.mp4')
+    assert.deepEqual(resolveWorks(base, works), works)
+  })
 })

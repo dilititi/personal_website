@@ -37,7 +37,7 @@ export default function ContentEditor({ open, onClose, initialSection = 'SITE' }
   const [pathAudit, setPathAudit] = useState(null)
   const [checkingPaths, setCheckingPaths] = useState(false)
   const [showPublish, setShowPublish] = useState(false)
-  const openPublish = useCallback(() => setShowPublish(true), [])
+  const openPublish = useCallback((visible = true) => setShowPublish(visible), [])
   const [mode, setMode] = useState(() => {
     try {
       return localStorage.getItem('chen.ce.mode') === 'side' ? 'side' : 'modal'

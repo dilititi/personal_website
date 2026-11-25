@@ -7,6 +7,10 @@ export const DEFAULT_PUBLISH_CONFIG = Object.freeze({
   branch: 'main',
 })
 
+// Keep the verified connection usable in this document when storage is blocked.
+let activeToken = ''
+let activeConfig = null
+
 function storageAvailable(name) {
   try {
     return typeof window !== 'undefined' ? window[name] : null
@@ -68,6 +72,7 @@ export function validatePublishConfig(value) {
 }
 
 export function readPublishConfig() {
+  if (activeConfig) return { ...activeConfig }
   try {
     const raw = readStorage('localStorage', GITHUB_CONFIG_KEY)
     return normalizePublishConfig(raw ? JSON.parse(raw) : {})
@@ -80,6 +85,7 @@ export function savePublishConfig(value) {
   const config = normalizePublishConfig(value)
   const error = validatePublishConfig(config)
   if (error) throw new Error(error)
+  activeConfig = { ...config }
   try {
     storageAvailable('localStorage')?.setItem(GITHUB_CONFIG_KEY, JSON.stringify(config))
   } catch {
@@ -90,7 +96,9 @@ export function savePublishConfig(value) {
 
 export function readGitHubToken() {
   return (
-    readStorage('sessionStorage', GITHUB_TOKEN_KEY) || readStorage('localStorage', GITHUB_TOKEN_KEY)
+    activeToken ||
+    readStorage('sessionStorage', GITHUB_TOKEN_KEY) ||
+    readStorage('localStorage', GITHUB_TOKEN_KEY)
   )
 }
 
@@ -101,6 +109,7 @@ export function isGitHubTokenRemembered() {
 export function saveGitHubToken(token, { remember = false } = {}) {
   const cleanToken = String(token || '').trim()
   if (!cleanToken) throw new Error('GitHub token is required')
+  activeToken = cleanToken
   const targetName = remember ? 'localStorage' : 'sessionStorage'
   const target = storageAvailable(targetName)
 
@@ -109,12 +118,13 @@ export function saveGitHubToken(token, { remember = false } = {}) {
   try {
     target?.setItem(GITHUB_TOKEN_KEY, cleanToken)
   } catch {
-    // The caller still holds the token in component state for this publish attempt.
+    // The active connection remains available in this document.
   }
   return cleanToken
 }
 
 export function clearGitHubToken() {
+  activeToken = ''
   removeStorage('sessionStorage', GITHUB_TOKEN_KEY)
   removeStorage('localStorage', GITHUB_TOKEN_KEY)
 }

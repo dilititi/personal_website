@@ -1,11 +1,17 @@
 import React, { useContext, useEffect, useRef, useState } from 'react'
+import { useLang } from '../../../lang.jsx'
 import { createResponsiveImageVariants, fileToDataUrl, resizeImage } from '../../../utils.js'
 import { RESPONSIVE_IMAGE_WIDTHS, responsiveUploadFilename } from '../../../lib/images.js'
 import { createGitHubClient, dataUrlBase64 } from '../../../lib/github.js'
 import { readGitHubToken, readPublishConfig } from '../../../lib/publish-config.js'
-import { workVideoSource } from '../../../lib/work-video.js'
+import {
+  getUploadedVideoPreview,
+  setUploadedVideoPreview,
+  workVideoSource,
+} from '../../../lib/work-video.js'
 import { FILE_IMAGE_TEMPLATES } from '../contentPresets.js'
 import { OpenPublishPanelContext } from '../publish-panel-context.js'
+import PublishPanel from '../PublishPanel.jsx'
 
 const DEV_UPLOAD = import.meta.env.DEV
 
@@ -19,6 +25,7 @@ export function FileField({
   onTemplateApply,
 }) {
   const openPublish = useContext(OpenPublishPanelContext)
+  const { lang } = useLang()
   const [filename, setFilename] = useState('')
   const [previewUrl, setPreviewUrl] = useState('')
   const [fileSize, setFileSize] = useState(0)
@@ -26,8 +33,11 @@ export function FileField({
   const [status, setStatus] = useState('') // '' | 'ok' | 'missing' | 'error'
   const [statusMsg, setStatusMsg] = useState('')
   const [pendingFile, setPendingFile] = useState(null)
+  const [showVideoConnection, setShowVideoConnection] = useState(false)
   const fileRef = useRef(null)
+  const fieldRef = useRef(null)
   const uploadedPathRef = useRef('')
+  const uploadedPreview = isVideo && !pendingFile ? getUploadedVideoPreview(value) : ''
   const imageTemplates =
     !isAudio && accept.includes('image') ? FILE_IMAGE_TEMPLATES[subfolder] || [] : []
 
@@ -97,15 +107,20 @@ export function FileField({
     setFileSize(f.size)
   }
 
-  const saveToPublic = async () => {
-    if (!pendingFile || !filename) return
+  const saveToPublic = async (target = null) => {
+    if (!fieldRef.current || !pendingFile || !filename) return
     if (isVideo && !/\.mp4$/i.test(filename)) {
       setStatus('error')
       setStatusMsg('视频文件名必须以 .mp4 结尾')
       return
     }
     const token = DEV_UPLOAD ? '' : readGitHubToken()
-    if (!DEV_UPLOAD && !token) {
+    if (!DEV_UPLOAD && !token && !target) {
+      if (isVideo) {
+        openPublish?.(false)
+        setShowVideoConnection(true)
+        return
+      }
       setStatus('missing')
       setStatusMsg('请在「发布」面板验证 GitHub 连接后，再点击上传。已保留所选文件。')
       openPublish?.()
@@ -115,9 +130,9 @@ export function FileField({
     const isImage = !isVideo && pendingFile.type.startsWith('image/')
     setStatusMsg(isImage ? '生成响应式图片 + 上传中...' : '上传中...')
     try {
-      let github = null
-      let publishConfig = null
-      if (!DEV_UPLOAD) {
+      let github = target?.github
+      let publishConfig = target?.config
+      if (!DEV_UPLOAD && !github) {
         publishConfig = readPublishConfig()
         github = createGitHubClient({
           token,
@@ -184,6 +199,8 @@ export function FileField({
         totalSize = saved.size || 0
       }
 
+      if (!fieldRef.current) return
+      if (isVideo && !DEV_UPLOAD) setUploadedVideoPreview(saved.path, pendingFile)
       if (!DEV_UPLOAD) uploadedPathRef.current = saved.path
       onChange(saved.path)
       setStatus('ok')
@@ -199,12 +216,18 @@ export function FileField({
     } catch (e) {
       setStatus('error')
       setStatusMsg(`错误：${e.message}`)
+      if (target) throw e
+      if (isVideo && !DEV_UPLOAD && (e.status === 401 || e.status === 403)) {
+        openPublish?.(false)
+        setShowVideoConnection(true)
+      }
+    } finally {
+      setBusy(false)
     }
-    setBusy(false)
   }
 
   return (
-    <div className="ce-file">
+    <div className="ce-file" ref={fieldRef}>
       <div className="ce-file-row">
         <input
           className="ce-input"
@@ -218,6 +241,7 @@ export function FileField({
           type="button"
           className="ce-icon-btn"
           onClick={() => fileRef.current?.click()}
+          disabled={busy || showVideoConnection}
           aria-label={isVideo ? '选择 MP4 文件' : undefined}
           title={
             DEV_UPLOAD
@@ -246,6 +270,16 @@ export function FileField({
         <div className={`ce-file-status ce-file-status-${status}`}>
           {status === 'ok' ? '✓' : status === 'missing' ? '⚠' : '✗'} {statusMsg}
         </div>
+      )}
+      {uploadedPreview && (
+        <video
+          className="ce-file-video-preview"
+          src={uploadedPreview}
+          aria-label="已上传视频的本地预览"
+          controls
+          playsInline
+          preload="metadata"
+        />
       )}
       {imageTemplates.length > 0 && (
         <div className="ce-file-templates">
@@ -279,6 +313,7 @@ export function FileField({
                 type="text"
                 className="ce-input ce-file-name-input"
                 value={filename}
+                disabled={busy || showVideoConnection}
                 onChange={e => setFilename(sanitizeFilename(e.target.value))}
               />
             </span>
@@ -308,6 +343,7 @@ export function FileField({
             <button
               type="button"
               className="ce-btn ce-btn-ghost"
+              disabled={busy || showVideoConnection}
               onClick={() => {
                 setPendingFile(null)
                 setFilename('')
@@ -319,8 +355,8 @@ export function FileField({
             <button
               type="button"
               className="ce-btn"
-              onClick={saveToPublic}
-              disabled={busy || !filename}
+              onClick={() => saveToPublic()}
+              disabled={busy || showVideoConnection || !filename}
             >
               {busy
                 ? DEV_UPLOAD
@@ -331,6 +367,14 @@ export function FileField({
                   : `${DEV_UPLOAD ? '写入' : '提交'} public/${subfolder}/`}
             </button>
           </div>
+          {showVideoConnection && (
+            <PublishPanel
+              lang={lang}
+              kind="video"
+              onPublish={saveToPublic}
+              onClose={() => setShowVideoConnection(false)}
+            />
+          )}
         </div>
       )}
     </div>
