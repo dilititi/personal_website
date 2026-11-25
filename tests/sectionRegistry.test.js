@@ -114,4 +114,35 @@ describe('section registry', () => {
       { id: 'kurt-fox', title: { en: 'Fox' }, coverImg: '/works/kurt-fox.png' },
     ])
   })
+
+  it('matches legacy works by their own covers before resolving reused IDs', () => {
+    const base = [
+      { id: 'sound-map', title: 'Sound Map', coverImg: '/works/地图.png', videoSrc: '/map.mp4' },
+      { id: 'rain', title: { zh: '雨中花' }, coverImg: '/works/雨中花.jpg' },
+    ]
+    const draft = [
+      { id: 'sound-map', title: 'Independent work' },
+      { id: 'sound-map', title: 'My sound map', coverImg: '/works/地图.png' },
+      {
+        id: 'sound-map',
+        title: { zh: '' },
+        coverImg: '/works/%E9%9B%A8%E4%B8%AD%E8%8A%B1.jpg?v=2',
+        videoSrc: '/my-rain.mp4',
+      },
+      { id: '', title: 'Another work' },
+      { title: 'No ID yet' },
+    ]
+    const works = resolveWorks(base, draft)
+    assert.equal(works.length, 5)
+    assert.equal(new Set(works.map(work => work.id)).size, 5)
+    assert.ok(works.every(work => work.id))
+    assert.equal(works[0].title, 'Independent work')
+    assert.equal(works[0].videoSrc, undefined)
+    assert.equal(works[1].id, 'sound-map')
+    assert.equal(works[1].title, 'My sound map')
+    assert.equal(works[2].id, 'rain')
+    assert.equal(works[2].title.zh, '雨中花')
+    assert.equal(works[2].videoSrc, '/my-rain.mp4')
+    assert.deepEqual(resolveWorks(base, works), works)
+  })
 })

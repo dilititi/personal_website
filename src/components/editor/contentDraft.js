@@ -1,3 +1,5 @@
+import { resolveWorks } from '../../lib/section-registry.js'
+
 function sameValue(left, right) {
   return JSON.stringify(left) === JSON.stringify(right)
 }
@@ -16,10 +18,14 @@ export function buildContentDraft({
   let workingChanged = false
 
   if (canApplyWorkingValue) {
-    workingChanged = !sameValue(workingValue, resolvedData[activeKey])
-    resolved[activeKey] = workingValue
-    if (sameValue(workingValue, baseData[activeKey])) delete overrides[activeKey]
-    else overrides[activeKey] = workingValue
+    const value =
+      activeKey === 'WORKS' && Array.isArray(workingValue)
+        ? resolveWorks(baseData.WORKS, workingValue)
+        : workingValue
+    workingChanged = !sameValue(value, resolvedData[activeKey])
+    resolved[activeKey] = value
+    if (sameValue(value, baseData[activeKey])) delete overrides[activeKey]
+    else overrides[activeKey] = value
   }
 
   const changedKeys = Object.keys(overrides).filter(

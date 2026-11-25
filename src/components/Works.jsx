@@ -14,6 +14,11 @@ const WORK_MEDIA_LABELS = {
   design: { en: 'Design', zh: '设计' },
   automation: { en: 'Automation', zh: '自动化' },
   blend: { en: '.blend', zh: '.blend' },
+  video: { en: 'Video', zh: '影像' },
+  'video-essay': { en: 'Video essays', zh: '电影解读' },
+  science: { en: 'Explainers', zh: '概念科普' },
+  web: { en: 'Web', zh: '网页' },
+  game: { en: 'Games', zh: '游戏' },
   mission: { en: 'Missions', zh: '任务' },
   sticker: { en: 'Stickers', zh: '贴纸' },
 }

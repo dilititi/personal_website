@@ -10,33 +10,74 @@ export function createSectionRegistry(moduleExports) {
   )
 }
 
-// WORKS is an editable collection, but its published image assets must remain
-// available when an older local override predates the asset fields. Preserve
-// the user's edited entries and append only newly published image-backed work.
+function workId(work) {
+  const id = work?.id
+  return typeof id === 'string' || typeof id === 'number' ? String(id).trim() : ''
+}
+
+function coverPath(work) {
+  const path = typeof work?.coverImg === 'string' ? work.coverImg.trim().split(/[?#]/, 1)[0] : ''
+  try {
+    return decodeURIComponent(path)
+  } catch {
+    return path
+  }
+}
+
+function hasTitle(title) {
+  const values = typeof title === 'string' ? [title] : [title?.zh, title?.en]
+  return values.some(value => typeof value === 'string' && value.trim())
+}
+
+function withUniqueWorkIds(works) {
+  const reserved = new Set(works.map(workId))
+  const seen = new Set()
+  let next = 1
+  return works.map(work => {
+    let id = workId(work)
+    if (!id || seen.has(id)) {
+      do {
+        id = `work-${next++}`
+      } while (reserved.has(id))
+      reserved.add(id)
+    }
+    seen.add(id)
+    return work.id === id ? work : { ...work, id }
+  })
+}
+
 export function resolveWorks(baseWorks, overrideWorks) {
-  if (!Array.isArray(overrideWorks)) return deepMerge(baseWorks, overrideWorks)
+  const base = Array.isArray(baseWorks) ? baseWorks.filter(isPlainObject) : []
+  if (!Array.isArray(overrideWorks)) return withUniqueWorkIds(base)
 
-  const baseById = new Map(
-    (Array.isArray(baseWorks) ? baseWorks : [])
-      .filter(work => work?.id)
-      .map(work => [work.id, work]),
-  )
-  const overrideIds = new Set()
-  const resolved = overrideWorks.map(work => {
-    if (!isPlainObject(work) || !work.id) return work
-    overrideIds.add(work.id)
-    const baseWork = baseById.get(work.id)
-    if (!baseWork) return work
+  const baseById = new Map(base.map(work => [workId(work), work]))
+  const baseByCover = new Map(base.filter(coverPath).map(work => [coverPath(work), work]))
+  const draft = overrideWorks.filter(isPlainObject)
+  const idCounts = new Map()
+  draft.forEach(work => {
+    const id = workId(work)
+    idCounts.set(id, (idCounts.get(id) || 0) + 1)
+  })
 
-    const next = deepMerge(baseWork, work)
-    if (!next.coverImg && baseWork.coverImg) next.coverImg = baseWork.coverImg
+  const covers = draft.map(work => baseByCover.get(coverPath(work)))
+  const covered = new Set(covers.filter(Boolean))
+  const matched = new Set()
+  const resolved = draft.map((work, index) => {
+    const id = workId(work)
+    const byId = baseById.get(id)
+    // Don't borrow another project's published fields when an old draft reused its ID.
+    const source =
+      covers[index] || (id && idCounts.get(id) === 1 && !covered.has(byId) ? byId : null)
+    if (!source || matched.has(source)) return byId ? { ...work, id: '' } : work
+    matched.add(source)
+    const next = { ...deepMerge(source, work), id: source.id }
+    if (!next.coverImg && source.coverImg) next.coverImg = source.coverImg
+    if (!hasTitle(next.title)) next.title = source.title
     return next
   })
 
-  return resolved.concat(
-    (Array.isArray(baseWorks) ? baseWorks : []).filter(
-      work => work?.coverImg && work.id && !overrideIds.has(work.id),
-    ),
+  return withUniqueWorkIds(
+    resolved.concat(base.filter(work => work.coverImg && !matched.has(work))),
   )
 }
 

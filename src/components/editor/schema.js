@@ -19,7 +19,7 @@ const journeyItem = [
 ]
 
 const workItem = [
-  { key: 'id', type: 'str', label: 'ID', required: true },
+  { key: 'id', type: 'str', label: 'ID（自动生成）', required: true, generateId: true },
   { key: 'title', type: 'bi', label: '标题 Title', required: true },
   { key: 'subtitle', type: 'bi', label: '副标题 Subtitle' },
   {

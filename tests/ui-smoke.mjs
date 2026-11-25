@@ -458,12 +458,13 @@ async function run() {
         return text.includes('Xie Jingcheng') && text.includes('jinchen9707@gmail.com')
           && !/Chen A[.]|Late Bus|Tarkovsky|Replies within a week|Student · open/.test(text)
           && !document.querySelector('#library, #photography, #travel, #journey')
-          && document.querySelectorAll('#works .work-card').length === 5
+          && document.querySelectorAll('#works .work-card').length === 16
+          && document.querySelectorAll('#works .work-cover-img').length === 13
           && !!document.querySelector('#works img[src="/works/choice-liuye.jpg"]')
           && !!document.querySelector('#works img[src="/works/kurt-fox.png"]')
           && !document.querySelector('#home img, #about .portrait');
       })()`),
-      'The published profile must contain resume facts, the two uploaded project images, and no demo sections.',
+      'The published profile must contain resume facts, every assigned work cover, and no demo sections.',
     )
 
     await click('#about .about-sidebar .btn')
@@ -485,7 +486,7 @@ async function run() {
       )
     }
 
-    await click('#works .medium-pill', 'Shorts')
+    await click('#works .medium-pill', '.blend')
     await waitForExpression(
       `document.querySelectorAll('#works .work-card').length === 1 && document.querySelector('#works .works-grid')?.classList.contains('is-single')`,
       'single-result work filter',
@@ -494,7 +495,7 @@ async function run() {
       await evaluate(`(() => {
         const grid = document.querySelector('#works .works-grid')
         const card = grid?.querySelector('.work-card')
-        if (!grid || !card || !card.textContent.includes('Choice')) return false
+        if (!grid || !card || !card.textContent.includes('Kurt老师的小狐狸')) return false
         return card.getBoundingClientRect().width >= grid.getBoundingClientRect().width - 4
       })()`),
       'A single filtered work must fill the grid instead of leaving a blank color column.',
@@ -504,6 +505,23 @@ async function run() {
       `document.querySelectorAll('#works .work-card').length > 1`,
       'all work filter restore',
     )
+
+    const worksCount = await evaluate(`document.querySelectorAll('#works .work-card').length`)
+    for (let index = 0; index < worksCount; index += 1) {
+      const selector = `#works .work-card:nth-child(${index + 1})`
+      const expected = await evaluate(`(() => {
+        const card = document.querySelector(${JSON.stringify(selector)})
+        const title = card.querySelector('.work-title').firstChild.textContent.trim()
+        return { title, cover: card.querySelector('.work-cover-img')?.getAttribute('src') || '' }
+      })()`)
+      await click(selector)
+      await waitForExpression(
+        `document.querySelector('#work-dialog-title')?.firstChild.textContent.trim() === ${JSON.stringify(expected.title)}
+          && (document.querySelector('.work-modal-hero-img')?.getAttribute('src') || '') === ${JSON.stringify(expected.cover)}`,
+        `matching details for ${expected.title}`,
+      )
+      await click('.work-modal-close')
+    }
 
     const desktopViewportWidth = await evaluate(`window.innerWidth`)
     await cdp.send('Emulation.setDeviceMetricsOverride', {

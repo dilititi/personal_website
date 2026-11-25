@@ -1,4 +1,6 @@
 // Picks string for current language with zh -> en fallback.
+const L = (en, zh) => ({ en, zh })
+
 export function pick(v, lang) {
   if (v == null) return ''
   if (typeof v === 'string') return v
@@ -511,6 +513,145 @@ export const WORKS = [
   WORKS_SOURCE[2],
   WORKS_SOURCE[0],
   WORKS_SOURCE[3],
+  // Additional covers and descriptions verified against the portfolio and AI-video resume.
+  {
+    id: 'flower-in-the-rain',
+    title: L('Flower in the Rain', '雨中花'),
+    subtitle: L('Original AI animated short', '原创 AI 动画叙事短片'),
+    medium: 'short',
+    year: '2026',
+    coverImg: '/works/雨中花封面.jpg',
+    summary: L(
+      'An animated short about war trauma, memory and art, told through an ageing painter’s relationship with his lost home.',
+      '以战争创伤、记忆与艺术创作为主题，通过过去与现在交错的叙事，展现一位老画家与失去的故乡之间的情感联系。',
+    ),
+    tags: ['Minimax H3'],
+    field: {
+      format: L('Approx. 4 min 25 sec', '约 4 分 25 秒'),
+      role: L(
+        'Writing, storyboarding, AI visuals, editing and sound design',
+        '剧本、分镜、AI 视觉、剪辑与声音设计',
+      ),
+    },
+    body: [
+      L(
+        'Independently designed the characters, scenes, storyboards and visual style. Recurring motifs of ultramarine, rain, flowers and birdsong connect the film’s transitions and sound design.',
+        '独立设计人物、场景、分镜与视觉风格，围绕群青、雨、花和鸟鸣等反复出现的意象设计时空转场与声音叙事。',
+      ),
+    ],
+  },
+  {
+    id: 'happy-birthday',
+    title: L('Happy Birthday!', '生日快乐！'),
+    subtitle: L('Original AI short', '原创 AI 叙事短片'),
+    medium: 'short',
+    year: '2026',
+    coverImg: '/works/生日快乐！封面.png',
+    summary: L(
+      'A short about a setback at work, a small act of kindness and the change it brings to the protagonist’s day.',
+      '以职场挫折与日常善意为核心，围绕人物的情绪转变展开。',
+    ),
+    tags: ['即梦', 'Seedance 2.5'],
+    field: {
+      role: L('Writing, storyboarding, AI visuals and editing', '编剧、分镜、AI 视觉与剪辑'),
+    },
+    body: [
+      L(
+        'Independently designed the characters, scenes and keyframe compositions for a consistent hand-drawn 2D visual style.',
+        '独立完成角色设定、场景设计、关键帧构图与镜头拆解，建立统一的二维手绘插画风格。',
+      ),
+    ],
+  },
+  {
+    id: 'long-wait',
+    title: L('The Long Wait', '漫长的等待'),
+    medium: 'video',
+    coverImg: '/works/漫长的等待封面.png',
+    tags: [],
+    field: {},
+    body: [],
+  },
+  {
+    id: 'childhood-dreams-part-one',
+    title: L('Childhood Dreams (Part 1)', '童年梦想（上）'),
+    medium: 'video',
+    coverImg: '/works/童年梦想（上）.jpg',
+    tags: [],
+    field: {},
+    body: [],
+  },
+  {
+    id: 'princess-of-discarded-things',
+    title: L('The Princess of Discarded Things', '废弃物的公主'),
+    medium: 'video',
+    coverImg: '/works/废弃物的公主封面.png',
+    tags: [],
+    field: {},
+    body: [],
+  },
+  {
+    id: 'poetic-campus-shots',
+    title: L('Poetic Campus Shots', '诗意校园镜头'),
+    medium: 'video',
+    coverImg: '/works/诗意校园镜头封面.png',
+    tags: [],
+    field: {},
+    body: [],
+  },
+  {
+    id: 'seventeen-years-video-essay',
+    title: L('Seventeen Years: A Video Essay', '张元《过年回家》电影解读'),
+    medium: 'video-essay',
+    coverImg: '/works/过年回家解说封面.jpg',
+    tags: [],
+    field: {},
+    body: [],
+  },
+  {
+    id: 'spiral-of-silence',
+    title: L('The Spiral of Silence in 30 Seconds', '30 秒概念科普：沉默的螺旋'),
+    medium: 'science',
+    coverImg: '/works/30秒沉默的螺旋封面.png',
+    tags: [],
+    field: {},
+    body: [],
+  },
+  {
+    id: 'zju-sound-map',
+    title: L('Zhejiang University Sound Map', '浙大声音地图'),
+    medium: 'web',
+    coverImg: '/works/声音地图交互网站封面.png',
+    summary: L(
+      'An interactive sound map of Zijingang Campus.',
+      '浙江大学紫金港校区的在线交互声音地图。',
+    ),
+    tags: [],
+    field: {},
+    body: [],
+  },
+  {
+    id: 'personal-website-template',
+    title: L('Personal Website Template', '个人网站模板'),
+    medium: 'web',
+    coverImg: '/works/个人网站模板封面.png',
+    summary: L(
+      'A bilingual portfolio template with content and style editors.',
+      '带内容编辑器和风格编辑器的双语作品集网站模板。',
+    ),
+    tags: [],
+    field: {},
+    body: [],
+  },
+  {
+    id: 'yuyin-game-demo',
+    title: L('Yuyin: Gameplay Demo', '余音'),
+    subtitle: L('Gameplay demo', '实机演示'),
+    medium: 'game',
+    coverImg: '/works/余音实机演示.png',
+    tags: [],
+    field: {},
+    body: [],
+  },
 ]
 
 export const BOOKS = []

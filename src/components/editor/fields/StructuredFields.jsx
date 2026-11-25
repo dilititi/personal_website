@@ -57,6 +57,7 @@ export function ObjectArrayField({
   }
   const add = presetGroup => {
     const empty = createEmpty(itemSchema)
+    assignGeneratedId(empty)
     if (groupBy && presetGroup !== undefined) empty[groupBy] = presetGroup
     onChange([...arr, empty])
     setExpanded(e => ({ ...e, [arr.length]: true }))
@@ -64,9 +65,14 @@ export function ObjectArrayField({
   const addTemplate = template => {
     onTemplateApply?.(template.label)
     const item = deepClone(template.value)
+    assignGeneratedId(item)
     if (groupBy && !item[groupBy]) item[groupBy] = Object.keys(groupLabels || {})[0] || ''
     onChange([...arr, item])
     setExpanded(e => ({ ...e, [arr.length]: true }))
+  }
+  const assignGeneratedId = item => {
+    const idField = Array.isArray(itemSchema) && itemSchema.find(field => field.generateId)
+    if (idField) item[idField.key] = `work-${crypto.getRandomValues(new Uint32Array(2)).join('-')}`
   }
   const move = (i, dir) => {
     const j = i + dir
