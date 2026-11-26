@@ -82,7 +82,8 @@ export async function uploadProjectVideo(job, options) {
         throw new Error(`Video part ${partNumber} could not be uploaded (HTTP ${response.status}).`)
       }
       const etag = response.headers.get('etag')?.replace(/^"|"$/g, '')
-      if (!etag) throw new Error('R2 did not expose the part ETag. Check the bucket CORS settings.')
+      if (!etag)
+        throw new Error('The bucket did not expose the part ETag. Check its CORS settings.')
       job.parts.set(partNumber, etag)
       onProgress?.(job.parts.size, total)
       break

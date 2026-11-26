@@ -158,9 +158,40 @@ npm run dev
 
 生产上传和内容发布使用同一份 owner / repository / branch 配置。图片会先在浏览器生成响应式尺寸，再逐个写入仓库；提交后需等待静态托管重新部署才能从线上 URL 访问。
 
-### 项目视频最高 1 GB（R2 直传）
+### 项目视频最高 1 GB
 
 作品集可配置独立的视频上传服务。配置后，在「内容 → 作品集 → 项目视频」选择 MP4，输入媒体上传密钥并点「上传视频」。编辑器自动填入播放地址，点「发布内容」后访客即可在作品弹窗中播放。GitHub 只提交作品数据和播放 URL。单文件上限为 1,000,000,000 字节，超限请先用达芬奇或 FFmpeg 压缩。保持编辑器开启时，「继续上传」会跳过已完成的分片。
+
+#### 阿里云 OSS
+
+1. 保持 `websitemp4` **私有**且开启「阻止公共访问」。在 OSS 文件列表新建 `public-videos` 目录，只存放准备在作品集发布的素材。已上传的旧视频不用搬动。
+2. 创建独立 RAM 用户，不用主账号 AccessKey。编辑授予 Render 专用用户的只读策略，在 `oss:GetObject` 的 `Resource` 列表中**保留所有旧视频路径**，另追加 `"acs:oss:*:*:websitemp4/public-videos/*"`。不需要授予列出存储桶或写入权限。后续手动上传到此目录时，不需要再逐条修改 RAM 策略。
+3. 在 Render 用同一个仓库新建 **Node Web Service**，保留原静态站不动。构建命令 `npm ci`，启动命令 `node services/start-oss-media.js`，健康检查路径 `/healthz`。在这个新服务的环境变量里配置下表。
+
+| 变量                                         | 值                                                                                                                  |
+| -------------------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
+| `OSS_BUCKET`                                 | `websitemp4`                                                                                                        |
+| `OSS_REGION`                                 | 当前杭州 Bucket 填 `oss-cn-hangzhou`；换 Bucket 时以控制台地域为准                                                  |
+| `OSS_ACCESS_KEY_ID`、`OSS_ACCESS_KEY_SECRET` | 上一步的 RAM 用户凭证，只放这个服务的环境变量中                                                                     |
+| `MEDIA_UPLOAD_KEY`                           | 独立随机密钥，至少 32 字符；供站内上传时使用，不是 GitHub Token                                                     |
+| `MEDIA_ALLOWED_ORIGINS`                      | `https://personal-website-x3u4.onrender.com`；多个用逗号隔开，不带路径或结尾斜杠                                    |
+| `OSS_CUSTOM_ENDPOINT`                        | 默认留空。若地域或账号受默认公网入口限制，填写已绑定到该 Bucket 且证书有效的 HTTPS OSS 自定义域名                   |
+| `MEDIA_PUBLIC_BASE_URL`                      | 默认使用 Render 自动提供的服务地址。仅在使用自己绑定到此 Render 服务的播放域名时填写 HTTPS 地址                     |
+| `OSS_PLAYBACK_ALIASES`                       | 用于发布手动上传的 MP4，例如 `{"short-film.mp4":"public-videos/短片.mp4"}`，键为公开文件名，值为准确的 OSS 对象路径 |
+
+4. 为已上传的 MP4 设置播放别名，保存并重新部署视频服务。按上面的示例在无痕窗口测试 `https://新视频服务地址/videos/short-film.mp4` 能播放、拖动进度条，再把该地址填入对应作品的「项目视频」并发布。知道播放地址的人均可播放。不要把 OSS 临时签名链接填进作品。
+
+仅播放已上传的视频，不需要配置 OSS 跨域或修改原静态站的环境变量。后续要开启站内直传，再完成下列步骤：
+
+1. 为 Render 专用用户增加一条只针对 `acs:oss:*:*:websitemp4/works/*` 的授权：`oss:PutObject`、`oss:GetObject`、`oss:AbortMultipartUpload`、`oss:DeleteObject`。最后一项用于清理字节数不匹配的对象。`works/` 是站内直传专用目录，不要往里面上传私密素材。
+2. 在 OSS 的跨域规则中将来源设为 `https://personal-website-x3u4.onrender.com`，允许 `PUT` 和 `Content-Type`，暴露 `ETag`。如需在本地上传，另加本地开发 origin。建议对 `works/` 开启 2 天后清理未完成分片的规则。
+3. 在**原静态站**设置 `VITE_WORK_MEDIA_UPLOAD_URL=https://新视频服务地址/upload` 并重新部署。用一段小 MP4 测试站内上传和发布；站内直传自动生成播放地址，不用手动添加别名。未添加此变量时，原上传方式不变。
+
+服务只处理上传授权和播放请求，上传字节直接到 OSS；播放字节经 Render 转发并支持 Range。播放会使用 OSS 公网流量及 Render 的出站流量。Render 免费服务可能休眠，也可能因大量访问外部对象存储而暂停，适合低流量试用；流量大时优先考虑有独立域名的 CDN。参见 [Render 免费服务限制](https://render.com/docs/free#service-initiated-traffic-threshold)。
+
+杭州 Bucket 没有自有域名时，先用「外网域名 + 继承 Bucket」上传一个小 MP4，确认默认入口是否可用。若返回 `PublicEndpointForbidden`，这不是对象公开权限的问题：从 2025 年 3 月 20 日起开通 OSS 的账号，在中国内地使用数据接口有默认公网入口限制。可给原 Bucket 绑定自有已备案的 HTTPS 域名，或在中国香港新建私有 Bucket 并使用该 Bucket 的默认入口。Render 提供的 `onrender.com` 子域名不能拿去绑定 OSS。参见[阿里云限制公告](https://www.alibabacloud.com/en/notice/oss_update_notice_policy_change_in_calling_data_api_operations_via_the_default_public_domain_name_45a?_p_lc=1)。
+
+#### Cloudflare R2
 
 1. 在 Cloudflare 创建 R2 bucket，为公开视频配置可访问的 HTTPS 域名。编辑 `workers/wrangler.video.toml`，在绑定与 `R2_BUCKET_NAME` 中填写同一个 bucket，设置账户 ID、播放域名与允许上传的站点 origin（不含路径或尾部斜杠，多个用逗号分隔）。
 2. 在 R2 bucket 设置 CORS，允许来自作品集站点的 `PUT`、`Content-Type`，并暴露 `ETag`。播放域名应可匿名 GET 视频并支持 Range 请求。保留中断的分片上传清理规则。
