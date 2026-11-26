@@ -54,6 +54,31 @@ function fixture(overrides = {}) {
 }
 
 describe('OSS video service', () => {
+  it('plays configured videos without an upload key or allowed upload origins', async () => {
+    const { service, client } = fixture({
+      MEDIA_UPLOAD_KEY: undefined,
+      MEDIA_ALLOWED_ORIGINS: undefined,
+    })
+    expect((await service(new Request(`${media}/healthz`))).status).toBe(204)
+    const video = await service(new Request(`${media}/videos/spiral.mp4`, { method: 'HEAD' }))
+    expect(video.status).toBe(200)
+    for (const method of ['POST', 'OPTIONS']) {
+      const response = await service(
+        new Request(`${media}/upload`, {
+          method,
+          headers: { Origin: origin, Authorization: `Bearer ${uploadKey}` },
+        }),
+      )
+      expect(response.status).toBe(404)
+    }
+    expect(client.initMultipartUpload).not.toHaveBeenCalled()
+  })
+
+  it('does not enable uploads with a weak key or missing allowed origins', () => {
+    expect(() => fixture({ MEDIA_UPLOAD_KEY: 'short' })).toThrow(/MEDIA_UPLOAD_KEY/)
+    expect(() => fixture({ MEDIA_ALLOWED_ORIGINS: undefined })).toThrow(/MEDIA_ALLOWED_ORIGINS/)
+  })
+
   it('accepts the existing editor upload protocol and returns a durable URL', async () => {
     const { service, client } = fixture()
     const file = new Blob([new Uint8Array(32)], { type: 'video/mp4' })

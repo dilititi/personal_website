@@ -132,10 +132,13 @@ export function createOssMediaService(env, { client, fetchObject = fetch, onErro
   for (const name of ['OSS_BUCKET', 'OSS_REGION', 'OSS_ACCESS_KEY_ID', 'OSS_ACCESS_KEY_SECRET']) {
     if (!env[name]?.trim()) throw new Error(`Missing ${name}.`)
   }
-  if (!env.MEDIA_UPLOAD_KEY || env.MEDIA_UPLOAD_KEY.length < 32) {
+  const uploadEnabled = Boolean(env.MEDIA_UPLOAD_KEY)
+  if (uploadEnabled && env.MEDIA_UPLOAD_KEY.trim().length < 32) {
     throw new Error('MEDIA_UPLOAD_KEY must be at least 32 characters.')
   }
-  if (!env.MEDIA_ALLOWED_ORIGINS?.trim()) throw new Error('Missing MEDIA_ALLOWED_ORIGINS.')
+  if (uploadEnabled && !env.MEDIA_ALLOWED_ORIGINS?.trim()) {
+    throw new Error('Missing MEDIA_ALLOWED_ORIGINS.')
+  }
   const base = mediaPublicBase(env.MEDIA_PUBLIC_BASE_URL || env.RENDER_EXTERNAL_URL)
   if (new URL(base).origin !== base) {
     throw new Error('MEDIA_PUBLIC_BASE_URL must be the HTTPS origin of the media service.')
@@ -154,18 +157,19 @@ export function createOssMediaService(env, { client, fetchObject = fetch, onErro
     secure: true,
     ...(endpoint && { endpoint: endpoint.origin, cname: true }),
   })
-  const storage = ossStorage(client || signer, signer, env.OSS_ACCESS_KEY_SECRET)
-  const upload = createMediaUploadHandler(
-    { ...env, MEDIA_PUBLIC_BASE_URL: base },
-    () => storage,
-    onError,
-  )
+  const upload = uploadEnabled
+    ? createMediaUploadHandler(
+        { ...env, MEDIA_PUBLIC_BASE_URL: base },
+        () => ossStorage(client || signer, signer, env.OSS_ACCESS_KEY_SECRET),
+        onError,
+      )
+    : null
 
   return async request => {
     const path = new URL(request.url).pathname
     const canRead = request.method === 'GET' || request.method === 'HEAD'
     if (path === '/healthz' && canRead) return new Response(null, { status: 204 })
-    if (path === '/upload') return upload(request)
+    if (path === '/upload' && upload) return upload(request)
     const alias = aliases.get(path)
     const key = alias ?? (uploadedPath.test(path) ? path.slice(1) : undefined)
     if (!key) return new Response(null, { status: 404 })
